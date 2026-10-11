@@ -51,7 +51,7 @@ build time listing every repo, path, commit and licence used.
 | source | licence | why | notes |
 |---|---|---|---|
 | Exercism exercise repos (`exercism/<lang>`) | MIT | small idiomatic files in 70+ languages, consistent style | example solutions and stubs; ideal first source |
-| Author's own code (dotfiles, inkmd.nvim) | own | Lua content, zero licence risk | bootstraps the Lua track |
+| Author's own Python and C++ code | own | realistic, zero licence risk | bootstraps the Python and C++ tracks |
 | Selected MIT/Apache-2.0/BSD repos per language | permissive | realistic production code | keep an allowlist; check `LICENSE` at the pinned commit |
 | vimhjkl challenges (MIT, 230, skill-tagged) | MIT | ready-made drills, already verified against Vim | attribute; partially LLM-generated, so review before import |
 | Vimtutor Sequel, OpenVim, VimMaster content | MIT | motion drills | attribute |
