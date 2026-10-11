@@ -32,3 +32,4 @@ keybr for Vim: adaptive drills on real code that find your weakest motion and fi
 - 07-monetization.md
 - 08-roadmap.md
 - 09-open-questions.md
+- 10-ux.md
