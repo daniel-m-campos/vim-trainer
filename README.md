@@ -18,3 +18,4 @@ Status: **planning**. No code yet. The first user is the author, who is learning
 2. Free core, no ads in the practice loop. A one-time lifetime "pro" later, never a subscription.
 3. Real Vim is the oracle: every exercise's par is verified with `nvim --headless`.
 4. Content from real code, per language, under permissive licences with attribution.
+5. Tooling in Python (the author's language); only the browser app is TypeScript.

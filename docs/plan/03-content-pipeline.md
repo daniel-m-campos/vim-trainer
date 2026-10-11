@@ -65,35 +65,43 @@ node. Strip or shorten licence headers and author comments from the snippet itse
 
 ## From code to exercises: tree-sitter
 
-The generator is a Lua script run under `nvim --headless`, using Neovim's built-in
-tree-sitter. For each snippet it parses the file and walks the syntax tree, mapping node
-types to skill nodes.
+The generator is a Python package (`py-tree-sitter` with the per-language grammar
+wheels, e.g. `tree-sitter-python`, `tree-sitter-cpp`). For each snippet it parses the
+file and walks the syntax tree, mapping node types to skill nodes. Neovim is only used
+as a subprocess oracle (below); no Lua is written beyond a ~50-line `oracle.lua`.
+
+The author writes Python and C++, so the pipeline, review CLI and oracle driver are
+Python. The browser app is necessarily TypeScript (see 06-tech-stack.md).
 
 ### Node → skill mapping (per language, declarative)
 
-```lua
--- content/lang/typescript.lua
-return {
-  grammar = 'typescript',
-  nodes = {
-    string = { skills = { 't.quote' }, templates = { 'change_inner', 'delete_inner', 'yank_inner' } },
-    template_string = { skills = { 't.quote' }, templates = { 'change_inner' } },
-    arguments = { skills = { 't.paren', 'm.find' }, templates = { 'change_nth_arg', 'delete_all_args', 'jump_to_close' } },
-    statement_block = { skills = { 't.brace', 'm.match', 'o.indent' }, templates = { 'delete_block', 'indent_block', 'jump_match' } },
-    array = { skills = { 't.bracket' }, templates = { 'change_inner', 'delete_nth_item' } },
-    comment = { skills = { 'm.find', 'o.delete', 'nv.comment' }, templates = { 'delete_trailing_comment', 'toggle_comment' } },
-    identifier = { skills = { 't.word', 'o.change', 'x.subst', 'a.dot' }, templates = { 'rename_here', 'rename_all_dot', 'rename_all_subst' } },
-    type_arguments = { skills = { 't.angle' }, templates = { 'change_inner' } },
-    jsx_element = { skills = { 't.tag' }, templates = { 'change_inner', 'delete_around' } },
-    import_statement = { skills = { 'x.copymove', 'o.yank' }, templates = { 'move_line_up', 'duplicate_line' } },
-  },
-  find_targets = { '(', ')', '=', '.', ';', ',', '{', '}' },  -- for m.find drills
-  comment_leader = '//',
-}
+```python
+# content/lang/python.py
+LANG = Language(
+    grammar="python",
+    nodes={
+        "string":             Map(skills=["t.quote"], templates=["change_inner", "delete_inner", "yank_inner"]),
+        "argument_list":      Map(skills=["t.paren", "m.find"], templates=["change_nth_arg", "delete_all_args", "jump_to_close"]),
+        "keyword_argument":   Map(skills=["m.find", "o.change"], templates=["change_kwarg_value"]),
+        "list":               Map(skills=["t.bracket"], templates=["change_inner", "delete_nth_item"]),
+        "dictionary":         Map(skills=["t.brace"], templates=["change_inner", "delete_nth_item"]),
+        "block":              Map(skills=["t.para", "o.indent", "m.para"], templates=["indent_block", "delete_block", "jump_block_end"]),
+        "comment":            Map(skills=["m.find", "o.delete", "nv.comment"], templates=["delete_trailing_comment", "toggle_comment"]),
+        "identifier":         Map(skills=["t.word", "o.change", "x.subst", "a.dot"], templates=["rename_here", "rename_all_dot", "rename_all_subst"]),
+        "decorator":          Map(skills=["o.delete", "x.copymove"], templates=["delete_line", "move_line_down"]),
+        "import_from_statement": Map(skills=["x.copymove", "o.yank"], templates=["move_line_up", "duplicate_line"]),
+    },
+    find_targets=["(", ")", "=", ":", ",", ".", "["],   # for m.find drills
+    comment_leader="#",
+)
+
+# content/lang/cpp.py adds: call_expression/argument_list, compound_statement (t.brace, m.match),
+# template_argument_list (t.angle), string_literal, raw_string_literal, preproc_include,
+# namespace_definition, field_expression (`.`/`->` for m.find), comment_leader="//".
 ```
 
-Grammars for v1: lua, python, typescript, javascript, tsx, java, c, go, rust, html,
-json, yaml, markdown. All ship with Neovim or `nvim-treesitter`.
+Grammars for v1: python, cpp, c, typescript, javascript, tsx, java, go, rust, lua,
+html, json, yaml, markdown. All are published as `tree-sitter-<lang>` PyPI wheels.
 
 ### Templates
 
@@ -141,10 +149,15 @@ nvim --headless --clean -u content/oracle.lua \
   -c 'lua Oracle.run("build/exercises/ts/t.quote/0193.json")'
 ```
 
-`oracle.lua` loads `start.lines`, places the cursor, feeds the solution with
-`nvim_feedkeys` (or `nvim_input`), then compares the buffer to `expect.lines` (or the
-cursor to `expect.cursor`). It records the Neovim version and date in `par.verified`.
-Exercises whose canonical solution fails are rejected at build time, never shipped.
+`oracle.lua` (the one Lua file, ~50 lines) loads `start.lines`, places the cursor,
+feeds the solution with `nvim_feedkeys` (or `nvim_input`), then writes the resulting
+buffer and cursor as JSON to stdout. The Python driver (`oracle.py`) spawns one
+`nvim --headless` per batch of exercises via `subprocess`, parses the JSON and compares
+to `expect`. It records the Neovim version and date in `par.verified`. Exercises whose
+canonical solution fails are rejected at build time, never shipped.
+
+Alternative to evaluate: `pynvim` over msgpack-RPC to a single long-lived headless
+Neovim, which avoids process startup per batch and gives direct buffer access.
 
 The oracle also **searches for a better par**: it tries a small library of candidate
 idioms for the skill and keeps the shortest that passes. If a human-written canonical
@@ -187,8 +200,8 @@ importance factor per skill.
 
 ## Human review
 
-Generated exercises are not shipped unreviewed. A review CLI shows start → expect →
-canonical, with accept / reject / edit. Accepted exercise ids go in a `reviewed.txt`
+Generated exercises are not shipped unreviewed. A Python review CLI (Textual or plain
+curses) shows start → expect → canonical, with accept / reject / edit. Accepted exercise ids go in a `reviewed.txt`
 allowlist. The author reviews the first corpus; this is also Vim practice.
 
 LLM assistance is allowed for writing task descriptions and hints only, never for
@@ -212,14 +225,19 @@ per non-zero (language, skill) pair for the v1 languages, so roughly 10k exercis
 
 ## Bootstrapping order
 
-1. Lua from the author's own code, 10 skills, 5 templates, Neovim oracle only. Proves
-   the tree-sitter → template → oracle loop.
-2. TypeScript and Python from Exercism, same skills, add emulator oracle.
-3. Expand templates to tiers 7–8. Import and review vimhjkl.
-4. Remaining languages are grammar + mapping + weights.
+1. Python from the author's own code and `exercism/python`, 10 skills, 5 templates,
+   Neovim oracle only. Proves the tree-sitter → template → oracle loop in the language
+   the author reads fastest, so review is cheap.
+2. C++ from the author's own code and `exercism/cpp`. Adds brace/angle/`%`-heavy
+   skills that Python lacks, which exercises the per-language weight machinery.
+3. TypeScript from `exercism/typescript` (the Switcher persona's main language); add
+   the emulator oracle.
+4. Expand templates to tiers 7–8. Import and review vimhjkl.
+5. Remaining languages are grammar + mapping + weights.
 
 ## To research
 
+- `pynvim` RPC vs `subprocess` per batch for the oracle (startup cost vs simplicity).
 - Exact `nvim_feedkeys` vs `nvim_input` semantics for replaying `<Esc>`, counts and
   `:` commands deterministically in headless mode; whether `--clean` disables anything
   the exercises need (e.g. `filetype` for `gcc`).
