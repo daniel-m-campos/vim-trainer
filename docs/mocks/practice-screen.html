@@ -1,0 +1,136 @@
+<title>Vim Trainer Practice</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one fixed-height instrument panel; header / task / editor / footer stacked, no chrome. Dark only (v1 decision). */
+:root {
+  --bg: #0f1216;        /* blue-black ground */
+  --panel: #151a20;     /* editor surface */
+  --rule: #242b34;      /* hairlines */
+  --fg: #d6dbe1;        /* body text */
+  --muted: #7d8794;     /* secondary text, line numbers */
+  --accent: #d9a553;    /* amber: target highlight, focus */
+  --accent-tint: rgba(217,165,83,.16);
+  --mode: #6fb3c9;      /* teal: mode indicator */
+  --pass: #7fbf7f;
+  --fail: #d98a7a;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 var(--sans); }
+.app { max-width: 1040px; margin: 0 auto; padding-block: 20px; padding-inline: 16px; display: grid; gap: 0; grid-template-rows: auto auto 1fr auto; min-height: 100%; box-sizing: border-box; }
+.hdr { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: baseline; padding: 6px 2px 12px; border-bottom: 1px solid var(--rule); font-size: 13px; color: var(--muted); }
+.hdr .brand { color: var(--fg); font-weight: 600; letter-spacing: .02em; }
+.hdr .focus { color: var(--fg); }
+.hdr .focus code { color: var(--accent); }
+.hdr .nav { margin-left: auto; display: flex; gap: 14px; }
+kbd { font: 12px var(--mono); color: var(--fg); background: var(--panel); border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; }
+code { font-family: var(--mono); font-size: .93em; }
+.task { padding: 18px 2px 14px; font-size: 17px; }
+.task .lit { font-family: var(--mono); font-size: .9em; background: var(--panel); border: 1px solid var(--rule); border-radius: 4px; padding: 1px 6px; }
+.editor { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; display: grid; grid-template-rows: 1fr auto; min-width: 0; }
+.code { overflow-x: auto; padding: 14px 0; font: 14.5px/1.6 var(--mono); }
+.line { display: grid; grid-template-columns: 3.2em 1fr; white-space: pre; }
+.ln { text-align: right; padding-right: 1.2em; color: var(--muted); user-select: none; font-variant-numeric: tabular-nums; }
+.ln.cur { color: var(--fg); }
+.line.cur { background: rgba(255,255,255,.025); }
+.k { color: #c792ea; } .fn { color: #82aaff; } .s { color: #c3e88d; } .n { color: #f78c6c; } .c { color: var(--muted); font-style: italic; }
+.target { background: var(--accent-tint); box-shadow: inset 0 -2px 0 var(--accent); border-radius: 2px; }
+.cursor { background: var(--fg); color: var(--panel); }
+.modeline { display: flex; gap: 16px; align-items: center; padding: 6px 12px; border-top: 1px solid var(--rule); font: 12.5px var(--mono); color: var(--muted); }
+.mode { color: var(--bg); background: var(--mode); font-weight: 500; padding: 1px 9px; border-radius: 3px; letter-spacing: .06em; }
+.mode.insert { background: var(--pass); } .mode.visual { background: var(--accent); }
+.modeline .pos { margin-left: auto; font-variant-numeric: tabular-nums; }
+.foot { min-height: 92px; padding: 14px 2px 0; display: grid; align-content: start; }
+.skill { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; font-size: 13.5px; color: var(--muted); }
+.skill code { color: var(--fg); font-size: 14px; }
+.bar { width: 120px; height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 71%; background: var(--accent); }
+.skill .keys { margin-left: auto; display: flex; gap: 14px; }
+.result { display: grid; gap: 8px; font-size: 14px; }
+.result .row1 { display: flex; flex-wrap: wrap; gap: 6px 22px; align-items: baseline; }
+.ok { color: var(--pass); font-weight: 600; }
+.you code, .par code { background: var(--panel); border: 1px solid var(--rule); border-radius: 4px; padding: 1px 6px; }
+.par code { border-color: var(--accent); }
+.dim { color: var(--muted); }
+.hint { color: var(--fg); }
+.hint::before { content: 'hint  '; color: var(--muted); letter-spacing: .08em; font-size: 12px; text-transform: uppercase; }
+.result .keys { display: flex; gap: 14px; color: var(--muted); font-size: 13px; }
+.toggle { position: fixed; right: 16px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); font: 12px var(--sans); color: var(--muted); background: var(--panel); border: 1px solid var(--rule); border-radius: 20px; padding: 6px 12px; cursor: pointer; }
+.toggle:focus-visible, .nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.nav a { color: inherit; text-decoration: none; }
+@media (max-width: 560px) { .task { font-size: 15.5px; } .bar { width: 80px; } .skill .keys { margin-left: 0; } }
+@media (prefers-reduced-motion: no-preference) { .foot > * { animation: in .12s ease-out; } @keyframes in { from { opacity: .4 } to { opacity: 1 } } }
+</style>
+
+<div class="app">
+  <header class="hdr">
+    <span class="brand">vim-trainer</span>
+    <span>python &middot; neovim</span>
+    <span class="focus">focus: <code>ci"</code> &nbsp;strings</span>
+    <nav class="nav"><a href="#stats"><kbd>s</kbd> stats</a><a href="#settings"><kbd>,</kbd> settings</a></nav>
+  </header>
+
+  <p class="task" id="task">Change the string passed to <span class="lit">logger.warn</span> to <span class="lit">retrying</span></p>
+
+  <section class="editor" aria-label="editor">
+    <div class="code" id="code">
+<div class="line"><span class="ln">5</span><span><span class="k">def</span> <span class="fn">fetch</span>(url, attempts=<span class="n">3</span>):</span></div>
+<div class="line"><span class="ln">4</span><span>    <span class="k">for</span> i <span class="k">in</span> <span class="fn">range</span>(attempts):</span></div>
+<div class="line"><span class="ln">3</span><span>        <span class="k">try</span>:</span></div>
+<div class="line"><span class="ln">2</span><span>            <span class="k">return</span> <span class="fn">get</span>(url)</span></div>
+<div class="line"><span class="ln">1</span><span>        <span class="k">except</span> Timeout:</span></div>
+<div class="line cur"><span class="ln cur">6</span><span>            logger.<span class="fn">warn</span>(<span class="s target">"timeout<span class="cursor">,</span> trying again"</span>)</span></div>
+<div class="line"><span class="ln">1</span><span>            <span class="fn">sleep</span>(<span class="n">2</span> ** i)</span></div>
+<div class="line"><span class="ln">2</span><span>    <span class="k">raise</span> GiveUp(url)  <span class="c"># caller decides</span></span></div>
+    </div>
+    <div class="modeline"><span class="mode" id="mode">NORMAL</span><span>exercise 14 of session</span><span class="pos">6:28</span></div>
+  </section>
+
+  <footer class="foot" id="foot">
+    <div class="skill" id="solving">
+      <code>ci"</code>
+      <span class="bar" aria-label="confidence 0.71"><i></i></span>
+      <span>confidence 0.71</span>
+      <span>12 reps</span>
+      <span>trend &uarr;</span>
+      <span class="keys"><span><kbd>?</kbd> hint</span><span><kbd>Esc</kbd><kbd>Esc</kbd> skip</span></span>
+    </div>
+    <div class="result" id="result" hidden>
+      <div class="row1">
+        <span class="ok">&#10003; correct</span>
+        <span class="you">you <code>f"ci"retrying&lt;Esc&gt;</code> <span class="dim">16 keys &middot; 4.2 s</span></span>
+        <span class="par">par <code>ci"retrying&lt;Esc&gt;</code> <span class="dim">12</span></span>
+      </div>
+      <div class="hint"><code>ci"</code> works from anywhere inside the quotes, so the <code>f"</code> was unnecessary.</div>
+      <div class="keys"><span><kbd>space</kbd> next</span><span><kbd>r</kbd> retry</span><span><kbd>p</kbd> replay par</span><span><kbd>q</kbd> end session</span></div>
+    </div>
+  </footer>
+</div>
+<button class="toggle" id="toggle" type="button">press space to toggle result strip</button>
+
+<script>
+(function () {
+  var solving = document.getElementById('solving'), result = document.getElementById('result');
+  var mode = document.getElementById('mode'), task = document.getElementById('task'), code = document.getElementById('code');
+  var showing = false;
+  function flip() {
+    showing = !showing;
+    solving.hidden = showing; result.hidden = !showing;
+    if (showing) {
+      code.querySelector('.target').innerHTML = '"retryin<span class="cursor">g</span>"';
+      mode.textContent = 'NORMAL'; mode.className = 'mode';
+    } else {
+      code.querySelector('.target').innerHTML = '"timeout<span class="cursor">,</span> trying again"';
+    }
+  }
+  document.getElementById('toggle').addEventListener('click', flip);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === ' ') { e.preventDefault(); flip(); }
+    if (e.key === 'i' && !showing) { mode.textContent = 'INSERT'; mode.className = 'mode insert'; }
+    if (e.key === 'v' && !showing) { mode.textContent = 'VISUAL'; mode.className = 'mode visual'; }
+    if (e.key === 'Escape') { mode.textContent = 'NORMAL'; mode.className = 'mode'; }
+  });
+})();
+</script>
