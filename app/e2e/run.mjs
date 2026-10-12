@@ -228,6 +228,12 @@ for (const [engine, type] of Object.entries(engines)) {
     check(engine, "tab switches to sessions", (await text(page, "#page")).includes("no sessions yet") || (await page.locator("table.sv-sessions").count()) === 1);
     await page.keyboard.press("Tab");
     check(engine, "tab cycles back to skills", (await page.locator('.sv[data-tab="skills"]').count()) === 1);
+    // A click on the tab already showing must not leave focus on a button (keys aimed at a button are dropped).
+    await page.locator('.sv-tab[data-tab="skills"]').click();
+    await page.keyboard.press("2");
+    check(engine, "keys still switch tabs after clicking the active tab", (await page.locator('.sv[data-tab="progress"]').count()) === 1,
+      await page.evaluate(() => document.activeElement?.tagName));
+    await page.keyboard.press("1");
     const savedState = await page.evaluate(() => JSON.parse(localStorage.getItem("vim-trainer.v1") ?? "null"));
     check(engine, "state saved to localStorage with placement done", savedState?.placementDone === true && savedState.model.log.length >= 3,
       JSON.stringify(savedState?.model?.log?.length));
@@ -265,6 +271,14 @@ for (const [engine, type] of Object.entries(engines)) {
     check(engine, "settings links ATTRIBUTION.md", !!href && href.endsWith("ATTRIBUTION.md"), String(href));
     await page.keyboard.press("Escape");
     check(engine, "Esc returns to the summary", (await text(page, "#page")).includes("Session done"));
+    // Stats opened from settings: Esc goes back to settings, then to the summary.
+    await page.keyboard.press(",");
+    await page.locator("#nav-stats").click();
+    await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("Stats"));
+    await page.keyboard.press("Escape");
+    check(engine, "Esc from stats opened in settings returns to settings", (await text(page, "#page")).includes("Settings"), await text(page, "#page"));
+    await page.keyboard.press("Escape");
+    check(engine, "then Esc returns to the summary", (await text(page, "#page")).includes("Session done"), await text(page, "#page"));
 
     // Reload keeps state and goes straight to practice.
     await page.reload();

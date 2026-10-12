@@ -7,7 +7,8 @@
 #   make content  rebuild build/ (needs nvim) and replay every par in the browser
 #   make dev      run the app at http://localhost:5173/
 #   make test     unit tests: content, model (Python and TS mirror), app grading, typecheck
-#   make e2e      Playwright: the sample flow, a 15-exercise session on build/, the stats demo
+#   make e2e      Playwright: the sample flow, a 15-exercise session on build/, the stats demo,
+#                 editor regressions checked against nvim
 #
 # Browsers live in app/node_modules (PLAYWRIGHT_BROWSERS_PATH=0), nothing global.
 
@@ -18,7 +19,7 @@ CHECK_DIR := content/.cache/build-check
 .PHONY: setup content content-check dev test test-content test-model test-app e2e e2e-all emulator build clean help
 
 help:
-	@sed -n '1,14p' Makefile
+	@sed -n '1,15p' Makefile
 
 setup:
 	@command -v uv >/dev/null || { echo "uv is missing: brew install uv"; exit 1; }
@@ -67,11 +68,13 @@ e2e:
 	cd app && npm run e2e
 	cd app && npm run e2e:session
 	cd app && npm run e2e:stats
+	cd app && npm run e2e:editor
 
 # All three engines (run `make setup BROWSERS="chromium firefox webkit"` first).
 e2e-all:
 	cd app && npm run e2e -- --all
 	cd app && npm run e2e:session -- --all
+	cd app && npm run e2e:editor -- --all
 
 # Report-only replay of every par and alternate in the browser.
 emulator:

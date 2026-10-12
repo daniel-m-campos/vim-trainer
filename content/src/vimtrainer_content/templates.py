@@ -1401,9 +1401,12 @@ def _cells(win: Window, node: tree_sitter.Node) -> set[tuple[int, int]]:
 
 
 def _is_member(node: tree_sitter.Node) -> bool:
-    """True for ``b`` in ``a.b``: renaming one attribute use in place is rarely a real edit."""
+    """True for ``b`` in ``a.b`` (``a->b`` in C++): renaming one member use in place is rarely a real edit."""
     parent = node.parent
-    return parent is not None and parent.type == "attribute" and parent.child_by_field_name("attribute") == node
+    if parent is None:
+        return False
+    field = {"attribute": "attribute", "field_expression": "field"}.get(parent.type)
+    return field is not None and parent.child_by_field_name(field) == node
 
 
 def _seen(win: Window, kind: str, name: str) -> bool:
@@ -1433,8 +1436,13 @@ def _role(node: tree_sitter.Node | None, name: str) -> str:
     if parent is not None:
         if parent.type in ("function_definition", "class_definition") and parent.child_by_field_name("name") == node:
             return "call" if parent.type == "function_definition" else "class"
-        if parent.type == "call" and parent.child_by_field_name("function") == node:
+        if parent.type == "function_declarator" and parent.child_by_field_name("declarator") == node:
+            return "call"  # C++: the name in `int area(int w)`, definition or declaration
+        if parent.type in ("call", "call_expression") and parent.child_by_field_name("function") == node:
             return "class" if name[:1].isupper() and not name.isupper() else "call"
+        if (parent.type == "field_expression" and parent.child_by_field_name("field") == node and parent.parent is not None
+                and parent.parent.type == "call_expression" and parent.parent.child_by_field_name("function") == parent):
+            return "call"  # C++: the method in `obj.size()`
     if name[:1].isupper() and not name.isupper():
         return "class"
     parts = [p.lower() for p in re.findall(r"[A-Z]+(?![a-z])|[A-Z]?[a-z0-9]+", name)]

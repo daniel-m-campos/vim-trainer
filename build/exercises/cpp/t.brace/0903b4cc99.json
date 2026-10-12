@@ -3,7 +3,7 @@
   "skill": "t.brace",
   "lang": "cpp",
   "kind": "edit",
-  "task": "Delete the 10 lines inside the braces of `for (auto unit : units) {`, keeping the { and }",
+  "task": "Delete the 10 lines inside the braces of `for (auto unit : units) {`, keeping the `{` and `}` lines",
   "start": {
     "lines": [
       "const number_t one_trillion{one_thousand * one_billion};",

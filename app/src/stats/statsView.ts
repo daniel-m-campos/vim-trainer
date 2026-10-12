@@ -347,7 +347,7 @@ export function renderStatsView(
 
   function render(): void {
     const tabs = STATS_TABS.map(
-      (t, k) => `<button type="button" class="sv-tab${t === tab ? " sv-on" : ""}" data-tab="${t}" aria-selected="${t === tab}" role="tab"><kbd>${k + 1}</kbd> ${t}</button>`,
+      (t, k) => `<button type="button" class="sv-tab${t === tab ? " sv-on" : ""}" data-tab="${t}" aria-selected="${t === tab}" role="tab" tabindex="-1"><kbd>${k + 1}</kbd> ${t}</button>`,
     ).join("");
     const body = tab === "skills" ? skillsTab() : tab === "progress" ? progressTab() : sessionsTable(sessions());
     const keys =
@@ -368,6 +368,9 @@ export function renderStatsView(
   }
 
   function setTab(t: StatsTab): void {
+    // The app drops keys aimed at a BUTTON: never leave focus on a tab, even the active one.
+    const focused = document.activeElement;
+    if (focused instanceof HTMLElement && root.contains(focused)) focused.blur();
     if (t === tab) return;
     tab = t;
     detail = false;
@@ -406,7 +409,12 @@ export function renderStatsView(
       } else select(i);
     }
   }
+  // Tabs are driven by keys (tab, 1 2 3); a click must not move focus onto them.
+  const onMouseDown = (e: MouseEvent) => {
+    if ((e.target as HTMLElement).closest(".sv-tab")) e.preventDefault();
+  };
   root.addEventListener("click", onClick);
+  root.addEventListener("mousedown", onMouseDown);
 
   function handleKey(key: string, shift = false): boolean {
     if (key === "Tab") {
@@ -473,6 +481,7 @@ export function renderStatsView(
     },
     destroy() {
       root.removeEventListener("click", onClick);
+      root.removeEventListener("mousedown", onMouseDown);
       root.innerHTML = "";
     },
   };

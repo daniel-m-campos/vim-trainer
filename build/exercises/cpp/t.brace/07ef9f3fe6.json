@@ -3,7 +3,7 @@
   "skill": "t.brace",
   "lang": "cpp",
   "kind": "edit",
-  "task": "Delete the 6 lines inside the braces of `int monthly_rate(double hourly_rate, double d...`, keeping the { and }",
+  "task": "Delete the 6 lines inside the braces of `int monthly_rate(double hourly_rate, double d...`, keeping the `{` and `}` lines",
   "start": {
     "lines": [
       "int monthly_rate(double hourly_rate, double discount) {",

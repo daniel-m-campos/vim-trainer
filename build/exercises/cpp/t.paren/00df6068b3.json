@@ -3,7 +3,7 @@
   "skill": "t.paren",
   "lang": "cpp",
   "kind": "edit",
-  "task": "Delete everything inside this condition `(num_rails <= 1)`, keeping the ()",
+  "task": "Delete everything inside this condition `(num_rails <= 1)`, keeping the parentheses",
   "start": {
     "lines": [
       "std::string decode(const std::string& ciphertext, int num_rails) {",
@@ -74,11 +74,11 @@
     },
     {
       "trigger": "x{2,}|d[wWeE]",
-      "text": "di( empties the () pair in one command, whatever is inside."
+      "text": "di( empties the parentheses in one command, whatever is inside."
     },
     {
       "trigger": null,
-      "text": "di(: delete inside the () pair around the cursor."
+      "text": "di(: delete inside the parentheses around the cursor."
     }
   ],
   "tags": [

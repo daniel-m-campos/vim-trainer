@@ -50,7 +50,7 @@ Other targets:
 ```sh
 make test       # unit tests: content (pytest), model (pytest), app grading + TS model mirror (node --test), typecheck
 make e2e        # Playwright in Chromium: the bundled-sample flow, placement + a 15-exercise session on build/
-                #   (with a switch to C++), and the stats-view demo page
+                #   (with a switch to C++), the stats-view demo page, and editor key sequences checked against nvim
 make e2e-all    # the same in Chromium, Firefox and WebKit (first: make setup BROWSERS="chromium firefox webkit")
 make content    # rebuild build/ from scratch (needs nvim; fetches the pinned exercism/python and exercism/cpp), then replay every par in the browser
 make content-check  # what CI runs: rebuild into content/.cache/build-check and diff it against build/

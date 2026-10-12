@@ -3,7 +3,7 @@
   "skill": "t.brace",
   "lang": "cpp",
   "kind": "edit",
-  "task": "Delete the 6 lines inside the braces of `vector<string> cipher::plain_text_segments() ...`, keeping the { and }",
+  "task": "Delete the 6 lines inside the braces of `vector<string> cipher::plain_text_segments() ...`, keeping the `{` and `}` lines",
   "start": {
     "lines": [
       "cipher::cipher(string const& text) : text_(normalize(text)) {}",

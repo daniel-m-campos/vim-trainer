@@ -3,7 +3,7 @@
   "skill": "t.brace",
   "lang": "cpp",
   "kind": "edit",
-  "task": "Delete the 6 lines inside the braces of `for (int i = day - 1; i >= 1; --i) {`, keeping the { and }",
+  "task": "Delete the 6 lines inside the braces of `for (int i = day - 1; i >= 1; --i) {`, keeping the `{` and `}` lines",
   "start": {
     "lines": [
       "namespace {",

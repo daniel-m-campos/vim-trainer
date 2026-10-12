@@ -3,7 +3,7 @@
   "skill": "t.bracket",
   "lang": "cpp",
   "kind": "edit",
-  "task": "Delete everything inside this subscript `[second_plant_index + 1]`, keeping the []",
+  "task": "Delete everything inside this subscript `[second_plant_index + 1]`, keeping the square brackets",
   "start": {
     "lines": [
       "#include <algorithm>",
@@ -73,11 +73,11 @@
     },
     {
       "trigger": "x{2,}|d[wWeE]",
-      "text": "di[ empties the [] pair in one command, whatever is inside."
+      "text": "di[ empties the square brackets in one command, whatever is inside."
     },
     {
       "trigger": null,
-      "text": "di[: delete inside the [] pair around the cursor."
+      "text": "di[: delete inside the square brackets around the cursor."
     }
   ],
   "tags": [

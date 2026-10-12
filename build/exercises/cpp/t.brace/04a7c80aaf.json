@@ -3,7 +3,7 @@
   "skill": "t.brace",
   "lang": "cpp",
   "kind": "edit",
-  "task": "Delete everything inside this initializer list `{diagram.find('\\n') + first_plant_ind...`, keeping the {}",
+  "task": "Delete everything inside this initializer list `{diagram.find('\\n') + first_plant_ind...`, keeping the braces",
   "start": {
     "lines": [
       "#include <algorithm>",
@@ -74,11 +74,11 @@
     },
     {
       "trigger": "x{2,}|d[wWeE]",
-      "text": "di{ empties the {} pair in one command, whatever is inside."
+      "text": "di{ empties the braces in one command, whatever is inside."
     },
     {
       "trigger": null,
-      "text": "di{: delete inside the {} pair around the cursor."
+      "text": "di{: delete inside the braces around the cursor."
     }
   ],
   "tags": [

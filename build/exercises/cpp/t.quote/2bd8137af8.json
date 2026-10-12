@@ -3,7 +3,7 @@
   "skill": "t.quote",
   "lang": "cpp",
   "kind": "edit",
-  "task": "Delete everything inside this string `\"strawberries\"`, keeping the \"\"",
+  "task": "Delete everything inside this string `\"strawberries\"`, keeping the quotes",
   "start": {
     "lines": [
       "#pragma once",
@@ -77,11 +77,11 @@
     },
     {
       "trigger": "x{2,}|d[wWeE]",
-      "text": "di\" empties the \"\" pair in one command, whatever is inside."
+      "text": "di\" empties the quotes in one command, whatever is inside."
     },
     {
       "trigger": null,
-      "text": "di\": delete inside the \"\" pair around the cursor."
+      "text": "di\": delete inside the quotes around the cursor."
     }
   ],
   "tags": [

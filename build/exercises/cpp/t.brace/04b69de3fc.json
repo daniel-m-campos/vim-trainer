@@ -3,7 +3,7 @@
   "skill": "t.brace",
   "lang": "cpp",
   "kind": "edit",
-  "task": "Delete the 15 lines inside the braces of `std::vector<unsigned int> convert(unsigned in...`, keeping the { and }",
+  "task": "Delete the 15 lines inside the braces of `std::vector<unsigned int> convert(unsigned in...`, keeping the `{` and `}` lines",
   "start": {
     "lines": [
       "#include <stdexcept>",

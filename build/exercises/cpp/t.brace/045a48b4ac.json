@@ -3,7 +3,7 @@
   "skill": "t.brace",
   "lang": "cpp",
   "kind": "edit",
-  "task": "Delete the 7 lines inside the braces of `bool is_full_house(const std::array<int, 5>& ...`, keeping the { and }",
+  "task": "Delete the 7 lines inside the braces of `bool is_full_house(const std::array<int, 5>& ...`, keeping the `{` and `}` lines",
   "start": {
     "lines": [
       "int simple_scores(const std::array<int, 5>& dice, int target) {",

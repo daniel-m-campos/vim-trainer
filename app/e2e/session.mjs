@@ -63,15 +63,19 @@ async function checkSource(page, ex) {
 
 const { typeKeys } = await import("./keys.mjs");
 
+// How long to wait for the result strip after typing a par. CI runners are slow: 3 s
+// flaked on an 11-key edit (run 38317885419), so this is generous on purpose.
+const RESULT_TIMEOUT = 15000;
+
 async function solveAtPar(page, engine, ex, label) {
   await typeKeys(page, ex.par.keys);
-  const done = await page.waitForSelector("#result", { timeout: 3000 }).then(() => true, () => false);
+  const done = await page.waitForSelector("#result", { timeout: RESULT_TIMEOUT }).then(() => true, () => false);
   if (!done) {
     check(engine, `${label}: par ${ex.par.keys} solves ${ex.id} in the browser`, false, "no result after typing the par");
     await page.keyboard.press("Escape");
     await page.keyboard.press("Escape");
     await page.keyboard.press("Escape");
-    await page.waitForSelector("#result", { timeout: 3000 });
+    await page.waitForSelector("#result", { timeout: RESULT_TIMEOUT });
     return false;
   }
   const strip = await text(page, "#result");
@@ -138,7 +142,7 @@ for (const [engine, type] of Object.entries(engines)) {
         // Give up: Esc Esc in normal mode.
         await page.keyboard.press("Escape");
         await page.keyboard.press("Escape");
-        await page.waitForSelector("#result", { timeout: 3000 });
+        await page.waitForSelector("#result", { timeout: RESULT_TIMEOUT });
         const strip = await text(page, "#result");
         const shows = ex.kind === "cursor" ? strip.includes("target: line") : (await page.locator("#result pre.diff").count()) === 1;
         check(engine, `${label}: Esc Esc gives up and shows the ${ex.kind === "cursor" ? "target" : "expected diff"}`, strip.includes("gave up") && shows, strip);
@@ -148,11 +152,11 @@ for (const [engine, type] of Object.entries(engines)) {
         // Over par first (a no-op detour), then r and solve at par.
         await page.keyboard.type("jk");
         await typeKeys(page, ex.par.keys);
-        const passed = await page.waitForSelector("#result", { timeout: 3000 }).then(() => true, () => false);
+        const passed = await page.waitForSelector("#result", { timeout: RESULT_TIMEOUT }).then(() => true, () => false);
         if (!passed) {
           await page.keyboard.press("Escape");
           await page.keyboard.press("Escape");
-          await page.waitForSelector("#result", { timeout: 3000 });
+          await page.waitForSelector("#result", { timeout: RESULT_TIMEOUT });
         } else {
           const you = await text(page, "#result .you");
           check(engine, `${label}: a detour costs keys (${ex.par.count + 2} keys)`, you.includes(`${ex.par.count + 2} keys`), you);

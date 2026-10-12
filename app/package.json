@@ -13,6 +13,7 @@
     "spike:test": "node src/spike/verify.mjs",
     "e2e:session": "node e2e/session.mjs",
     "e2e:stats": "node e2e/stats-demo.mjs",
+    "e2e:editor": "node e2e/editor.mjs",
     "emulator": "node e2e/emulator.mjs"
   },
   "dependencies": {

@@ -3,7 +3,7 @@
   "skill": "t.brace",
   "lang": "cpp",
   "kind": "edit",
-  "task": "Delete the 5 lines inside the braces of `size_t cipher::size() const {`, keeping the { and }",
+  "task": "Delete the 5 lines inside the braces of `size_t cipher::size() const {`, keeping the `{` and `}` lines",
   "start": {
     "lines": [
       "cipher::cipher(string const& text) : text_(normalize(text)) {}",

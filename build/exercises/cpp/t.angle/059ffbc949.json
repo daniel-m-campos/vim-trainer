@@ -3,7 +3,7 @@
   "skill": "t.angle",
   "lang": "cpp",
   "kind": "edit",
-  "task": "Delete everything inside this template parameter list `<typename T, typename S>`, keeping the <>",
+  "task": "Delete everything inside this template parameter list `<typename T, typename S>`, keeping the angle brackets",
   "start": {
     "lines": [
       "template <typename T, typename S>",
@@ -65,11 +65,11 @@
     },
     {
       "trigger": "x{2,}|d[wWeE]",
-      "text": "di< empties the <> pair in one command, whatever is inside."
+      "text": "di< empties the angle brackets in one command, whatever is inside."
     },
     {
       "trigger": null,
-      "text": "di<: delete inside the <> pair around the cursor."
+      "text": "di<: delete inside the angle brackets around the cursor."
     }
   ],
   "tags": [

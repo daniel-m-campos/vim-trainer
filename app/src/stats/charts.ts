@@ -76,9 +76,12 @@ function yGrid(ticks: number[], y: (v: number) => number, fmt: (v: number) => st
     .join("");
 }
 
-/** x ticks at attempt numbers (1-based labels for 0-based indices). */
-function xAxis(maxIndex: number, x: (v: number) => number): string {
-  const ticks = niceTicks(1, Math.max(2, maxIndex + 1), 5).filter((t) => Number.isInteger(t) && t >= 1);
+/**
+ * x ticks at attempt numbers (1-based labels for 0-based indices), none past `lastIndex`
+ * (the last attempt or projection point plotted), so no label names a missing attempt.
+ */
+function xAxis(maxIndex: number, lastIndex: number, x: (v: number) => number): string {
+  const ticks = niceTicks(1, Math.max(2, maxIndex + 1), 5).filter((t) => Number.isInteger(t) && t >= 1 && t - 1 <= lastIndex);
   const base = `<line class="sv-axis" x1="${M.left}" x2="${M.left + PW}" y1="${M.top + PH}" y2="${M.top + PH}"/>`;
   const labels = ticks
     .map((t) => `<text class="sv-tick" x="${r(x(t - 1))}" y="${M.top + PH + 16}" text-anchor="middle">${t}</text>`)
@@ -128,7 +131,7 @@ export function timeChart(input: TimeChartInput): string {
   let body = `<defs><clipPath id="${clip}"><rect x="${M.left}" y="${M.top - 4}" width="${PW + 4}" height="${PH + 4}"/></clipPath></defs>`;
   body += yGrid(yTicks, (t) => y(t * 1000), f1);
   body += `<text class="sv-unit" x="${M.left - 6}" y="${M.top - 6}" text-anchor="end">s</text>`;
-  body += xAxis(xMax, x);
+  body += xAxis(xMax, Math.max(n - 1, projEnd, 0), x);
 
   if (targetMs !== null) {
     body += refLine(y(targetMs), "target", `${f1(targetMs / 1000)} s`);
@@ -185,7 +188,7 @@ export function stepChart(input: StepChartInput): string {
   let body = yGrid(yTicks, y, f2);
   body += `<text class="sv-unit" x="${M.left - 6}" y="${M.top - 6}" text-anchor="end">x par</text>`;
   // Steps span [i, i + 1); tick k labels attempt k at the step's left edge.
-  const ticks = niceTicks(1, Math.max(2, n), 5).filter((t) => Number.isInteger(t) && t >= 1);
+  const ticks = niceTicks(1, Math.max(2, n), 5).filter((t) => Number.isInteger(t) && t >= 1 && t <= n);
   body += `<line class="sv-axis" x1="${M.left}" x2="${M.left + PW}" y1="${M.top + PH}" y2="${M.top + PH}"/>`;
   body += ticks.map((t) => `<text class="sv-tick" x="${r(x(t - 0.5))}" y="${M.top + PH + 16}" text-anchor="middle">${t}</text>`).join("");
 

@@ -3,7 +3,7 @@
   "skill": "t.brace",
   "lang": "cpp",
   "kind": "edit",
-  "task": "Delete the 11 lines inside the braces of `int nth_prime::nth(int n) {`, keeping the { and }",
+  "task": "Delete the 11 lines inside the braces of `int nth_prime::nth(int n) {`, keeping the `{` and `}` lines",
   "start": {
     "lines": [
       "#include <cmath>",

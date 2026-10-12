@@ -756,11 +756,14 @@ function goBack(): void {
   afterPlacement = false;
   const to = backStack.pop();
   if (to === "stats") return show("stats"), renderStats();
+  if (to === "settings") return show("settings"), renderSettings(); // stats opened from settings (header link)
   if (to === "summary" && summaryData) return show("summary"), renderSummary();
   if (to === "onboarding") return show("onboarding"), renderOnboarding();
   if (to === "placement-intro" || (!saved.placementDone && !placement && !cur)) return show("placement-intro"), renderPlacementIntro();
   if (cur) return show("practice");
-  if (to === "message" || (to === "practice" && session.recorded)) return void nextExercise();
+  // A session in progress (no exercise open: dropped by a language change, or loading)
+  // continues; only a fresh one starts over.
+  if (to === "message" || session.count > 0 || session.recorded) return void nextExercise();
   startSession();
 }
 

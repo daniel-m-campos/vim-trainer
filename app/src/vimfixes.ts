@@ -56,8 +56,8 @@ interface MotionArgs {
   selectedCharacter?: string;
   linewise?: boolean;
 }
-interface VimState {
-  inputState: { operatorArgs?: OperatorArgs | null };
+interface InputState {
+  operatorArgs?: OperatorArgs | null;
 }
 interface ScanCM extends CM {
   scanForBracket(from: P, dir: 1 | -1, style?: unknown, config?: { bracketRegex: RegExp }): { pos: P } | null | undefined;
@@ -86,6 +86,8 @@ function clip(cm: CM, p: P): P {
 // Last key pressed in an editor, recorded before codemirror-vim sees it, so the delete
 // operator knows which motion it is running for (the operator API does not say).
 let lastKey = "";
+/** The last key pressed in an editor (KeyboardEvent.key), before codemirror-vim handled it. */
+export const lastEditorKey = (): string => lastKey;
 // Exclusive forward motions that the exclusive-linewise rule is applied to. Not `w`:
 // Vim's `dw` special case keeps the end on the last word of the line.
 const PARAGRAPH_KEYS = new Set(["}", ")"]);
@@ -140,9 +142,15 @@ const BLOCKS: Record<string, [string, string]> = {
 };
 
 /** Fix 5: the inner block object as Vim's current_block() cuts it (operator-pending only). */
-function innerBlock(cm: ScanCM, head: P, motionArgs: MotionArgs, vim: VimState): [P, P] | null {
+// `input` is the command's own input state: codemirror-vim has already replaced
+// vim.inputState with a fresh one when the motion runs, and `.` replays this object.
+function innerBlock(cm: ScanCM, head: P, motionArgs: MotionArgs, _vim: unknown, input: InputState): [P, P] | null {
   const pair = BLOCKS[motionArgs.selectedCharacter ?? ""];
   if (!pair) return null;
+  // `.` replays these same args objects (evalInput also stores the final linewise in
+  // operatorArgs): reset what a previous multi-line cut set.
+  motionArgs.linewise = false;
+  if (input?.operatorArgs) input.operatorArgs.linewise = false;
   const [open, close] = pair;
   const re = new RegExp(`[\\${open}\\${close}]`);
   const from = { line: head.line, ch: head.ch + (cm.getLine(head.line).charAt(head.ch) === open ? 1 : 0) };
@@ -158,7 +166,6 @@ function innerBlock(cm: ScanCM, head: P, motionArgs: MotionArgs, vim: VimState):
   if (c.line - 1 < start.line) return [start, start]; // `{` and `}` on adjacent lines: nothing inside
   if (openAtEol) {
     motionArgs.linewise = true;
-    if (vim.inputState.operatorArgs) vim.inputState.operatorArgs.linewise = true;
     return [start, { line: c.line - 1, ch: 0 }];
   }
   return [start, { line: c.line - 1, ch: cm.getLine(c.line - 1).length }];

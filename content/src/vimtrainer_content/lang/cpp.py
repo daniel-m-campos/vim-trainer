@@ -72,6 +72,7 @@ _TEXTS: Final = {
     "template_parameter_list": TPARAM_TEXTS, "lambda_capture_specifier": ("&", "this", "=", "&total"),
 }
 _PAIR: Final = {"(": ")", "[": "]", "{": "}", "<": ">", '"': '"'}
+_DELIM_NAMES: Final = {"(": "parentheses", "[": "square brackets", "{": "braces", "<": "angle brackets", '"': "quotes"}
 _ALIASES: Final = {"(": (")", "b"), "[": ("]",), "{": ("}", "B"), "<": (">",), '"': ()}
 _STRINGS: Final = frozenset({"string_literal", "raw_string_literal", "char_literal", "system_lib_string", "comment"})
 _ANGLES: Final = frozenset({"template_argument_list", "template_parameter_list"})
@@ -284,18 +285,18 @@ def delete_inner(win: Window, node: tree_sitter.Node, skill: str, lang: Language
     col = _cursor_inside(win, node, row, oc, cc, o)
     if col is None:
         return
-    c, noun = _PAIR[o], _NOUNS[node.type]
+    c, noun, delims = _PAIR[o], _NOUNS[node.type], _DELIM_NAMES[o]
     draft = Draft(
         template="delete_inner", skill=skill, kind="edit",
-        task=f"Delete everything inside this {noun} {_excerpt(win, node)}, keeping the {o}{c}",
+        task=f"Delete everything inside this {noun} {_excerpt(win, node)}, keeping the {delims}",
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, oc + 1, cc, "")},
         variants=[f"di{o}"], alternates=[f"di{a}" for a in _ALIASES[o]],
         idioms=["diw", "diW", "dw", "dW", "de", "dE", f"dt{c}", f"dT{o}", "bdt" + c, f"F{o}ldt{c}", f"T{o}dt{c}", "D"],
         params={"open": o, "close": c}, target=[_range(row, oc, row, cc)], window=win, tags=[node.type, "delete"],
         hints=[
             {"trigger": "^[0-9]*[hlwbeWBEfFtT]", "text": f"di{o} works from anywhere inside the {noun}."},
-            {"trigger": "x{2,}|d[wWeE]", "text": f"di{o} empties the {o}{c} pair in one command, whatever is inside."},
-            {"trigger": None, "text": f"di{o}: delete inside the {o}{c} pair around the cursor."},
+            {"trigger": "x{2,}|d[wWeE]", "text": f"di{o} empties the {delims} in one command, whatever is inside."},
+            {"trigger": None, "text": f"di{o}: delete inside the {delims} around the cursor."},
         ],
     )
     if _worth_it(draft, lang):
@@ -323,7 +324,7 @@ def delete_block(win: Window, node: tree_sitter.Node, skill: str, lang: Language
     header = _header(win, node, orow)
     yield Draft(
         template="delete_inner", skill=skill, kind="edit",
-        task=f"Delete the {n} lines inside the braces of `{header}`, keeping the {{ and }}",
+        task=f"Delete the {n} lines inside the braces of `{header}`, keeping the `{{` and `}}` lines",
         lines=lines, cursor=[row + 1, col], expect={"lines": lines[:orow + 1] + lines[crow:]},
         variants=["di{", "diB"], alternates=["di}"],
         idioms=["dap", "dip", "d}", "d{", "d]}", "d[{", f"{n}dd", "dd", "D"],
@@ -604,6 +605,8 @@ def delete_trailing_comment(win: Window, node: tree_sitter.Node, skill: str, lan
     row = node.start_point.row
     if row != node.end_point.row or len(win.lines[row][:node.start_point.column].strip()) < 6:
         return
+    if win.lines[row][node.end_point.column:].strip():
+        return  # a mid-line `/* */` with code after it is not a trailing comment
     yield from templates.delete_trailing_comment(win, node, skill, lang)
 
 

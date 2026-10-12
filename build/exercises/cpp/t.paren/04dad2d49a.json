@@ -3,7 +3,7 @@
   "skill": "t.paren",
   "lang": "cpp",
   "kind": "edit",
-  "task": "Delete everything inside this argument list `(result)`, keeping the ()",
+  "task": "Delete everything inside this argument list `(result)`, keeping the parentheses",
   "start": {
     "lines": [
       "#include <algorithm>",
@@ -84,11 +84,11 @@
     },
     {
       "trigger": "x{2,}|d[wWeE]",
-      "text": "di( empties the () pair in one command, whatever is inside."
+      "text": "di( empties the parentheses in one command, whatever is inside."
     },
     {
       "trigger": null,
-      "text": "di(: delete inside the () pair around the cursor."
+      "text": "di(: delete inside the parentheses around the cursor."
     }
   ],
   "tags": [

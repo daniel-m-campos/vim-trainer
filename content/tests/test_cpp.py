@@ -165,6 +165,53 @@ def test_trailing_comment_skips_bare_closing_brace(drafts):
     assert comments[0].variants[0] == "f/D"
 
 
+MID_LINE_COMMENT = """\
+int sum_items(const std::vector<int>& items, int limit) {
+    int total = compute_total(/* fast */ items, limit);
+    int extra = compute_total(items, limit);  /* trailing note */
+    report->failures.push_back(total);
+    if (total > limit) {
+        log_warning("over the limit", total);
+    }
+    auto label = std::string("items");
+    return total + extra + label.size();
+}
+"""
+
+
+@pytest.fixture(scope="module")
+def mid_line():
+    (win,) = cpp.windows(MID_LINE_COMMENT, SOURCE)
+    return win
+
+
+def test_trailing_comment_needs_nothing_after_it(mid_line):
+    comments = [d for d in cpp.generate(mid_line) if d.template == "delete_trailing_comment"]
+    assert [d.lines[d.cursor[0] - 1].strip() for d in comments] == [
+        "int extra = compute_total(items, limit);  /* trailing note */"]
+
+
+def test_delete_inner_names_the_delimiters(drafts, mid_line):
+    tasks = [d.task for d in [*drafts, *cpp.generate(mid_line)] if d.template == "delete_inner"]
+    assert any("keeping the quotes" in t for t in tasks) and any("keeping the parentheses" in t for t in tasks)
+    for t in tasks:
+        assert not re.search(r"keeping the [()\[\]{}<>'\"]", t), t
+
+
+def test_role_reads_cpp_functions_and_members(mid_line):
+    found = {}
+    stack = [mid_line.root]
+    while stack:
+        n = stack.pop()
+        stack.extend(n.children)
+        if n.type in ("identifier", "field_identifier"):
+            found[templates._text(n)] = (templates._role(n, templates._text(n)), templates._is_member(n))
+    assert found["sum_items"] == ("call", False)  # function_declarator
+    assert found["log_warning"] == ("call", False)  # call_expression
+    assert found["size"] == ("call", True)  # method call through field_expression
+    assert found["failures"][1] and not found["report"][1]
+
+
 def test_find_char_counts_the_first_char_of_multi_char_targets(drafts):
     finds = [d for d in drafts if d.skill == "m.find"]
     assert finds

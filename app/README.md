@@ -12,6 +12,7 @@ npm test               # node --test: grading, the build/ contract, the TS model
 npm run typecheck
 npm run e2e            # Playwright on the bundled sample (forces /build/ to 404); `-- --all` for Firefox + WebKit
 npm run e2e:session    # Playwright on the real ../build: placement + a 15-exercise session, export/import
+npm run e2e:editor     # Playwright: editor key sequences checked against nvim (`.` repeats, block insert, <Tab>)
 npm run emulator       # replay every par in the browser; `-- --alternates`, `-- --write`
 npm run build          # typecheck + dist/ (copies ../build in)
 ```

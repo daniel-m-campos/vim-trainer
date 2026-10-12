@@ -16,7 +16,7 @@ import { tags as t } from "@lezer/highlight";
 import { vim, Vim, getCM } from "@replit/codemirror-vim";
 import { attachRecorder, recorderExtension, type Recorder } from "./recorder.ts";
 import { targetRanges } from "./grading.ts";
-import { caseSensitiveSearch, installVimFixes } from "./vimfixes.ts";
+import { caseSensitiveSearch, installVimFixes, lastEditorKey } from "./vimfixes.ts";
 import type { EscapePref, Exercise, Pos } from "./types.ts";
 
 // Mock palette (docs/mocks/practice-screen.html).
@@ -142,6 +142,42 @@ function resetVimGlobals(escape: EscapePref): void {
   }
 }
 
+interface BlockCM {
+  state: { vim?: { insertMode?: boolean; visualMode?: boolean; visualBlock?: boolean; sel: { anchor: { line: number; ch: number }; head: { line: number; ch: number } } } | null };
+  on(type: string, f: (e: { mode: string }) => void): void;
+  getLine(n: number): string;
+  setCursor(p: { line: number; ch: number }): void;
+}
+
+/**
+ * <C-v> I / A: nvim ends the block insert with the cursor on the block's top-left
+ * corner; codemirror-vim leaves it after the text typed on the first line. A block
+ * `c` keeps codemirror-vim's place, which is nvim's too (end of the typed text).
+ * TODO(mvp): <BS> and <CR> in a block insert still differ. codemirror-vim applies <BS>
+ * on the first line only (`IXZ<BS>Y` gives XY there and XZ…Y below; nvim copies XY to
+ * every line and ends after it) and <CR> on every line (nvim then changes only the
+ * first line). No shipped par types either inside a block insert.
+ */
+function blockInsertCorner(cm: BlockCM): void {
+  let corner: { line: number; ch: number } | null = null;
+  cm.on("vim-mode-change", (e) => {
+    const vim = cm.state.vim;
+    if (!vim) return;
+    if (e.mode === "insert") {
+      // Signalled before codemirror-vim leaves Visual mode, so vim.sel is still the block.
+      const { anchor, head } = vim.sel;
+      corner = vim.visualMode && vim.visualBlock && /^[IA]$/.test(lastEditorKey())
+        ? { line: Math.min(anchor.line, head.line), ch: Math.min(anchor.ch, head.ch) }
+        : null;
+    } else if (e.mode === "normal" && !vim.insertMode && corner) {
+      const len = cm.getLine(corner.line).length;
+      const at = { line: corner.line, ch: Math.min(corner.ch, Math.max(0, len - 1)) };
+      corner = null;
+      cm.setCursor(at);
+    }
+  });
+}
+
 export interface EditorHandle {
   view: EditorView;
   recorder: Recorder;
@@ -189,7 +225,7 @@ export function mountEditor(parent: HTMLElement, ex: Exercise, opts: { relativeN
   // The cursor line must be visible; buffers are short so this is cheap.
   view.dispatch({ effects: EditorView.scrollIntoView(anchor, { y: "center" }) });
   const recorder = attachRecorder(view, parent);
-  getCM(view); // ensure the vim adapter exists before the first key
+  blockInsertCorner(getCM(view) as unknown as BlockCM); // also ensures the vim adapter exists before the first key
   view.focus();
 
   return {

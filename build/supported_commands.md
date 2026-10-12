@@ -46,12 +46,12 @@ VSCodeVim and IdeaVim verification is not done yet: TODO(mvp).
 | o.change | `f,wct){text}<Esc>` | 7 |
 | o.change | `cw{text}<Esc>` | 3 |
 | o.change | `Nf,wcw{text}<Esc>` | 2 |
-| o.delete | `d}` | 34 |
+| o.delete | `d}` | 35 |
 | o.delete | `Ndd` | 22 |
 | o.delete | `f#D` | 15 |
 | o.delete | `dG` | 4 |
-| o.delete | `f/D` | 3 |
 | o.delete | `dNj` | 2 |
+| o.delete | `f/D` | 2 |
 | o.indent | `<i{` | 25 |
 | o.indent | `>i{` | 15 |
 | o.indent | `>}` | 12 |
@@ -113,9 +113,8 @@ VSCodeVim and IdeaVim verification is not done yet: TODO(mvp).
 | x.normal | `VNj:norm ^gUe<CR>` | 1 |
 | x.subst | `:%s/{old}/{new}<CR>` | 36 |
 | x.subst | `:%s/{old}/{new}/g<CR>` | 20 |
-| x.subst | `:%s/\<{old}/{new}<CR>` | 8 |
+| x.subst | `:%s/\<{old}/{new}<CR>` | 9 |
 | x.subst | `:%s/{old}\>/{new}/g<CR>` | 7 |
 | x.subst | `:%s/{old}\>/{new}<CR>` | 4 |
 | x.subst | `:%s/\<{old}\>/{new}/g<CR>` | 3 |
 | x.subst | `:%s/\<{old}/{new}/g<CR>` | 1 |
-| x.subst | `:%s/\<{old}\>/{new}<CR>` | 1 |

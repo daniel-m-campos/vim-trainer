@@ -13,7 +13,7 @@
 
 import { EditorView, type ViewUpdate } from "@codemirror/view";
 import { EditorSelection, type Extension, type Text } from "@codemirror/state";
-import { Vim, getCM } from "@replit/codemirror-vim";
+import { CodeMirror, Vim, getCM } from "@replit/codemirror-vim";
 import { PausableClock, tabSpaces, type KeyEvent, type Mode, type Snapshot } from "./grading.ts";
 
 interface VimState {
@@ -72,6 +72,37 @@ const updateSinks = new WeakMap<EditorView, (u: ViewUpdate) => void>();
 
 /** Add to the editor's extensions so the recorder sees CM6 doc/selection updates. */
 export const recorderExtension: Extension = EditorView.updateListener.of((u) => updateSinks.get(u.view)?.(u));
+
+interface VimGlobals {
+  macroModeState: { lastInsertModeChanges: { changes: unknown[] } };
+}
+
+/**
+ * Insert-mode <Tab> with the oracle's options (grading.tabSpaces: expandtab, ts=sw=4,
+ * sts=0, smarttab): spaces to the next 4-column stop. In Replace mode nvim replaces one
+ * character per <Tab> with those spaces. Returns the spaces typed at the main cursor.
+ */
+function insertTab(view: EditorView, replace: boolean): string {
+  const st = view.state;
+  const main = st.selection.main;
+  const mainLine = st.doc.lineAt(main.head);
+  const spaces = " ".repeat(tabSpaces(mainLine.text.slice(0, main.from - mainLine.from)));
+  view.dispatch(
+    st.update(
+      st.changeByRange((r) => {
+        const line = st.doc.lineAt(r.head);
+        const n = tabSpaces(line.text.slice(0, r.from - line.from));
+        const to = replace && r.empty && r.to < line.to ? r.to + 1 : r.to;
+        return { changes: { from: r.from, to, insert: " ".repeat(n) }, range: EditorSelection.cursor(r.from + n) };
+      }),
+      { scrollIntoView: true, userEvent: "input.type" },
+    ),
+  );
+  return spaces;
+}
+// `.` replays a logged <Tab> through codemirror-vim's insert-mode key table.
+(CodeMirror as unknown as { keys: Record<string, (cm: { cm6: EditorView; state: { overwrite?: boolean } }) => void> }).keys.Tab = (cm) =>
+  void insertTab(cm.cm6, !!cm.state.overwrite);
 
 export interface Recorder {
   readonly events: KeyEvent[];
@@ -161,28 +192,19 @@ export function attachRecorder(view: EditorView, wrapper: HTMLElement): Recorder
   };
 
   // Keys Vim leaves unhandled must not reach browser defaults (blur on Tab, etc.).
-  // Tab in insert mode follows the oracle's options (grading.tabSpaces: expandtab,
-  // ts=sw=4, sts=0, smarttab): spaces to the next 4-column stop. In Replace mode
-  // nvim replaces one character per <Tab> with those spaces.
+  // Tab in insert / Replace mode is insertTab() below; it is logged in the `.` register
+  // as the <Tab> key rather than as the spaces it typed, so `.` expands it again at the
+  // column it repeats at, as nvim does.
   const onKeyBubble = (e: KeyboardEvent) => {
     if (e.defaultPrevented) return;
     if (e.key === "Escape") e.preventDefault();
     if (e.key === "Tab" && !e.ctrlKey && !e.altKey && !e.metaKey) {
       e.preventDefault();
       if (cmdlineOpen() || (mode !== "insert" && mode !== "replace")) return;
-      const replace = mode === "replace";
-      const st = view.state;
-      view.dispatch(
-        st.update(
-          st.changeByRange((r) => {
-            const line = st.doc.lineAt(r.head);
-            const n = tabSpaces(line.text.slice(0, r.from - line.from));
-            const to = replace && r.empty && r.to < line.to ? r.to + 1 : r.to;
-            return { changes: { from: r.from, to, insert: " ".repeat(n) }, range: EditorSelection.cursor(r.from + n) };
-          }),
-          { scrollIntoView: true, userEvent: "input.type" },
-        ),
-      );
+      const typed = insertTab(view, mode === "replace");
+      const changes = (Vim.getVimGlobalState_() as VimGlobals).macroModeState.lastInsertModeChanges.changes;
+      const last = changes[changes.length - 1];
+      if (last === typed || (Array.isArray(last) && last[0] === typed)) changes[changes.length - 1] = new Vim.InsertModeKey("Tab", e);
     }
   };
 
