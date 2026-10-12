@@ -4,7 +4,7 @@ An adaptive Vim-motions trainer in the browser, modelled on keybr.com: it measur
 speed and accuracy per skill, drills the weakest one, and charts progress over time.
 Practice content is generated from real code, per programming language.
 
-Status: **planning**. No code yet. The first user is the author, who is learning Vim.
+Status: **plan complete (M0)**. No code yet; next is M1 spikes (see `docs/plan/08-roadmap.md`). The first user is the author, who is learning Vim.
 
 ## Layout
 
