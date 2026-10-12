@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spike: key logger</title>
+    <style>
+      :root { color-scheme: dark; --bg: #16181d; --fg: #d8dee9; --dim: #7a8394; --accent: #e5c07b; }
+      body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.4 ui-monospace, Menlo, Consolas, monospace; }
+      main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; padding: 16px; }
+      h1 { font-size: 14px; margin: 0 0 8px; color: var(--dim); font-weight: normal; }
+      #mode { font-size: 18px; margin: 8px 0; color: var(--accent); }
+      #editor .cm-editor { border: 1px solid #2c313a; }
+      #log { height: 80vh; overflow: auto; margin: 0; white-space: pre; font-size: 12px; color: var(--dim); }
+      #log .key { color: var(--fg); }
+      #log .done { color: #98c379; }
+      #log .mode { color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section>
+        <h1>Change the string passed to logger.warn to <b>retrying</b> (ci"retrying&lt;Esc&gt;)</h1>
+        <div id="editor"></div>
+        <div id="mode">NORMAL</div>
+        <div id="keys"></div>
+      </section>
+      <section>
+        <h1>event log (raw-signal lines are codemirror-vim's own events, for comparison)</h1>
+        <pre id="log"></pre>
+      </section>
+    </main>
+    <script type="module" src="/src/spike/main.ts"></script>
+  </body>
+</html>

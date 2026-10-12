@@ -1,0 +1,154 @@
+{
+  "id": "py/x.copymove/09156fb665",
+  "skill": "x.copymove",
+  "lang": "python",
+  "kind": "ex",
+  "task": "Duplicate this line (the copy goes right below it)",
+  "start": {
+    "lines": [
+      "def gen_palindromes_of_length(digit_count, reverse=reverse):",
+      "    \"\"\"Generates all palindromes with `nd` number of digits that are\"\"\"",
+      "    even_nd = (digit_count % 2 == 0)",
+      "",
+      "    min_left_half = max(10 ** (int(ceil(digit_count / 2)) - 1),",
+      "                        minimum // (10 ** (digit_count // 2)))",
+      "    max_left_half = min((10 ** int(ceil(digit_count / 2))) - 1,",
+      "                        maximum // (10 ** (digit_count // 2)))",
+      "",
+      "    current_left_half = min_left_half if not reverse else max_left_half",
+      "",
+      "    def make_palindrome(left_half, even_nd=False):",
+      "        right_half = (reverse_num(left_half)",
+      "                      if even_nd",
+      "                      else reverse_num(left_half // 10))",
+      "        return (left_half * (10 ** (digit_count // 2))) + right_half",
+      "",
+      "    if not reverse:",
+      "        while current_left_half <= max_left_half:",
+      "            palindrome = make_palindrome(current_left_half, even_nd)",
+      "            if minimum <= palindrome <= maximum:",
+      "                yield palindrome",
+      "            elif palindrome > maximum:",
+      "                # since palindromes are generated in increasing order,",
+      "                #   we break out of the loop once we've exceeded the",
+      "                #   maximum value",
+      "                break",
+      "            current_left_half += 1",
+      "    else:",
+      "        while current_left_half >= min_left_half:",
+      "            palindrome = make_palindrome(current_left_half, even_nd)",
+      "            if minimum <= palindrome <= maximum:",
+      "                yield palindrome",
+      "            elif palindrome < minimum:",
+      "                # since palindromes are generated in decreasing order,",
+      "                #   we break out of the loop once we've gone below the",
+      "                #   minimum value",
+      "                break",
+      "            current_left_half -= 1"
+    ],
+    "cursor": [
+      2,
+      4
+    ]
+  },
+  "expect": {
+    "lines": [
+      "def gen_palindromes_of_length(digit_count, reverse=reverse):",
+      "    \"\"\"Generates all palindromes with `nd` number of digits that are\"\"\"",
+      "    \"\"\"Generates all palindromes with `nd` number of digits that are\"\"\"",
+      "    even_nd = (digit_count % 2 == 0)",
+      "",
+      "    min_left_half = max(10 ** (int(ceil(digit_count / 2)) - 1),",
+      "                        minimum // (10 ** (digit_count // 2)))",
+      "    max_left_half = min((10 ** int(ceil(digit_count / 2))) - 1,",
+      "                        maximum // (10 ** (digit_count // 2)))",
+      "",
+      "    current_left_half = min_left_half if not reverse else max_left_half",
+      "",
+      "    def make_palindrome(left_half, even_nd=False):",
+      "        right_half = (reverse_num(left_half)",
+      "                      if even_nd",
+      "                      else reverse_num(left_half // 10))",
+      "        return (left_half * (10 ** (digit_count // 2))) + right_half",
+      "",
+      "    if not reverse:",
+      "        while current_left_half <= max_left_half:",
+      "            palindrome = make_palindrome(current_left_half, even_nd)",
+      "            if minimum <= palindrome <= maximum:",
+      "                yield palindrome",
+      "            elif palindrome > maximum:",
+      "                # since palindromes are generated in increasing order,",
+      "                #   we break out of the loop once we've exceeded the",
+      "                #   maximum value",
+      "                break",
+      "            current_left_half += 1",
+      "    else:",
+      "        while current_left_half >= min_left_half:",
+      "            palindrome = make_palindrome(current_left_half, even_nd)",
+      "            if minimum <= palindrome <= maximum:",
+      "                yield palindrome",
+      "            elif palindrome < minimum:",
+      "                # since palindromes are generated in decreasing order,",
+      "                #   we break out of the loop once we've gone below the",
+      "                #   minimum value",
+      "                break",
+      "            current_left_half -= 1"
+    ]
+  },
+  "par": {
+    "keys": ":t.<CR>",
+    "count": 4,
+    "verified": "nvim 0.12.5 2026-10-11"
+  },
+  "alternates": [
+    ":t2<CR>",
+    ":copy .<CR>",
+    ":copy 2<CR>"
+  ],
+  "hints": [
+    {
+      "trigger": "^(yy|Y)",
+      "text": ":t copies a line without yank and put; :t. duplicates it in place."
+    },
+    {
+      "trigger": null,
+      "text": ":t. duplicates the line; :t+N puts the copy below the line N lines down."
+    }
+  ],
+  "tags": [
+    "line",
+    "copy"
+  ],
+  "target": [
+    {
+      "start": [
+        2,
+        0
+      ],
+      "end": [
+        2,
+        70
+      ]
+    }
+  ],
+  "template": "copy_line",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/palindrome-products/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      57,
+      99
+    ]
+  },
+  "emulator": {
+    "vscodevim": "full",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {},
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 69,
+  "reviewed": false
+}

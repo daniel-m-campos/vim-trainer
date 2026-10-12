@@ -1,0 +1,156 @@
+{
+  "id": "py/o.delete/61368aa3b9",
+  "skill": "o.delete",
+  "lang": "python",
+  "kind": "edit",
+  "task": "Delete the comment at the end of this line",
+  "start": {
+    "lines": [
+      "digit_letters = unique_chars[power]  # all new unique letters from the current level",
+      "part_sum = carry_over  # Carry over from lower level",
+      "remaining_exp = []  # TBD letters",
+      "# Break down the current level letter into what can be",
+      "# calculated in the partial sum and remaining TBD letter-digits",
+      "for caesar, van_gogh in multipliers_chars[power]:",
+      "    if caesar in prev_digits:",
+      "        part_sum += van_gogh * prev_digits[caesar]",
+      "    else:",
+      "        remaining_exp.append((caesar, van_gogh))",
+      "# Generate permutations for the remaining digits and currecnt level",
+      "# non-zero letters and zero-allowed letters",
+      "for newdigs in dig_perms(remaining_digits, non_zero_chars[power], zero_chars[power]):",
+      "    # build the dictionary for the new letters and this level",
+      "    new_dict = dict(zip(digit_letters, newdigs))",
+      "    # complete the partial sum into test sum using the current permutation",
+      "    testsum = part_sum + sum([new_dict[caesar] * van_gogh",
+      "                             for caesar, van_gogh in remaining_exp])",
+      "    # check if the sum is divisible by 10",
+      "    dali, rembrandt = divmod(testsum, 10)",
+      "    if rembrandt == 0:",
+      "        # if divisible, update the dictionary to all established",
+      "        new_dict.update(prev_digits)",
+      "        # proceed to the next level of recursion with",
+      "        # the same eqparams, but updated digit dictionary,",
+      "        # new carry over and remaining digits to assign",
+      "        recurring_test = check_rec(eqparams,",
+      "                            (new_dict, dali, remaining_digits - set(newdigs)),",
+      "                            power + 1)",
+      "        # if the recursive call returned a non-empty dictionary",
+      "        # this means the recursion has found a solution",
+      "        # otherwise, proceed to the new permutation",
+      "        if recurring_test and len(recurring_test) > 0:",
+      "            return recurring_test",
+      "# if no permutations are avaialble or no",
+      "# permutation gave the result return None",
+      "return None"
+    ],
+    "cursor": [
+      3,
+      0
+    ]
+  },
+  "expect": {
+    "lines": [
+      "digit_letters = unique_chars[power]  # all new unique letters from the current level",
+      "part_sum = carry_over  # Carry over from lower level",
+      "remaining_exp = []",
+      "# Break down the current level letter into what can be",
+      "# calculated in the partial sum and remaining TBD letter-digits",
+      "for caesar, van_gogh in multipliers_chars[power]:",
+      "    if caesar in prev_digits:",
+      "        part_sum += van_gogh * prev_digits[caesar]",
+      "    else:",
+      "        remaining_exp.append((caesar, van_gogh))",
+      "# Generate permutations for the remaining digits and currecnt level",
+      "# non-zero letters and zero-allowed letters",
+      "for newdigs in dig_perms(remaining_digits, non_zero_chars[power], zero_chars[power]):",
+      "    # build the dictionary for the new letters and this level",
+      "    new_dict = dict(zip(digit_letters, newdigs))",
+      "    # complete the partial sum into test sum using the current permutation",
+      "    testsum = part_sum + sum([new_dict[caesar] * van_gogh",
+      "                             for caesar, van_gogh in remaining_exp])",
+      "    # check if the sum is divisible by 10",
+      "    dali, rembrandt = divmod(testsum, 10)",
+      "    if rembrandt == 0:",
+      "        # if divisible, update the dictionary to all established",
+      "        new_dict.update(prev_digits)",
+      "        # proceed to the next level of recursion with",
+      "        # the same eqparams, but updated digit dictionary,",
+      "        # new carry over and remaining digits to assign",
+      "        recurring_test = check_rec(eqparams,",
+      "                            (new_dict, dali, remaining_digits - set(newdigs)),",
+      "                            power + 1)",
+      "        # if the recursive call returned a non-empty dictionary",
+      "        # this means the recursion has found a solution",
+      "        # otherwise, proceed to the new permutation",
+      "        if recurring_test and len(recurring_test) > 0:",
+      "            return recurring_test",
+      "# if no permutations are avaialble or no",
+      "# permutation gave the result return None",
+      "return None"
+    ]
+  },
+  "par": {
+    "keys": "f#D",
+    "count": 3,
+    "verified": "nvim 0.12.5 2026-10-11"
+  },
+  "alternates": [
+    "f#d$",
+    "f#hD"
+  ],
+  "hints": [
+    {
+      "trigger": "^[0-9]*[wWeEl]{3,}|^\\$",
+      "text": "f# jumps to the comment, then D deletes to the end of the line."
+    },
+    {
+      "trigger": "x{3,}",
+      "text": "D deletes from the cursor to the end of the line in one key."
+    },
+    {
+      "trigger": null,
+      "text": "f#D: find the comment leader, delete to the end of the line."
+    }
+  ],
+  "tags": [
+    "comment",
+    "find",
+    "delete"
+  ],
+  "target": [
+    {
+      "start": [
+        3,
+        20
+      ],
+      "end": [
+        3,
+        32
+      ]
+    }
+  ],
+  "template": "delete_trailing_comment",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/alphametics/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      80,
+      116
+    ]
+  },
+  "emulator": {
+    "vscodevim": "full",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "char": "#",
+    "n": 1
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 20,
+  "reviewed": false
+}

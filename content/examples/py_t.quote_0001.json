@@ -1,0 +1,71 @@
+{
+  "id": "py/t.quote/0001",
+  "skill": "t.quote",
+  "lang": "python",
+  "kind": "edit",
+  "task": "Change the message passed to `logger.warning` to `retrying %s`",
+  "start": {
+    "lines": [
+      "import logging",
+      "",
+      "logger = logging.getLogger(\"fetch\")",
+      "",
+      "",
+      "def fetch(url, attempts=3):",
+      "    for i in range(attempts):",
+      "        try:",
+      "            return http_get(url, timeout=5)",
+      "        except TimeoutError:",
+      "            logger.warning(\"timeout on %s\", url)",
+      "    raise RuntimeError(\"gave up\")"
+    ],
+    "cursor": [
+      11,
+      12
+    ]
+  },
+  "expect": {
+    "lines": [
+      "import logging",
+      "",
+      "logger = logging.getLogger(\"fetch\")",
+      "",
+      "",
+      "def fetch(url, attempts=3):",
+      "    for i in range(attempts):",
+      "        try:",
+      "            return http_get(url, timeout=5)",
+      "        except TimeoutError:",
+      "            logger.warning(\"retrying %s\", url)",
+      "    raise RuntimeError(\"gave up\")"
+    ]
+  },
+  "par": {
+    "keys": "ci\"retrying %s<Esc>",
+    "count": 15,
+    "verified": "nvim 0.12.5 2026-10-11"
+  },
+  "alternates": [
+    "f\"ci\"retrying %s<Esc>"
+  ],
+  "hints": [
+    "ci\" searches forward on the line, so it works from the start of the line"
+  ],
+  "tags": [
+    "string",
+    "call-argument"
+  ],
+  "source": {
+    "repo": "author",
+    "path": "hand-written",
+    "commit": null,
+    "license": "own"
+  },
+  "emulator": {
+    "vscodevim": "unknown",
+    "ideavim": "unknown"
+  },
+  "params": {
+    "text": "retrying %s"
+  }
+}

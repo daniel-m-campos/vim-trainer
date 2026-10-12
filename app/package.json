@@ -1,0 +1,32 @@
+{
+  "name": "vim-trainer-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview",
+    "test": "node --test \"src/**/*.test.ts\"",
+    "e2e": "node e2e/run.mjs",
+    "spike:test": "node src/spike/verify.mjs",
+    "e2e:session": "node e2e/session.mjs",
+    "emulator": "node e2e/emulator.mjs"
+  },
+  "dependencies": {
+    "@codemirror/commands": "6.11.1",
+    "@codemirror/lang-python": "6.2.1",
+    "@codemirror/language": "6.13.1",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/view": "6.43.14",
+    "@lezer/highlight": "1.2.5",
+    "@replit/codemirror-vim": "6.4.0",
+    "@replit/codemirror-vim-core": "0.1.0"
+  },
+  "devDependencies": {
+    "playwright": "1.64.0",
+    "typescript": "7.0.2",
+    "vite": "8.3.4"
+  }
+}

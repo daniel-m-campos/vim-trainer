@@ -1,0 +1,256 @@
+{
+  "id": "py/x.subst/0740e86ab4",
+  "skill": "x.subst",
+  "lang": "python",
+  "kind": "ex",
+  "task": "Rename every `width` to `entry` (11 occurrences)",
+  "start": {
+    "lines": [
+      "BLACK = 'B'",
+      "WHITE = 'W'",
+      "NONE = ''",
+      "STONES = [BLACK, WHITE]",
+      "DIRECTIONS = [(0, 1), (0, -1), (1, 0), (-1, 0)]",
+      "",
+      "",
+      "class Board:",
+      "    def __init__(self, board):",
+      "        self.board = board",
+      "        self.width = len(self.board[0])",
+      "        self.height = len(self.board)",
+      "",
+      "    def valid(self, width, height):",
+      "        return self.width > width >= 0 and self.height > height >= 0",
+      "",
+      "    def walk(self, width, height, visited_territory=None, visited_coords=None, visited_stones=None):",
+      "        # Pylint gives W0102 warning if list used as default argument, because list is mutable.",
+      "        visited_territory = [] if visited_territory is None else visited_territory",
+      "        visited_coords = [] if visited_coords is None else visited_coords",
+      "        visited_stones = [] if visited_stones is None else visited_stones",
+      "",
+      "        if (width, height) not in visited_coords and self.valid(width, height):",
+      "            stone = self.board[height][width]",
+      "            if stone in STONES:",
+      "                if stone not in visited_stones:",
+      "                    return (visited_territory, visited_stones + [stone])",
+      "            else:  # s is empty",
+      "                for direction in DIRECTIONS:",
+      "                    visited = self.walk(width + direction[0], height + direction[1],",
+      "                                        visited_territory + [(width, height)],",
+      "                                        visited_coords + [(width, height)],",
+      "                                        visited_stones)",
+      "                    visited_territory = visited[0]",
+      "                    visited_stones = visited[1]",
+      "",
+      "        return (visited_territory, visited_stones)"
+    ],
+    "cursor": [
+      1,
+      0
+    ]
+  },
+  "expect": {
+    "lines": [
+      "BLACK = 'B'",
+      "WHITE = 'W'",
+      "NONE = ''",
+      "STONES = [BLACK, WHITE]",
+      "DIRECTIONS = [(0, 1), (0, -1), (1, 0), (-1, 0)]",
+      "",
+      "",
+      "class Board:",
+      "    def __init__(self, board):",
+      "        self.board = board",
+      "        self.entry = len(self.board[0])",
+      "        self.height = len(self.board)",
+      "",
+      "    def valid(self, entry, height):",
+      "        return self.entry > entry >= 0 and self.height > height >= 0",
+      "",
+      "    def walk(self, entry, height, visited_territory=None, visited_coords=None, visited_stones=None):",
+      "        # Pylint gives W0102 warning if list used as default argument, because list is mutable.",
+      "        visited_territory = [] if visited_territory is None else visited_territory",
+      "        visited_coords = [] if visited_coords is None else visited_coords",
+      "        visited_stones = [] if visited_stones is None else visited_stones",
+      "",
+      "        if (entry, height) not in visited_coords and self.valid(entry, height):",
+      "            stone = self.board[height][entry]",
+      "            if stone in STONES:",
+      "                if stone not in visited_stones:",
+      "                    return (visited_territory, visited_stones + [stone])",
+      "            else:  # s is empty",
+      "                for direction in DIRECTIONS:",
+      "                    visited = self.walk(entry + direction[0], height + direction[1],",
+      "                                        visited_territory + [(entry, height)],",
+      "                                        visited_coords + [(entry, height)],",
+      "                                        visited_stones)",
+      "                    visited_territory = visited[0]",
+      "                    visited_stones = visited[1]",
+      "",
+      "        return (visited_territory, visited_stones)"
+    ]
+  },
+  "par": {
+    "keys": ":%s/width/entry/g<CR>",
+    "count": 18,
+    "verified": "nvim 0.12.5 2026-10-11"
+  },
+  "alternates": [
+    ":%s/width\\>/entry/g<CR>",
+    ":%s/\\<width/entry/g<CR>",
+    ":%s/\\<width\\>/entry/g<CR>"
+  ],
+  "hints": [
+    {
+      "trigger": "^[*#]|cgn|ciw|cw|\\.",
+      "text": ":%s/old/new/g renames every occurrence in one command."
+    },
+    {
+      "trigger": "^:s/",
+      "text": "Without % only the cursor line is substituted; :%s covers the whole buffer."
+    },
+    {
+      "trigger": null,
+      "text": ":%s/width/entry/g: substitute in every line; add /g for several per line."
+    }
+  ],
+  "tags": [
+    "identifier",
+    "substitute"
+  ],
+  "target": [
+    {
+      "start": [
+        11,
+        13
+      ],
+      "end": [
+        11,
+        17
+      ]
+    },
+    {
+      "start": [
+        14,
+        20
+      ],
+      "end": [
+        14,
+        24
+      ]
+    },
+    {
+      "start": [
+        15,
+        20
+      ],
+      "end": [
+        15,
+        24
+      ]
+    },
+    {
+      "start": [
+        15,
+        28
+      ],
+      "end": [
+        15,
+        32
+      ]
+    },
+    {
+      "start": [
+        17,
+        19
+      ],
+      "end": [
+        17,
+        23
+      ]
+    },
+    {
+      "start": [
+        23,
+        12
+      ],
+      "end": [
+        23,
+        16
+      ]
+    },
+    {
+      "start": [
+        23,
+        64
+      ],
+      "end": [
+        23,
+        68
+      ]
+    },
+    {
+      "start": [
+        24,
+        39
+      ],
+      "end": [
+        24,
+        43
+      ]
+    },
+    {
+      "start": [
+        30,
+        40
+      ],
+      "end": [
+        30,
+        44
+      ]
+    },
+    {
+      "start": [
+        31,
+        62
+      ],
+      "end": [
+        31,
+        66
+      ]
+    },
+    {
+      "start": [
+        32,
+        59
+      ],
+      "end": [
+        32,
+        63
+      ]
+    }
+  ],
+  "template": "rename_all_subst",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/go-counting/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      2,
+      38
+    ]
+  },
+  "emulator": {
+    "vscodevim": "full",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "old": "width",
+    "new": "entry"
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 286,
+  "reviewed": false
+}

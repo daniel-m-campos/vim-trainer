@@ -1,0 +1,241 @@
+{
+ "name": "interleave_streak",
+ "description": "Same skill 3 times in a row is skipped on the 4th pick.",
+ "ops": [
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200000,
+    "ex": "py/f.hjkl/0000",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 3000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200030,
+    "ex": "py/f.undo/0030",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 3000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200060,
+    "ex": "py/f.xdd/0060",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 3000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200090,
+    "ex": "py/f.save/0090",
+    "skill": "f.save",
+    "lang": "python",
+    "ok": true,
+    "ms": 3000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200200,
+    "ex": "py/f.modes/0200",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": true,
+    "ms": 6000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200230,
+    "ex": "py/f.modes/0230",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": true,
+    "ms": 6000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200260,
+    "ex": "py/f.modes/0260",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": true,
+    "ms": 6000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760200300,
+   "seed": 7,
+   "expect": "f.hjkl"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200320,
+    "ex": "py/f.hjkl/0320",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 3000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760200400,
+   "seed": 7,
+   "expect": "f.modes"
+  },
+  {
+   "op": "digest",
+   "expect": {
+    "skills": {
+     "f.modes": {
+      "python": {
+       "timeEma": 6000.0,
+       "effEma": 1.0,
+       "parEma": 6.0,
+       "acc": 1.0,
+       "n": 3,
+       "confidence": 0.38,
+       "lastSeen": 1760200260,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.hjkl": {
+      "python": {
+       "timeEma": 3000.0,
+       "effEma": 1.0,
+       "parEma": 6.0,
+       "acc": 1.0,
+       "n": 2,
+       "confidence": 0.76,
+       "lastSeen": 1760200320,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.undo": {
+      "python": {
+       "timeEma": 3000,
+       "effEma": 1.0,
+       "parEma": 6,
+       "acc": 1.0,
+       "n": 1,
+       "confidence": 0.76,
+       "lastSeen": 1760200030,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.xdd": {
+      "python": {
+       "timeEma": 3000,
+       "effEma": 1.0,
+       "parEma": 6,
+       "acc": 1.0,
+       "n": 1,
+       "confidence": 0.76,
+       "lastSeen": 1760200060,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.save": {
+      "python": {
+       "timeEma": 3000,
+       "effEma": 1.0,
+       "parEma": 6,
+       "acc": 1.0,
+       "n": 1,
+       "confidence": 0.76,
+       "lastSeen": 1760200090,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     }
+    },
+    "logLen": 8,
+    "recentLen": 8,
+    "recentTail": [
+     "py/f.save/0090",
+     "py/f.modes/0200",
+     "py/f.modes/0230",
+     "py/f.modes/0260",
+     "py/f.hjkl/0320"
+    ],
+    "focusTail": [
+     "f.save",
+     "f.modes",
+     "f.modes",
+     "f.modes",
+     "f.hjkl"
+    ]
+   }
+  }
+ ]
+}

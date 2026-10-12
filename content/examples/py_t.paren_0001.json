@@ -1,0 +1,54 @@
+{
+  "id": "py/t.paren/0001",
+  "skill": "t.paren",
+  "lang": "python",
+  "kind": "edit",
+  "task": "Remove every argument passed to `connect`",
+  "start": {
+    "lines": [
+      "def open_db(cfg):",
+      "    host, port = cfg.host, cfg.port",
+      "    conn = connect(host, port, timeout=30, retries=2)",
+      "    conn.autocommit = True",
+      "    return conn"
+    ],
+    "cursor": [
+      3,
+      4
+    ]
+  },
+  "expect": {
+    "lines": [
+      "def open_db(cfg):",
+      "    host, port = cfg.host, cfg.port",
+      "    conn = connect()",
+      "    conn.autocommit = True",
+      "    return conn"
+    ]
+  },
+  "par": {
+    "keys": "di(",
+    "count": 3,
+    "verified": "nvim 0.12.5 2026-10-11"
+  },
+  "alternates": [
+    "f(di(",
+    "$di("
+  ],
+  "hints": [
+    "di( jumps forward to the next parentheses on the line when the cursor is outside them"
+  ],
+  "tags": [
+    "call-argument"
+  ],
+  "source": {
+    "repo": "author",
+    "path": "hand-written",
+    "commit": null,
+    "license": "own"
+  },
+  "emulator": {
+    "vscodevim": "unknown",
+    "ideavim": "unknown"
+  }
+}

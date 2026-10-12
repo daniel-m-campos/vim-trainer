@@ -1,0 +1,250 @@
+{
+ "name": "exercise_recent_and_weights",
+ "description": "Recent ids are avoided, weight-0 tags (t.angle in Python) are never drawn, and an exhausted pool returns the least recently seen.",
+ "index": {
+  "python": {
+   "t.paren": [
+    "py/t.paren/0001",
+    "py/t.paren/0002",
+    "py/t.paren/0003",
+    "py/t.paren/0004",
+    "py/t.paren/0005",
+    {
+     "id": "py/t.paren+t.angle/0001",
+     "skills": [
+      "t.paren",
+      "t.angle"
+     ]
+    }
+   ]
+  }
+ },
+ "ops": [
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "python",
+   "seed": 0,
+   "expect": "py/t.paren/0001"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "python",
+   "seed": 1,
+   "expect": "py/t.paren/0001"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "python",
+   "seed": 2,
+   "expect": "py/t.paren/0002"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "python",
+   "seed": 3,
+   "expect": "py/t.paren/0001"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "python",
+   "seed": 4,
+   "expect": "py/t.paren/0002"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "python",
+   "seed": 5,
+   "expect": "py/t.paren/0004"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "python",
+   "seed": 0,
+   "useGraph": false,
+   "expect": "py/t.paren/0001"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "python",
+   "seed": 1,
+   "useGraph": false,
+   "expect": "py/t.paren/0001"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "python",
+   "seed": 2,
+   "useGraph": false,
+   "expect": "py/t.paren/0002"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "python",
+   "seed": 3,
+   "useGraph": false,
+   "expect": "py/t.paren/0001"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "python",
+   "seed": 4,
+   "useGraph": false,
+   "expect": "py/t.paren/0002"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "python",
+   "seed": 5,
+   "useGraph": false,
+   "expect": "py/t.paren/0004"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200000,
+    "ex": "py/t.paren/0001",
+    "skill": "t.paren",
+    "lang": "python",
+    "ok": true,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200030,
+    "ex": "py/t.paren/0002",
+    "skill": "t.paren",
+    "lang": "python",
+    "ok": true,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200060,
+    "ex": "py/t.paren/0003",
+    "skill": "t.paren",
+    "lang": "python",
+    "ok": true,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200090,
+    "ex": "py/t.paren/0004",
+    "skill": "t.paren",
+    "lang": "python",
+    "ok": true,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "python",
+   "seed": 0,
+   "expect": "py/t.paren/0005"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "python",
+   "seed": 1,
+   "expect": "py/t.paren/0005"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "python",
+   "seed": 2,
+   "expect": "py/t.paren/0005"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200200,
+    "ex": "py/t.paren/0005",
+    "skill": "t.paren",
+    "lang": "python",
+    "ok": true,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "python",
+   "seed": 0,
+   "expect": "py/t.paren/0001"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "python",
+   "seed": 1,
+   "expect": "py/t.paren/0001"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "python",
+   "seed": 2,
+   "expect": "py/t.paren/0001"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.paren",
+   "lang": "lua",
+   "seed": 1,
+   "expect": null
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "t.quote",
+   "lang": "python",
+   "seed": 1,
+   "expect": null
+  }
+ ]
+}

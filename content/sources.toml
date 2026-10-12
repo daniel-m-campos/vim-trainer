@@ -1,0 +1,18 @@
+# Source allowlist for the content pipeline (docs/plan/03-content-pipeline.md, "Sources").
+#
+# Every source is pinned to a commit. The build clones it into content/.cache/<name>
+# (gitignored) and refuses to run if the LICENSE file at that commit is not the licence
+# declared here. Only permissive licences are allowed (see ALLOWED_LICENSES in sources.py).
+
+[[source]]
+name = "exercism-python"
+lang = "python"
+repo = "github.com/exercism/python"
+url = "https://github.com/exercism/python"
+commit = "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706"
+license = "MIT"
+license_file = "LICENSE"
+include = [
+  "exercises/practice/*/.meta/example.py",
+  "exercises/concept/*/.meta/exemplar.py",
+]

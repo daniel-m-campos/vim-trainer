@@ -1,0 +1,459 @@
+{
+ "name": "mastery_and_unlock",
+ "description": "8 at-target attempts master f.hjkl (n gate), unlocking m.word, m.line, m.file.",
+ "ops": [
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200000,
+    "ex": "py/f.hjkl/0000",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200030,
+    "ex": "py/f.hjkl/0030",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200060,
+    "ex": "py/f.hjkl/0060",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200090,
+    "ex": "py/f.hjkl/0090",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200120,
+    "ex": "py/f.hjkl/0120",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200150,
+    "ex": "py/f.hjkl/0150",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200180,
+    "ex": "py/f.hjkl/0180",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "digest",
+   "expect": {
+    "skills": {
+     "f.modes": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.hjkl": {
+      "python": {
+       "timeEma": 2000.0,
+       "effEma": 1.0,
+       "parEma": 6.0,
+       "acc": 1.0,
+       "n": 7,
+       "confidence": 1.0,
+       "lastSeen": 1760200180,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.undo": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.xdd": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.save": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     }
+    },
+    "logLen": 7,
+    "recentLen": 7,
+    "recentTail": [
+     "py/f.hjkl/0060",
+     "py/f.hjkl/0090",
+     "py/f.hjkl/0120",
+     "py/f.hjkl/0150",
+     "py/f.hjkl/0180"
+    ],
+    "focusTail": [
+     "f.hjkl",
+     "f.hjkl",
+     "f.hjkl",
+     "f.hjkl",
+     "f.hjkl"
+    ]
+   }
+  },
+  {
+   "op": "diagnose",
+   "skill": "f.hjkl",
+   "lang": "python",
+   "expect": {
+    "status": "active",
+    "failing": [
+     "samples"
+    ],
+    "speed": 1.14,
+    "efficiency": 1.0,
+    "acc": 1.0,
+    "n": 7
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200300,
+    "ex": "py/f.hjkl/0300",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200330,
+    "ex": "py/f.hjkl/0330",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200360,
+    "ex": "py/f.hjkl/0360",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "digest",
+   "expect": {
+    "skills": {
+     "f.modes": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.hjkl": {
+      "python": {
+       "timeEma": 2000.0,
+       "effEma": 1.0,
+       "parEma": 6.0,
+       "acc": 1.0,
+       "n": 10,
+       "confidence": 1.0,
+       "lastSeen": 1760200360,
+       "status": "mastered",
+       "reviewsPassed": 0,
+       "nextReview": 1760286700
+      }
+     },
+     "f.undo": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.xdd": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.save": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "m.word": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "m.line": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "m.file": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     }
+    },
+    "logLen": 10,
+    "recentLen": 10,
+    "recentTail": [
+     "py/f.hjkl/0150",
+     "py/f.hjkl/0180",
+     "py/f.hjkl/0300",
+     "py/f.hjkl/0330",
+     "py/f.hjkl/0360"
+    ],
+    "focusTail": [
+     "f.hjkl",
+     "f.hjkl",
+     "f.hjkl",
+     "f.hjkl",
+     "f.hjkl"
+    ]
+   }
+  },
+  {
+   "op": "diagnose",
+   "skill": "f.hjkl",
+   "lang": "python",
+   "expect": {
+    "status": "mastered",
+    "failing": [],
+    "speed": 1.14,
+    "efficiency": 1.0,
+    "acc": 1.0,
+    "n": 10
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760200400,
+   "seed": 5,
+   "expect": "f.modes"
+  },
+  {
+   "op": "chooseWarmup",
+   "lang": "python",
+   "expect": "f.hjkl"
+  },
+  {
+   "op": "sessionSummary",
+   "since": 1760200000,
+   "expect": {
+    "improved": [
+     {
+      "skill": "f.hjkl",
+      "delta": 1.0
+     }
+    ],
+    "mastered": [
+     "f.hjkl"
+    ],
+    "unlocked": [
+     "m.word",
+     "m.line",
+     "m.file"
+    ],
+    "tip": null
+   }
+  },
+  {
+   "op": "rebuildMatches",
+   "expect": true
+  }
+ ]
+}

@@ -1,0 +1,72 @@
+{
+  "id": "py/m.rel/0001",
+  "skill": "m.rel",
+  "lang": "python",
+  "kind": "cursor",
+  "task": "Move the cursor to the line that assigns `args`",
+  "start": {
+    "lines": [
+      "def parse_args(argv):",
+      "    parser = argparse.ArgumentParser()",
+      "    parser.add_argument(\"src\")",
+      "    parser.add_argument(\"dst\")",
+      "    parser.add_argument(\"--force\", action=\"store_true\")",
+      "    parser.add_argument(\"--dry-run\", action=\"store_true\")",
+      "    parser.add_argument(\"--verbose\", \"-v\", action=\"count\")",
+      "    parser.add_argument(\"--jobs\", \"-j\", type=int, default=1)",
+      "    parser.add_argument(\"--log\", default=\"info\")",
+      "    args = parser.parse_args(argv)",
+      "    if args.jobs < 1:",
+      "        parser.error(\"--jobs must be >= 1\")",
+      "    return args"
+    ],
+    "cursor": [
+      3,
+      4
+    ]
+  },
+  "expect": {
+    "cursor": [
+      10,
+      4
+    ]
+  },
+  "target": {
+    "from": [
+      10,
+      4
+    ],
+    "to": [
+      10,
+      8
+    ]
+  },
+  "par": {
+    "keys": "7j",
+    "count": 2,
+    "verified": "nvim 0.12.5 2026-10-11"
+  },
+  "alternates": [
+    "7+"
+  ],
+  "hints": [
+    {
+      "trigger": "j{3,}",
+      "text": "relative numbers show 7 on the target line, so 7j gets there in two keys."
+    },
+    "relative numbers show 7 on the target line"
+  ],
+  "tags": [
+    "relative-motion"
+  ],
+  "source": {
+    "repo": "author",
+    "path": "hand-written",
+    "commit": null,
+    "license": "own"
+  },
+  "emulator": {
+    "vscodevim": "ok",
+    "ideavim": "ok"
+  }
+}

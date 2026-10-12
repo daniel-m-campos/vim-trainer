@@ -1,0 +1,7 @@
+[[source]]
+name = "fixture"
+lang = "python"
+repo = "fixture/inventory"
+license = "MIT"
+local = "."
+include = ["src/*.py"]

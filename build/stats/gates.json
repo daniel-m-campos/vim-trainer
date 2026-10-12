@@ -1,0 +1,84 @@
+{
+  "windows": 237,
+  "drafts": 6851,
+  "replays": 30934,
+  "accepted": {
+    "python": {
+      "m.find": 40,
+      "m.rel": 40,
+      "m.match": 40,
+      "o.delete": 40,
+      "o.change": 40,
+      "o.indent": 40,
+      "o.case": 40,
+      "t.quote": 40,
+      "t.paren": 40,
+      "t.bracket": 40,
+      "t.brace": 27,
+      "t.word": 40,
+      "x.subst": 40,
+      "x.copymove": 40,
+      "n.unmatched": 40
+    }
+  },
+  "thin": {
+    "python": []
+  },
+  "rejected": {
+    "anti-shortcut": {
+      "total": 199,
+      "by": {
+        "m.match/jump_match": 2,
+        "n.unmatched/jump_block_end": 7,
+        "o.case/upper_inner": 5,
+        "o.change/change_kwarg_value": 11,
+        "o.change/change_nth_arg": 2,
+        "o.delete/delete_lines": 1,
+        "o.delete/delete_trailing_comment": 1,
+        "t.brace/change_inner": 16,
+        "t.brace/delete_inner": 1,
+        "t.bracket/change_inner": 14,
+        "t.bracket/delete_around": 9,
+        "t.bracket/delete_inner": 2,
+        "t.paren/change_inner": 6,
+        "t.paren/delete_around": 2,
+        "t.paren/delete_inner": 6,
+        "t.quote/change_inner": 36,
+        "t.quote/delete_inner": 29,
+        "t.word/rename_here": 47,
+        "x.copymove/copy_line": 1,
+        "x.copymove/move_line": 1
+      }
+    },
+    "motion": {
+      "total": 81,
+      "by": {
+        "m.find/find_char": 7,
+        "m.match/jump_match": 29,
+        "m.rel/goto_line_rel": 25,
+        "n.unmatched/jump_block_end": 20
+      }
+    },
+    "oracle": {
+      "total": 1,
+      "by": {
+        "t.quote/change_inner": 1
+      }
+    },
+    "par": {
+      "total": 144,
+      "by": {
+        "m.find/find_char": 51,
+        "m.rel/goto_line_rel": 27,
+        "n.unmatched/jump_block_end": 66
+      }
+    },
+    "target": {
+      "total": 2,
+      "by": {
+        "x.copymove/copy_line": 1,
+        "x.copymove/move_line": 1
+      }
+    }
+  }
+}

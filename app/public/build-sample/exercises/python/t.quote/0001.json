@@ -1,0 +1,87 @@
+{
+  "id": "py/t.quote/0001",
+  "skill": "t.quote",
+  "lang": "python",
+  "kind": "edit",
+  "task": "Change the string passed to `logger.warn` to `retrying`",
+  "start": {
+    "lines": [
+      "import logging",
+      "",
+      "logger = logging.getLogger(\"fetch\")",
+      "",
+      "",
+      "def fetch(url, attempts=3):",
+      "    for i in range(attempts):",
+      "        try:",
+      "            return get(url, timeout=5)",
+      "        except Timeout:",
+      "            logger.warn(\"timeout, trying again\")",
+      "            sleep(2 ** i)",
+      "    raise GiveUp(url)"
+    ],
+    "cursor": [
+      11,
+      12
+    ]
+  },
+  "expect": {
+    "lines": [
+      "import logging",
+      "",
+      "logger = logging.getLogger(\"fetch\")",
+      "",
+      "",
+      "def fetch(url, attempts=3):",
+      "    for i in range(attempts):",
+      "        try:",
+      "            return get(url, timeout=5)",
+      "        except Timeout:",
+      "            logger.warn(\"retrying\")",
+      "            sleep(2 ** i)",
+      "    raise GiveUp(url)"
+    ]
+  },
+  "target": {
+    "from": [
+      11,
+      24
+    ],
+    "to": [
+      11,
+      47
+    ]
+  },
+  "par": {
+    "keys": "ci\"retrying<Esc>",
+    "count": 12,
+    "verified": "nvim 0.12.5 2026-10-11"
+  },
+  "alternates": [
+    "f\"ci\"retrying<Esc>"
+  ],
+  "hints": [
+    {
+      "trigger": "^f\"",
+      "text": "ci\" works from anywhere on the line before or inside the quotes, so the f\" was unnecessary."
+    },
+    "ci\" searches forward on the line, so it works from the start of the line"
+  ],
+  "tags": [
+    "string",
+    "call-argument"
+  ],
+  "source": {
+    "repo": "author",
+    "path": "hand-written",
+    "commit": null,
+    "license": "own"
+  },
+  "emulator": {
+    "vscodevim": "ok",
+    "ideavim": "ok"
+  },
+  "params": {
+    "text": "retrying"
+  }
+}

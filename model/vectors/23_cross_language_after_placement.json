@@ -1,0 +1,767 @@
+{
+ "name": "cross_language_after_placement",
+ "description": "A new language: skills mastered elsewhere start mastered with a review due, and carried-over active skills respect the 4-7 active target.",
+ "ops": [
+  {
+   "op": "applyPlacement",
+   "records": [
+    {
+     "t": 1760200000,
+     "ex": "py/m.word/0001",
+     "skill": "m.word",
+     "lang": "python",
+     "ok": true,
+     "ms": 1843,
+     "keys": 8,
+     "par": 7,
+     "hint": false,
+     "retry": false,
+     "undo": 0
+    },
+    {
+     "t": 1760200020,
+     "ex": "py/m.file/0002",
+     "skill": "m.file",
+     "lang": "python",
+     "ok": true,
+     "ms": 1996,
+     "keys": 9,
+     "par": 8,
+     "hint": false,
+     "retry": false,
+     "undo": 0
+    },
+    {
+     "t": 1760200040,
+     "ex": "py/o.delete/0003",
+     "skill": "o.delete",
+     "lang": "python",
+     "ok": true,
+     "ms": 2727,
+     "keys": 11,
+     "par": 9,
+     "hint": false,
+     "retry": false,
+     "undo": 0
+    },
+    {
+     "t": 1760200060,
+     "ex": "py/t.word/0004",
+     "skill": "t.word",
+     "lang": "python",
+     "ok": true,
+     "ms": 2748,
+     "keys": 11,
+     "par": 10,
+     "hint": false,
+     "retry": false,
+     "undo": 0
+    },
+    {
+     "t": 1760200080,
+     "ex": "py/v.char/0005",
+     "skill": "v.char",
+     "lang": "python",
+     "ok": true,
+     "ms": 3602,
+     "keys": 13,
+     "par": 11,
+     "hint": false,
+     "retry": false,
+     "undo": 0
+    },
+    {
+     "t": 1760200100,
+     "ex": "py/r.named/0006",
+     "skill": "r.named",
+     "lang": "python",
+     "ok": true,
+     "ms": 4562,
+     "keys": 14,
+     "par": 12,
+     "hint": false,
+     "retry": false,
+     "undo": 0
+    },
+    {
+     "t": 1760200120,
+     "ex": "py/x.subst/0007",
+     "skill": "x.subst",
+     "lang": "python",
+     "ok": true,
+     "ms": 2832,
+     "keys": 13,
+     "par": 13,
+     "hint": false,
+     "retry": false,
+     "undo": 0
+    },
+    {
+     "t": 1760200140,
+     "ex": "py/a.dot/0008",
+     "skill": "a.dot",
+     "lang": "python",
+     "ok": false,
+     "ms": 5808,
+     "keys": 25,
+     "par": 14,
+     "hint": false,
+     "retry": false,
+     "undo": 0
+    },
+    {
+     "t": 1760200160,
+     "ex": "py/n.marks/0009",
+     "skill": "n.marks",
+     "lang": "python",
+     "ok": false,
+     "ms": 2138,
+     "keys": 7,
+     "par": 6,
+     "hint": false,
+     "retry": false,
+     "undo": 0
+    },
+    {
+     "t": 1760200180,
+     "ex": "py/o.change/0010",
+     "skill": "o.change",
+     "lang": "python",
+     "ok": true,
+     "ms": 1891,
+     "keys": 8,
+     "par": 7,
+     "hint": false,
+     "retry": false,
+     "undo": 0
+    },
+    {
+     "t": 1760200200,
+     "ex": "py/t.quote/0011",
+     "skill": "t.quote",
+     "lang": "python",
+     "ok": true,
+     "ms": 1920,
+     "keys": 9,
+     "par": 8,
+     "hint": false,
+     "retry": false,
+     "undo": 0
+    },
+    {
+     "t": 1760200220,
+     "ex": "py/t.paren/0012",
+     "skill": "t.paren",
+     "lang": "python",
+     "ok": true,
+     "ms": 2327,
+     "keys": 9,
+     "par": 9,
+     "hint": false,
+     "retry": false,
+     "undo": 0
+    }
+   ]
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200700,
+    "ex": "cp/f.hjkl/0700",
+    "skill": "f.hjkl",
+    "lang": "cpp",
+    "ok": true,
+    "ms": 1500,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "digest",
+   "expect": {
+    "skills": {
+     "f.modes": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 1.0,
+       "n": 8,
+       "confidence": 1.0,
+       "lastSeen": 0,
+       "status": "mastered",
+       "reviewsPassed": 2,
+       "nextReview": 1760545820
+      },
+      "cpp": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "review",
+       "reviewsPassed": 0,
+       "nextReview": 0
+      }
+     },
+     "f.hjkl": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 1.0,
+       "n": 8,
+       "confidence": 1.0,
+       "lastSeen": 0,
+       "status": "mastered",
+       "reviewsPassed": 2,
+       "nextReview": 1760545820
+      },
+      "cpp": {
+       "timeEma": 1500,
+       "effEma": 1.0,
+       "parEma": 6,
+       "acc": 1.0,
+       "n": 1,
+       "confidence": 1.0,
+       "lastSeen": 1760200700,
+       "status": "mastered",
+       "reviewsPassed": 1,
+       "nextReview": 1760373500
+      }
+     },
+     "f.undo": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 1.0,
+       "n": 8,
+       "confidence": 1.0,
+       "lastSeen": 0,
+       "status": "mastered",
+       "reviewsPassed": 2,
+       "nextReview": 1760545820
+      },
+      "cpp": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "review",
+       "reviewsPassed": 0,
+       "nextReview": 0
+      }
+     },
+     "f.xdd": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 1.0,
+       "n": 8,
+       "confidence": 1.0,
+       "lastSeen": 0,
+       "status": "mastered",
+       "reviewsPassed": 2,
+       "nextReview": 1760545820
+      },
+      "cpp": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "review",
+       "reviewsPassed": 0,
+       "nextReview": 0
+      }
+     },
+     "f.save": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 1.0,
+       "n": 8,
+       "confidence": 1.0,
+       "lastSeen": 0,
+       "status": "mastered",
+       "reviewsPassed": 2,
+       "nextReview": 1760545820
+      },
+      "cpp": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "review",
+       "reviewsPassed": 0,
+       "nextReview": 0
+      }
+     },
+     "m.word": {
+      "python": {
+       "timeEma": 1843,
+       "effEma": 1.1428571428571428,
+       "parEma": 7,
+       "acc": 1.0,
+       "n": 8,
+       "confidence": 1.0,
+       "lastSeen": 1760200000,
+       "status": "mastered",
+       "reviewsPassed": 2,
+       "nextReview": 1760545820
+      },
+      "cpp": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "review",
+       "reviewsPassed": 0,
+       "nextReview": 0
+      }
+     },
+     "m.line": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 1.0,
+       "n": 8,
+       "confidence": 1.0,
+       "lastSeen": 0,
+       "status": "mastered",
+       "reviewsPassed": 2,
+       "nextReview": 1760545820
+      },
+      "cpp": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "review",
+       "reviewsPassed": 0,
+       "nextReview": 0
+      }
+     },
+     "m.file": {
+      "python": {
+       "timeEma": 1996,
+       "effEma": 1.125,
+       "parEma": 8,
+       "acc": 1.0,
+       "n": 1,
+       "confidence": 0.8888888888888888,
+       "lastSeen": 1760200020,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      },
+      "cpp": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "m.match": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 1.0,
+       "n": 8,
+       "confidence": 1.0,
+       "lastSeen": 0,
+       "status": "mastered",
+       "reviewsPassed": 2,
+       "nextReview": 1760545820
+      },
+      "cpp": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "review",
+       "reviewsPassed": 0,
+       "nextReview": 0
+      }
+     },
+     "m.search": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 1.0,
+       "n": 8,
+       "confidence": 1.0,
+       "lastSeen": 0,
+       "status": "mastered",
+       "reviewsPassed": 2,
+       "nextReview": 1760545820
+      },
+      "cpp": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "review",
+       "reviewsPassed": 0,
+       "nextReview": 0
+      }
+     },
+     "o.delete": {
+      "python": {
+       "timeEma": 2727,
+       "effEma": 1.2222222222222223,
+       "parEma": 9,
+       "acc": 1.0,
+       "n": 8,
+       "confidence": 1.0,
+       "lastSeen": 1760200040,
+       "status": "mastered",
+       "reviewsPassed": 2,
+       "nextReview": 1760545820
+      },
+      "cpp": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "review",
+       "reviewsPassed": 0,
+       "nextReview": 0
+      }
+     },
+     "o.change": {
+      "python": {
+       "timeEma": 1891,
+       "effEma": 1.1428571428571428,
+       "parEma": 7,
+       "acc": 1.0,
+       "n": 8,
+       "confidence": 1.0,
+       "lastSeen": 1760200180,
+       "status": "mastered",
+       "reviewsPassed": 2,
+       "nextReview": 1760545820
+      },
+      "cpp": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "review",
+       "reviewsPassed": 0,
+       "nextReview": 0
+      }
+     },
+     "o.yank": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 1.0,
+       "n": 8,
+       "confidence": 1.0,
+       "lastSeen": 0,
+       "status": "mastered",
+       "reviewsPassed": 2,
+       "nextReview": 1760545820
+      },
+      "cpp": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "review",
+       "reviewsPassed": 0,
+       "nextReview": 0
+      }
+     },
+     "t.word": {
+      "python": {
+       "timeEma": 2748,
+       "effEma": 1.1,
+       "parEma": 10,
+       "acc": 1.0,
+       "n": 1,
+       "confidence": 0.9090909090909091,
+       "lastSeen": 1760200060,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      },
+      "cpp": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "t.quote": {
+      "python": {
+       "timeEma": 1920,
+       "effEma": 1.125,
+       "parEma": 8,
+       "acc": 1.0,
+       "n": 1,
+       "confidence": 0.8888888888888888,
+       "lastSeen": 1760200200,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      },
+      "cpp": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "t.paren": {
+      "python": {
+       "timeEma": 2327,
+       "effEma": 1.0,
+       "parEma": 9,
+       "acc": 1.0,
+       "n": 1,
+       "confidence": 1.0,
+       "lastSeen": 1760200220,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      },
+      "cpp": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "v.char": {
+      "python": {
+       "timeEma": 3602,
+       "effEma": 1.1818181818181819,
+       "parEma": 11,
+       "acc": 1.0,
+       "n": 1,
+       "confidence": 0.747020885832657,
+       "lastSeen": 1760200080,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      },
+      "cpp": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "r.named": {
+      "python": {
+       "timeEma": 4562,
+       "effEma": 1.1666666666666667,
+       "parEma": 12,
+       "acc": 1.0,
+       "n": 1,
+       "confidence": 0.6313020604997808,
+       "lastSeen": 1760200100,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      },
+      "cpp": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "x.subst": {
+      "python": {
+       "timeEma": 2832,
+       "effEma": 1.0,
+       "parEma": 13,
+       "acc": 1.0,
+       "n": 1,
+       "confidence": 1.0,
+       "lastSeen": 1760200120,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      },
+      "cpp": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "a.dot": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 1,
+       "confidence": 0.0,
+       "lastSeen": 1760200140,
+       "status": "locked",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "n.marks": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 1,
+       "confidence": 0.0,
+       "lastSeen": 1760200160,
+       "status": "locked",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     }
+    },
+    "logLen": 13,
+    "recentLen": 13,
+    "recentTail": [
+     "py/n.marks/0009",
+     "py/o.change/0010",
+     "py/t.quote/0011",
+     "py/t.paren/0012",
+     "cp/f.hjkl/0700"
+    ],
+    "focusTail": [
+     "f.hjkl"
+    ]
+   }
+  },
+  {
+   "op": "sessionSummary",
+   "since": 1760200650,
+   "expect": {
+    "improved": [
+     {
+      "skill": "f.hjkl",
+      "delta": 1.0
+     }
+    ],
+    "mastered": [],
+    "unlocked": [],
+    "tip": null
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "cpp",
+   "now": 1760200800,
+   "seed": 0,
+   "expect": "t.paren"
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "cpp",
+   "now": 1760200800,
+   "seed": 1,
+   "expect": "t.paren"
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "cpp",
+   "now": 1760200800,
+   "seed": 2,
+   "expect": "t.paren"
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "cpp",
+   "now": 1760200800,
+   "seed": 3,
+   "expect": "t.paren"
+  }
+ ]
+}

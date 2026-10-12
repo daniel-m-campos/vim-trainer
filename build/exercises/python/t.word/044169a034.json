@@ -1,0 +1,161 @@
+{
+  "id": "py/t.word/044169a034",
+  "skill": "t.word",
+  "lang": "python",
+  "kind": "edit",
+  "task": "Rename this `ok_zero_digit_count` to `words` (only this one)",
+  "start": {
+    "lines": [
+      "\"\"\"This solution will first parse the alphametic expression\"\"\"",
+      "",
+      "from itertools import permutations, chain, product",
+      "",
+      "",
+      "def dig_perms(digit_set, non_zero_chars, ok_zero_chars):",
+      "    \"\"\"This function creates permutations given the set of digits,\"\"\"",
+      "    non_zero_count = len(non_zero_chars)  # How many letters are non-0",
+      "    ok_zero_count = len(ok_zero_chars)  # How many letters are allowed 0",
+      "    total_count = non_zero_count + ok_zero_count  # Total number of letters",
+      "    if total_count < 1:  # if total numbers of letters is 0",
+      "        return [()]  # return a singe empty permutation",
+      "    non_zero_digit_set = digit_set - set((0,))  # generate a non-zero digit set",
+      "    available_zero_digit_count = len(non_zero_digit_set)  # how many non-zero digits are available",
+      "    ok_zero_digit_count = len(digit_set)  # how many ok zero digits are available",
+      "    # if either fewer digits than letters at all or fewer non-0 digits",
+      "    # than letters that need to be non-zero",
+      "    if ok_zero_digit_count < total_count or available_zero_digit_count < non_zero_count:",
+      "        return []  # Return no permutations possible",
+      "    # Simple case when zeros are allowed everwhere",
+      "    # or no zero is containted within the given digits",
+      "    elif non_zero_count == 0 or ok_zero_digit_count == available_zero_digit_count:",
+      "        return permutations(digit_set, total_count)",
+      "    # Another simple case all letters are non-0",
+      "    elif ok_zero_count == 0:",
+      "        return permutations(non_zero_digit_set, total_count)",
+      "    else:",
+      "        # General case",
+      "        # Generate a list of possible 0 positions",
+      "        positions_list = list(range(non_zero_count, total_count))",
+      "        # Chain two iterators",
+      "        # first iterator with all non-0 permutations",
+      "        # second iterator with all permulations without 1 letter",
+      "        # insert 0 in all possible positions of that permutation",
+      "        return chain(permutations(non_zero_digit_set, total_count),",
+      "                     map(lambda iters: iters[0][:iters[1]] + (0,) + iters[0][iters[1]:],",
+      "                         product(permutations(non_zero_digit_set, total_count - 1),",
+      "                                 positions_list)))"
+    ],
+    "cursor": [
+      15,
+      21
+    ]
+  },
+  "expect": {
+    "lines": [
+      "\"\"\"This solution will first parse the alphametic expression\"\"\"",
+      "",
+      "from itertools import permutations, chain, product",
+      "",
+      "",
+      "def dig_perms(digit_set, non_zero_chars, ok_zero_chars):",
+      "    \"\"\"This function creates permutations given the set of digits,\"\"\"",
+      "    non_zero_count = len(non_zero_chars)  # How many letters are non-0",
+      "    ok_zero_count = len(ok_zero_chars)  # How many letters are allowed 0",
+      "    total_count = non_zero_count + ok_zero_count  # Total number of letters",
+      "    if total_count < 1:  # if total numbers of letters is 0",
+      "        return [()]  # return a singe empty permutation",
+      "    non_zero_digit_set = digit_set - set((0,))  # generate a non-zero digit set",
+      "    available_zero_digit_count = len(non_zero_digit_set)  # how many non-zero digits are available",
+      "    words = len(digit_set)  # how many ok zero digits are available",
+      "    # if either fewer digits than letters at all or fewer non-0 digits",
+      "    # than letters that need to be non-zero",
+      "    if ok_zero_digit_count < total_count or available_zero_digit_count < non_zero_count:",
+      "        return []  # Return no permutations possible",
+      "    # Simple case when zeros are allowed everwhere",
+      "    # or no zero is containted within the given digits",
+      "    elif non_zero_count == 0 or ok_zero_digit_count == available_zero_digit_count:",
+      "        return permutations(digit_set, total_count)",
+      "    # Another simple case all letters are non-0",
+      "    elif ok_zero_count == 0:",
+      "        return permutations(non_zero_digit_set, total_count)",
+      "    else:",
+      "        # General case",
+      "        # Generate a list of possible 0 positions",
+      "        positions_list = list(range(non_zero_count, total_count))",
+      "        # Chain two iterators",
+      "        # first iterator with all non-0 permutations",
+      "        # second iterator with all permulations without 1 letter",
+      "        # insert 0 in all possible positions of that permutation",
+      "        return chain(permutations(non_zero_digit_set, total_count),",
+      "                     map(lambda iters: iters[0][:iters[1]] + (0,) + iters[0][iters[1]:],",
+      "                         product(permutations(non_zero_digit_set, total_count - 1),",
+      "                                 positions_list)))"
+    ]
+  },
+  "par": {
+    "keys": "ciwwords<Esc>",
+    "count": 9,
+    "verified": "nvim 0.12.5 2026-10-11"
+  },
+  "alternates": [
+    "bcwwords<Esc>",
+    "viwcwords<Esc>",
+    "bcewords<Esc>"
+  ],
+  "hints": [
+    {
+      "trigger": "^b",
+      "text": "ciw works from anywhere in the word; the b is not needed."
+    },
+    {
+      "trigger": "^c[we]",
+      "text": "cw only changes from the cursor to the end of the word; ciw takes all of it."
+    },
+    {
+      "trigger": "x{2,}|^d",
+      "text": "ciw deletes the word and enters insert mode in one command."
+    },
+    {
+      "trigger": null,
+      "text": "ciw: change inner word, from anywhere inside it."
+    }
+  ],
+  "tags": [
+    "identifier",
+    "word"
+  ],
+  "target": [
+    {
+      "start": [
+        15,
+        4
+      ],
+      "end": [
+        15,
+        22
+      ]
+    }
+  ],
+  "template": "rename_here",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/alphametics/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      1,
+      49
+    ]
+  },
+  "emulator": {
+    "vscodevim": "full",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "text": "words"
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 43,
+  "reviewed": false
+}

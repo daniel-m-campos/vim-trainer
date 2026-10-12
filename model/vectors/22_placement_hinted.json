@@ -1,0 +1,181 @@
+{
+ "name": "placement_hinted",
+ "description": "Hinted and retried placement records are logged only: no stats, no pass, no propagation to prerequisites.",
+ "ops": [
+  {
+   "op": "applyPlacement",
+   "records": [
+    {
+     "t": 1760200000,
+     "ex": "py/t.quote/0000",
+     "skill": "t.quote",
+     "lang": "python",
+     "ok": true,
+     "ms": 3000,
+     "keys": 12,
+     "par": 12,
+     "hint": true,
+     "retry": false,
+     "undo": 0
+    },
+    {
+     "t": 1760200060,
+     "ex": "py/m.word/0060",
+     "skill": "m.word",
+     "lang": "python",
+     "ok": true,
+     "ms": 1500,
+     "keys": 3,
+     "par": 3,
+     "hint": false,
+     "retry": false,
+     "undo": 0
+    },
+    {
+     "t": 1760200120,
+     "ex": "py/o.delete/0120",
+     "skill": "o.delete",
+     "lang": "python",
+     "ok": true,
+     "ms": 1500,
+     "keys": 3,
+     "par": 3,
+     "hint": false,
+     "retry": true,
+     "undo": 0
+    }
+   ]
+  },
+  {
+   "op": "digest",
+   "expect": {
+    "skills": {
+     "f.modes": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.hjkl": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 1.0,
+       "n": 8,
+       "confidence": 1.0,
+       "lastSeen": 0,
+       "status": "mastered",
+       "reviewsPassed": 2,
+       "nextReview": 1760545720
+      }
+     },
+     "f.undo": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.xdd": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.save": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "m.word": {
+      "python": {
+       "timeEma": 1500,
+       "effEma": 1.0,
+       "parEma": 3,
+       "acc": 1.0,
+       "n": 1,
+       "confidence": 1.0,
+       "lastSeen": 1760200060,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "m.line": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.5,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "m.file": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.5,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     }
+    },
+    "logLen": 3,
+    "recentLen": 3,
+    "recentTail": [
+     "py/t.quote/0000",
+     "py/m.word/0060",
+     "py/o.delete/0120"
+    ],
+    "focusTail": []
+   }
+  },
+  {
+   "op": "rebuildMatches",
+   "expect": true
+  }
+ ]
+}

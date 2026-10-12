@@ -1,0 +1,306 @@
+{
+ "name": "accuracy_gate",
+ "description": "Fast and at par but 3/12 give-ups: accuracy gate blocks mastery.",
+ "ops": [
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200000,
+    "ex": "py/f.undo/0000",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 1800,
+    "keys": 4,
+    "par": 4,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200030,
+    "ex": "py/f.undo/0030",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 1800,
+    "keys": 4,
+    "par": 4,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200060,
+    "ex": "py/f.undo/0060",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 1800,
+    "keys": 4,
+    "par": 4,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200090,
+    "ex": "py/f.undo/0090",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": false,
+    "ms": 1800,
+    "keys": 4,
+    "par": 4,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200120,
+    "ex": "py/f.undo/0120",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 1800,
+    "keys": 4,
+    "par": 4,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200150,
+    "ex": "py/f.undo/0150",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 1800,
+    "keys": 4,
+    "par": 4,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200180,
+    "ex": "py/f.undo/0180",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 1800,
+    "keys": 4,
+    "par": 4,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200210,
+    "ex": "py/f.undo/0210",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": false,
+    "ms": 1800,
+    "keys": 4,
+    "par": 4,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200240,
+    "ex": "py/f.undo/0240",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 1800,
+    "keys": 4,
+    "par": 4,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200270,
+    "ex": "py/f.undo/0270",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 1800,
+    "keys": 4,
+    "par": 4,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200300,
+    "ex": "py/f.undo/0300",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 1800,
+    "keys": 4,
+    "par": 4,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200330,
+    "ex": "py/f.undo/0330",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": false,
+    "ms": 1800,
+    "keys": 4,
+    "par": 4,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "diagnose",
+   "skill": "f.undo",
+   "lang": "python",
+   "expect": {
+    "status": "active",
+    "failing": [
+     "accuracy"
+    ],
+    "speed": 1.0666666666666667,
+    "efficiency": 1.0,
+    "acc": 0.75,
+    "n": 12
+   }
+  },
+  {
+   "op": "digest",
+   "expect": {
+    "skills": {
+     "f.modes": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.hjkl": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.undo": {
+      "python": {
+       "timeEma": 1800.0,
+       "effEma": 1.0,
+       "parEma": 4.0,
+       "acc": 0.75,
+       "n": 12,
+       "confidence": 1.0,
+       "lastSeen": 1760200330,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.xdd": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.save": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     }
+    },
+    "logLen": 12,
+    "recentLen": 12,
+    "recentTail": [
+     "py/f.undo/0210",
+     "py/f.undo/0240",
+     "py/f.undo/0270",
+     "py/f.undo/0300",
+     "py/f.undo/0330"
+    ],
+    "focusTail": [
+     "f.undo",
+     "f.undo",
+     "f.undo",
+     "f.undo",
+     "f.undo"
+    ]
+   }
+  }
+ ]
+}

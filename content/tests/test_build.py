@@ -1,0 +1,102 @@
+"""End-to-end build on the fixture source, plus the review CLI."""
+
+import json
+import re
+
+import pytest
+
+from conftest import FIXTURES
+from vimtrainer_content import build, review
+
+
+@pytest.fixture(scope="module")
+def built(tmp_path_factory):
+    out = tmp_path_factory.mktemp("b") / "build"
+    report = build.build(out=out, cap=3, workers=2, sources_toml=FIXTURES / "sources.toml", log=lambda *_: None)
+    return out, report
+
+
+def test_build_layout(built):
+    out, _ = built
+    for rel in ("index.json", "ATTRIBUTION.md", "supported_commands.md", "stats/node_frequency.json",
+                "stats/gates.json"):
+        assert (out / rel).is_file(), rel
+    assert list((out / "exercises" / "python").glob("*/*.json"))
+
+
+def test_index_matches_files(built):
+    out, report = built
+    index = json.loads((out / "index.json").read_text())
+    skills = index["langs"]["python"]["skills"]
+    for skill, entry in skills.items():
+        assert entry["count"] == len(entry["ids"]) == report.counts["python"][skill]
+        assert entry["thin"] is (entry["count"] < 20)
+        for ex_id in entry["ids"]:
+            path = out / "exercises" / "python" / skill / f"{ex_id.rsplit('/', 1)[1]}.json"
+            ex = json.loads(path.read_text())
+            assert ex["id"] == ex_id
+            assert ex["par"]["verified"].startswith("nvim ")
+            assert ex["source"]["license"] == "MIT"
+
+
+def test_exercise_schema(built):
+    out, _ = built
+    for path in (out / "exercises").glob("*/*/*.json"):
+        ex = json.loads(path.read_text())
+        assert {"id", "skill", "lang", "kind", "task", "start", "expect", "par", "alternates", "hints", "tags",
+                "source", "emulator", "target", "template"} <= set(ex)
+        assert ("cursor" in ex["expect"]) is (ex["kind"] == "cursor")
+        for hint in ex["hints"]:
+            assert set(hint) == {"trigger", "text"}
+            assert not hint["trigger"] or not re.search(hint["trigger"], ex["par"]["keys"])  # at par: no hint
+
+
+def test_attribution_and_frequency(built):
+    out, _ = built
+    text = (out / "ATTRIBUTION.md").read_text()
+    assert "fixture/inventory" in text and "Permission is hereby granted" in text
+    freq = json.loads((out / "stats" / "node_frequency.json").read_text())
+    assert freq["python"]["mapped"]["string"] > 0
+
+
+def test_build_refuses_to_wipe_non_build_dir(tmp_path):
+    (tmp_path / "precious.txt").write_text("x")
+    with pytest.raises(RuntimeError, match="refusing"):
+        build.build(out=tmp_path, sources_toml=FIXTURES / "sources.toml", log=lambda *_: None)
+
+
+def test_review_accept_reject_quit(built, tmp_path):
+    out, _ = built
+    answers = iter(["a", "r", "q"])
+    shown = []
+    reviewed, rejected = tmp_path / "reviewed.txt", tmp_path / "rejected.txt"
+    acc, rej = review.review(out, ask=lambda _: next(answers), echo=shown.append,
+                             reviewed_txt=reviewed, rejected_txt=rejected)
+    assert (acc, rej) == (1, 1)
+    assert len(reviewed.read_text().split()) == 1 and len(rejected.read_text().split()) == 1
+    assert any("-- canonical:" in s for s in shown)
+
+
+def test_render_shows_cursor_and_target(built):
+    out, _ = built
+    ex = next(review.iter_exercises(out))
+    text = review.render(ex)
+    assert "^" in text and ex["par"]["keys"] in text
+
+
+def test_hint_triggers_compile_in_python_and_javascript(built):
+    import re
+    import shutil
+    import subprocess
+
+    out, _ = built
+    triggers = sorted({h["trigger"] for p in (out / "exercises").glob("*/*/*.json")
+                       for h in json.loads(p.read_text())["hints"] if h["trigger"]})
+    assert triggers
+    for t in triggers:
+        re.compile(t)
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("node not installed")
+    script = "const ts = JSON.parse(require('fs').readFileSync(0, 'utf8')); for (const t of ts) new RegExp(t, 'u');"
+    subprocess.run([node, "-e", script], input=json.dumps(triggers), text=True, check=True)

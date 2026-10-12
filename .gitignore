@@ -1,2 +1,21 @@
 .DS_Store
+
+# Node (Playwright browsers live inside node_modules: PLAYWRIGHT_BROWSERS_PATH=0)
 node_modules/
+app/dist/
+app/e2e-failure-*.png
+test-results/
+playwright-report/
+
+# Python (uv)
+.venv/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+
+# Content pipeline: pinned source checkouts and CI scratch builds.
+content/.cache/
+
+# build/ IS committed (the app runs from a fresh clone without Neovim; CI checks it is
+# reproducible). Re-included explicitly because global gitignores often exclude build/.
+!/build/

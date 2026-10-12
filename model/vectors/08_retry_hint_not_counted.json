@@ -1,0 +1,198 @@
+{
+ "name": "retry_hint_not_counted",
+ "description": "Retries and hinted attempts are logged but leave the skill unchanged.",
+ "ops": [
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200000,
+    "ex": "py/f.modes/0000",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": true,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200030,
+    "ex": "py/f.modes/0030",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": true,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200100,
+    "ex": "py/f.modes/0100",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": true,
+    "ms": 500,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": true,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200130,
+    "ex": "py/f.modes/0130",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": true,
+    "ms": 500,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": true,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200200,
+    "ex": "py/f.modes/0200",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": false,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": true,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200230,
+    "ex": "py/f.modes/0230",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": false,
+    "ms": 2000,
+    "keys": 6,
+    "par": 6,
+    "hint": true,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "digest",
+   "expect": {
+    "skills": {
+     "f.modes": {
+      "python": {
+       "timeEma": 2000.0,
+       "effEma": 1.0,
+       "parEma": 6.0,
+       "acc": 1.0,
+       "n": 2,
+       "confidence": 1.0,
+       "lastSeen": 1760200030,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.hjkl": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.undo": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.xdd": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.save": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     }
+    },
+    "logLen": 6,
+    "recentLen": 6,
+    "recentTail": [
+     "py/f.modes/0030",
+     "py/f.modes/0100",
+     "py/f.modes/0130",
+     "py/f.modes/0200",
+     "py/f.modes/0230"
+    ],
+    "focusTail": [
+     "f.modes",
+     "f.modes",
+     "f.modes",
+     "f.modes"
+    ]
+   }
+  },
+  {
+   "op": "rebuildMatches",
+   "expect": true
+  }
+ ]
+}

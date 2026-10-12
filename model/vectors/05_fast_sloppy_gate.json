@@ -1,0 +1,306 @@
+{
+ "name": "fast_sloppy_gate",
+ "description": "Fast but 2x par: confidence halves, efficiency gate blocks mastery.",
+ "ops": [
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200000,
+    "ex": "py/f.xdd/0000",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 13,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200030,
+    "ex": "py/f.xdd/0030",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 13,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200060,
+    "ex": "py/f.xdd/0060",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 13,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200090,
+    "ex": "py/f.xdd/0090",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 13,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200120,
+    "ex": "py/f.xdd/0120",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 13,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200150,
+    "ex": "py/f.xdd/0150",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 13,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200180,
+    "ex": "py/f.xdd/0180",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 13,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200210,
+    "ex": "py/f.xdd/0210",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 13,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200240,
+    "ex": "py/f.xdd/0240",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 13,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200270,
+    "ex": "py/f.xdd/0270",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 13,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200300,
+    "ex": "py/f.xdd/0300",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 13,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200330,
+    "ex": "py/f.xdd/0330",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 13,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "diagnose",
+   "skill": "f.xdd",
+   "lang": "python",
+   "expect": {
+    "status": "active",
+    "failing": [
+     "efficiency"
+    ],
+    "speed": 1.52,
+    "efficiency": 0.46153846153846156,
+    "acc": 1.0,
+    "n": 12
+   }
+  },
+  {
+   "op": "digest",
+   "expect": {
+    "skills": {
+     "f.modes": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.hjkl": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.undo": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.xdd": {
+      "python": {
+       "timeEma": 1500.0,
+       "effEma": 2.1666666666666665,
+       "parEma": 6.0,
+       "acc": 1.0,
+       "n": 12,
+       "confidence": 0.5,
+       "lastSeen": 1760200330,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.save": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     }
+    },
+    "logLen": 12,
+    "recentLen": 12,
+    "recentTail": [
+     "py/f.xdd/0210",
+     "py/f.xdd/0240",
+     "py/f.xdd/0270",
+     "py/f.xdd/0300",
+     "py/f.xdd/0330"
+    ],
+    "focusTail": [
+     "f.xdd",
+     "f.xdd",
+     "f.xdd",
+     "f.xdd",
+     "f.xdd"
+    ]
+   }
+  }
+ ]
+}

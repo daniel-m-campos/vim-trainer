@@ -1,0 +1,392 @@
+{
+ "name": "forced_locked_skill",
+ "description": "A locked skill forced from the stats screen becomes active on its first counted attempt and can be mastered.",
+ "ops": [
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200000,
+    "ex": "py/o.change/0000",
+    "skill": "o.change",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200030,
+    "ex": "py/o.change/0030",
+    "skill": "o.change",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200060,
+    "ex": "py/o.change/0060",
+    "skill": "o.change",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200090,
+    "ex": "py/o.change/0090",
+    "skill": "o.change",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200120,
+    "ex": "py/o.change/0120",
+    "skill": "o.change",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200150,
+    "ex": "py/o.change/0150",
+    "skill": "o.change",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200180,
+    "ex": "py/o.change/0180",
+    "skill": "o.change",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200210,
+    "ex": "py/o.change/0210",
+    "skill": "o.change",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200240,
+    "ex": "py/o.change/0240",
+    "skill": "o.change",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200270,
+    "ex": "py/o.change/0270",
+    "skill": "o.change",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200300,
+    "ex": "py/o.change/0300",
+    "skill": "o.change",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200330,
+    "ex": "py/o.change/0330",
+    "skill": "o.change",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200360,
+    "ex": "py/o.change/0360",
+    "skill": "o.change",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200390,
+    "ex": "py/o.change/0390",
+    "skill": "o.change",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200420,
+    "ex": "py/o.change/0420",
+    "skill": "o.change",
+    "lang": "python",
+    "ok": true,
+    "ms": 1500,
+    "keys": 6,
+    "par": 6,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "digest",
+   "expect": {
+    "skills": {
+     "f.modes": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.hjkl": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.undo": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.xdd": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "f.save": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "o.change": {
+      "python": {
+       "timeEma": 1500.0,
+       "effEma": 1.0,
+       "parEma": 6.0,
+       "acc": 1.0,
+       "n": 15,
+       "confidence": 1.0,
+       "lastSeen": 1760200420,
+       "status": "mastered",
+       "reviewsPassed": 0,
+       "nextReview": 1760286610
+      }
+     },
+     "o.dot": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     },
+     "t.word": {
+      "python": {
+       "timeEma": null,
+       "effEma": null,
+       "parEma": null,
+       "acc": 0.0,
+       "n": 0,
+       "confidence": 0.0,
+       "lastSeen": 0,
+       "status": "active",
+       "reviewsPassed": 0,
+       "nextReview": null
+      }
+     }
+    },
+    "logLen": 15,
+    "recentLen": 15,
+    "recentTail": [
+     "py/o.change/0300",
+     "py/o.change/0330",
+     "py/o.change/0360",
+     "py/o.change/0390",
+     "py/o.change/0420"
+    ],
+    "focusTail": [
+     "o.change",
+     "o.change",
+     "o.change",
+     "o.change",
+     "o.change"
+    ]
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760200900,
+   "seed": 3,
+   "expect": "f.modes"
+  },
+  {
+   "op": "rebuildMatches",
+   "expect": true
+  }
+ ]
+}

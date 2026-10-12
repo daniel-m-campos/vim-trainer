@@ -1,0 +1,29 @@
+{
+  "langs": {
+    "python": {
+      "skills": {
+        "m.rel": {
+          "ids": [
+            "py/m.rel/0001"
+          ],
+          "count": 1,
+          "parMedian": 2
+        },
+        "t.quote": {
+          "ids": [
+            "py/t.quote/0001"
+          ],
+          "count": 1,
+          "parMedian": 12
+        },
+        "x.global": {
+          "ids": [
+            "py/x.global/0001"
+          ],
+          "count": 1,
+          "parMedian": 11
+        }
+      }
+    }
+  }
+}
