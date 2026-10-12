@@ -1558,21 +1558,21 @@
    "op": "chooseFocus",
    "lang": "python",
    "now": 1760200000.0,
-   "expect": "f.modes"
+   "expect": "f.hjkl"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.modes",
+   "skill": "f.hjkl",
    "lang": "python",
    "seed": 1760200000,
-   "expect": "py/f.modes/0003"
+   "expect": "py/f.hjkl/0003"
   },
   {
    "op": "applyAttempt",
    "record": {
     "t": 1760200000.0,
-    "ex": "py/f.modes/0003",
-    "skill": "f.modes",
+    "ex": "py/f.hjkl/0003",
+    "skill": "f.hjkl",
     "lang": "python",
     "ok": true,
     "ms": 4540,
@@ -1587,21 +1587,21 @@
    "op": "chooseFocus",
    "lang": "python",
    "now": 1760200008.54,
-   "expect": "f.hjkl"
+   "expect": "f.xdd"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.hjkl",
+   "skill": "f.xdd",
    "lang": "python",
    "seed": 1760200009,
-   "expect": "py/f.hjkl/0003"
+   "expect": "py/f.xdd/0003"
   },
   {
    "op": "applyAttempt",
    "record": {
     "t": 1760200008.54,
-    "ex": "py/f.hjkl/0003",
-    "skill": "f.hjkl",
+    "ex": "py/f.xdd/0003",
+    "skill": "f.xdd",
     "lang": "python",
     "ok": true,
     "ms": 4655,
@@ -1616,21 +1616,21 @@
    "op": "chooseFocus",
    "lang": "python",
    "now": 1760200017.195,
-   "expect": "f.undo"
+   "expect": "f.save"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.undo",
+   "skill": "f.save",
    "lang": "python",
    "seed": 1760200019,
-   "expect": "py/f.undo/0004"
+   "expect": "py/f.save/0004"
   },
   {
    "op": "applyAttempt",
    "record": {
     "t": 1760200017.195,
-    "ex": "py/f.undo/0004",
-    "skill": "f.undo",
+    "ex": "py/f.save/0004",
+    "skill": "f.save",
     "lang": "python",
     "ok": true,
     "ms": 6067,
@@ -1645,21 +1645,21 @@
    "op": "chooseFocus",
    "lang": "python",
    "now": 1760200027.2619998,
-   "expect": "f.xdd"
+   "expect": "f.undo"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.xdd",
+   "skill": "f.undo",
    "lang": "python",
    "seed": 1760200024,
-   "expect": "py/f.xdd/0004"
+   "expect": "py/f.undo/0004"
   },
   {
    "op": "applyAttempt",
    "record": {
     "t": 1760200027.2619998,
-    "ex": "py/f.xdd/0004",
-    "skill": "f.xdd",
+    "ex": "py/f.undo/0004",
+    "skill": "f.undo",
     "lang": "python",
     "ok": true,
     "ms": 4959,
@@ -1674,21 +1674,21 @@
    "op": "chooseFocus",
    "lang": "python",
    "now": 1760200036.221,
-   "expect": "f.save"
+   "expect": "f.modes"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.save",
+   "skill": "f.modes",
    "lang": "python",
    "seed": 1760200032,
-   "expect": "py/f.save/0006"
+   "expect": "py/f.modes/0006"
   },
   {
    "op": "applyAttempt",
    "record": {
     "t": 1760200036.221,
-    "ex": "py/f.save/0006",
-    "skill": "f.save",
+    "ex": "py/f.modes/0006",
+    "skill": "f.modes",
     "lang": "python",
     "ok": true,
     "ms": 5557,
@@ -1703,26 +1703,26 @@
    "op": "chooseFocus",
    "lang": "python",
    "now": 1760200045.7779999,
-   "expect": "f.undo"
+   "expect": "f.modes"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.undo",
+   "skill": "f.modes",
    "lang": "python",
    "seed": 1760200040,
-   "expect": "py/f.undo/0005"
+   "expect": "py/f.modes/0004"
   },
   {
    "op": "applyAttempt",
    "record": {
     "t": 1760200045.7779999,
-    "ex": "py/f.undo/0005",
-    "skill": "f.undo",
+    "ex": "py/f.modes/0004",
+    "skill": "f.modes",
     "lang": "python",
     "ok": true,
-    "ms": 6242,
-    "keys": 13,
-    "par": 11,
+    "ms": 5888,
+    "keys": 12,
+    "par": 10,
     "hint": false,
     "retry": false,
     "undo": 0
@@ -1731,83 +1731,25 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760200056.02,
-   "expect": "f.undo"
+   "now": 1760200055.666,
+   "expect": "f.save"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.undo",
+   "skill": "f.save",
    "lang": "python",
-   "seed": 1760200062,
-   "expect": "py/f.undo/0002"
+   "seed": 1760200049,
+   "expect": "py/f.save/0006"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760200056.02,
-    "ex": "py/f.undo/0002",
-    "skill": "f.undo",
+    "t": 1760200055.666,
+    "ex": "py/f.save/0006",
+    "skill": "f.save",
     "lang": "python",
     "ok": true,
-    "ms": 3961,
-    "keys": 9,
-    "par": 8,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760200063.981,
-   "expect": "f.undo"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.undo",
-   "lang": "python",
-   "seed": 1760200056,
-   "expect": "py/f.undo/0001"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760200063.981,
-    "ex": "py/f.undo/0001",
-    "skill": "f.undo",
-    "lang": "python",
-    "ok": true,
-    "ms": 2890,
-    "keys": 8,
-    "par": 7,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760200070.871,
-   "expect": "f.xdd"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.xdd",
-   "lang": "python",
-   "seed": 1760200078,
-   "expect": "py/f.xdd/0006"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760200070.871,
-    "ex": "py/f.xdd/0006",
-    "skill": "f.xdd",
-    "lang": "python",
-    "ok": true,
-    "ms": 5364,
+    "ms": 5280,
     "keys": 15,
     "par": 12,
     "hint": false,
@@ -1818,22 +1760,80 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760200080.2350001,
-   "expect": "f.xdd"
+   "now": 1760200064.9459999,
+   "expect": "f.undo"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.xdd",
+   "skill": "f.undo",
    "lang": "python",
-   "seed": 1760200089,
-   "expect": "py/f.xdd/0005"
+   "seed": 1760200071,
+   "expect": "py/f.undo/0002"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760200080.2350001,
-    "ex": "py/f.xdd/0005",
-    "skill": "f.xdd",
+    "t": 1760200064.9459999,
+    "ex": "py/f.undo/0002",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 3394,
+    "keys": 9,
+    "par": 8,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760200072.34,
+   "expect": "f.modes"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.modes",
+   "lang": "python",
+   "seed": 1760200064,
+   "expect": "py/f.modes/0002"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200072.34,
+    "ex": "py/f.modes/0002",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": true,
+    "ms": 4024,
+    "keys": 10,
+    "par": 8,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760200080.3639998,
+   "expect": "f.save"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.save",
+   "lang": "python",
+   "seed": 1760200089,
+   "expect": "py/f.save/0005"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200080.3639998,
+    "ex": "py/f.save/0005",
+    "skill": "f.save",
     "lang": "python",
     "ok": true,
     "ms": 4253,
@@ -1847,171 +1847,26 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760200088.4880002,
-   "expect": "f.undo"
+   "now": 1760200088.6169999,
+   "expect": "f.save"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.undo",
+   "skill": "f.save",
    "lang": "python",
    "seed": 1760200082,
-   "expect": "py/f.undo/0006"
+   "expect": "py/f.save/0002"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760200088.4880002,
-    "ex": "py/f.undo/0006",
-    "skill": "f.undo",
-    "lang": "python",
-    "ok": true,
-    "ms": 4211,
-    "keys": 14,
-    "par": 12,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760200096.6990001,
-   "expect": "f.save"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.save",
-   "lang": "python",
-   "seed": 1760200107,
-   "expect": "py/f.save/0001"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760200096.6990001,
-    "ex": "py/f.save/0001",
+    "t": 1760200088.6169999,
+    "ex": "py/f.save/0002",
     "skill": "f.save",
     "lang": "python",
     "ok": true,
-    "ms": 4249,
-    "keys": 8,
-    "par": 7,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760200104.9480002,
-   "expect": "f.xdd"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.xdd",
-   "lang": "python",
-   "seed": 1760200100,
-   "expect": "py/f.xdd/0003"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760200104.9480002,
-    "ex": "py/f.xdd/0003",
-    "skill": "f.xdd",
-    "lang": "python",
-    "ok": true,
-    "ms": 4629,
+    "ms": 3449,
     "keys": 10,
-    "par": 9,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760200113.5770001,
-   "expect": "f.hjkl"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.hjkl",
-   "lang": "python",
-   "seed": 1760200124,
-   "expect": "py/f.hjkl/0001"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760200113.5770001,
-    "ex": "py/f.hjkl/0001",
-    "skill": "f.hjkl",
-    "lang": "python",
-    "ok": true,
-    "ms": 4157,
-    "keys": 8,
-    "par": 7,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760200121.7340002,
-   "expect": "f.save"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.save",
-   "lang": "python",
-   "seed": 1760200119,
-   "expect": "py/f.save/0004"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760200121.7340002,
-    "ex": "py/f.save/0004",
-    "skill": "f.save",
-    "lang": "python",
-    "ok": true,
-    "ms": 3835,
-    "keys": 12,
-    "par": 10,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760200129.5690002,
-   "expect": "f.hjkl"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.hjkl",
-   "lang": "python",
-   "seed": 1760200142,
-   "expect": "py/f.hjkl/0002"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760200129.5690002,
-    "ex": "py/f.hjkl/0002",
-    "skill": "f.hjkl",
-    "lang": "python",
-    "ok": true,
-    "ms": 3499,
-    "keys": 11,
     "par": 8,
     "hint": false,
     "retry": false,
@@ -2021,54 +1876,25 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760200137.0680003,
+   "now": 1760200096.0659997,
    "expect": "f.undo"
   },
   {
    "op": "chooseExercise",
    "skill": "f.undo",
    "lang": "python",
-   "seed": 1760200153,
-   "expect": "py/f.undo/0003"
+   "seed": 1760200107,
+   "expect": "py/f.undo/0001"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760200137.0680003,
-    "ex": "py/f.undo/0003",
+    "t": 1760200096.0659997,
+    "ex": "py/f.undo/0001",
     "skill": "f.undo",
     "lang": "python",
     "ok": true,
-    "ms": 4434,
-    "keys": 11,
-    "par": 9,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760200145.5020003,
-   "expect": "f.xdd"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.xdd",
-   "lang": "python",
-   "seed": 1760200128,
-   "expect": "py/f.xdd/0001"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760200145.5020003,
-    "ex": "py/f.xdd/0001",
-    "skill": "f.xdd",
-    "lang": "python",
-    "ok": true,
-    "ms": 2786,
+    "ms": 4057,
     "keys": 8,
     "par": 7,
     "hint": false,
@@ -2079,25 +1905,170 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760200152.2880003,
+   "now": 1760200104.1229997,
    "expect": "f.modes"
   },
   {
    "op": "chooseExercise",
    "skill": "f.modes",
    "lang": "python",
-   "seed": 1760200138,
-   "expect": "py/f.modes/0002"
+   "seed": 1760200100,
+   "expect": "py/f.modes/0005"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760200152.2880003,
-    "ex": "py/f.modes/0002",
+    "t": 1760200104.1229997,
+    "ex": "py/f.modes/0005",
     "skill": "f.modes",
     "lang": "python",
     "ok": true,
-    "ms": 4441,
+    "ms": 5220,
+    "keys": 13,
+    "par": 11,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760200113.3429997,
+   "expect": "f.undo"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.undo",
+   "lang": "python",
+   "seed": 1760200124,
+   "expect": "py/f.undo/0003"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200113.3429997,
+    "ex": "py/f.undo/0003",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 4355,
+    "keys": 10,
+    "par": 9,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760200121.6979997,
+   "expect": "f.modes"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.modes",
+   "lang": "python",
+   "seed": 1760200119,
+   "expect": "py/f.modes/0003"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200121.6979997,
+    "ex": "py/f.modes/0003",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": true,
+    "ms": 3310,
+    "keys": 10,
+    "par": 9,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760200129.0079997,
+   "expect": "f.xdd"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.xdd",
+   "lang": "python",
+   "seed": 1760200142,
+   "expect": "py/f.xdd/0002"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200129.0079997,
+    "ex": "py/f.xdd/0002",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 3665,
+    "keys": 12,
+    "par": 8,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760200136.6729996,
+   "expect": "f.save"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.save",
+   "lang": "python",
+   "seed": 1760200152,
+   "expect": "py/f.save/0001"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200136.6729996,
+    "ex": "py/f.save/0001",
+    "skill": "f.save",
+    "lang": "python",
+    "ok": true,
+    "ms": 4022,
+    "keys": 9,
+    "par": 7,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760200144.6949997,
+   "expect": "f.hjkl"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.hjkl",
+   "lang": "python",
+   "seed": 1760200129,
+   "expect": "py/f.hjkl/0002"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200144.6949997,
+    "ex": "py/f.hjkl/0002",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 3410,
     "keys": 10,
     "par": 8,
     "hint": false,
@@ -2108,7 +2079,36 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760200160.7290003,
+   "now": 1760200152.1049998,
+   "expect": "f.undo"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.undo",
+   "lang": "python",
+   "seed": 1760200138,
+   "expect": "py/f.undo/0005"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200152.1049998,
+    "ex": "py/f.undo/0005",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 4691,
+    "keys": 13,
+    "par": 11,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760200160.7959998,
    "expect": "f.undo"
   },
   {
@@ -2116,46 +2116,17 @@
    "skill": "f.undo",
    "lang": "python",
    "seed": 1760200179,
-   "expect": "py/f.undo/0004"
+   "expect": "py/f.undo/0006"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760200160.7290003,
-    "ex": "py/f.undo/0004",
+    "t": 1760200160.7959998,
+    "ex": "py/f.undo/0006",
     "skill": "f.undo",
     "lang": "python",
     "ok": true,
-    "ms": 3956,
-    "keys": 13,
-    "par": 10,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760200168.6850004,
-   "expect": "f.hjkl"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.hjkl",
-   "lang": "python",
-   "seed": 1760200188,
-   "expect": "py/f.hjkl/0006"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760200168.6850004,
-    "ex": "py/f.hjkl/0006",
-    "skill": "f.hjkl",
-    "lang": "python",
-    "ok": true,
-    "ms": 4014,
+    "ms": 4596,
     "keys": 16,
     "par": 12,
     "hint": false,
@@ -2166,27 +2137,56 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760200176.6990004,
+   "now": 1760200169.3919997,
+   "expect": "f.hjkl"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.hjkl",
+   "lang": "python",
+   "seed": 1760200189,
+   "expect": "py/f.hjkl/0004"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200169.3919997,
+    "ex": "py/f.hjkl/0004",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 3744,
+    "keys": 14,
+    "par": 10,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760200177.1359997,
    "expect": "f.modes"
   },
   {
    "op": "chooseExercise",
    "skill": "f.modes",
    "lang": "python",
-   "seed": 1760200165,
-   "expect": "py/f.modes/0005"
+   "seed": 1760200164,
+   "expect": "py/f.modes/0001"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760200176.6990004,
-    "ex": "py/f.modes/0005",
+    "t": 1760200177.1359997,
+    "ex": "py/f.modes/0001",
     "skill": "f.modes",
     "lang": "python",
     "ok": true,
-    "ms": 3417,
-    "keys": 13,
-    "par": 11,
+    "ms": 2335,
+    "keys": 8,
+    "par": 7,
     "hint": false,
     "retry": false,
     "undo": 0
@@ -2195,56 +2195,27 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760200184.1160004,
-   "expect": "f.save"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.save",
-   "lang": "python",
-   "seed": 1760200174,
-   "expect": "py/f.save/0002"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760200184.1160004,
-    "ex": "py/f.save/0002",
-    "skill": "f.save",
-    "lang": "python",
-    "ok": true,
-    "ms": 4064,
-    "keys": 10,
-    "par": 8,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760200192.1800003,
+   "now": 1760200183.4709997,
    "expect": "f.undo"
   },
   {
    "op": "chooseExercise",
    "skill": "f.undo",
    "lang": "python",
-   "seed": 1760200215,
-   "expect": "py/f.undo/0005"
+   "seed": 1760200161,
+   "expect": "py/f.undo/0004"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760200192.1800003,
-    "ex": "py/f.undo/0005",
+    "t": 1760200183.4709997,
+    "ex": "py/f.undo/0004",
     "skill": "f.undo",
     "lang": "python",
     "ok": true,
-    "ms": 3505,
+    "ms": 4109,
     "keys": 12,
-    "par": 11,
+    "par": 10,
     "hint": false,
     "retry": false,
     "undo": 0
@@ -2253,27 +2224,56 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760200199.6850004,
+   "now": 1760200191.5799997,
    "expect": "f.save"
   },
   {
    "op": "chooseExercise",
    "skill": "f.save",
    "lang": "python",
-   "seed": 1760200223,
-   "expect": "py/f.save/0005"
+   "seed": 1760200168,
+   "expect": "py/f.save/0003"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760200199.6850004,
-    "ex": "py/f.save/0005",
+    "t": 1760200191.5799997,
+    "ex": "py/f.save/0003",
     "skill": "f.save",
     "lang": "python",
     "ok": true,
-    "ms": 4572,
-    "keys": 14,
-    "par": 11,
+    "ms": 3337,
+    "keys": 10,
+    "par": 9,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760200198.9169996,
+   "expect": "f.save"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.save",
+   "lang": "python",
+   "seed": 1760200222,
+   "expect": "py/f.save/0004"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760200198.9169996,
+    "ex": "py/f.save/0004",
+    "skill": "f.save",
+    "lang": "python",
+    "ok": true,
+    "ms": 3999,
+    "keys": 13,
+    "par": 10,
     "hint": false,
     "retry": false,
     "undo": 0
@@ -2285,13 +2285,13 @@
     "skills": {
      "f.modes": {
       "python": {
-       "timeEma": 4418.79,
-       "effEma": 1.310681818181818,
-       "parEma": 9.11,
+       "timeEma": 4915.2342100000005,
+       "effEma": 1.267189987012987,
+       "parEma": 10.72618,
        "acc": 1.0,
-       "n": 3,
-       "confidence": 0.49032847785227734,
-       "lastSeen": 1760200176.6990004,
+       "n": 6,
+       "confidence": 0.5026402052994379,
+       "lastSeen": 1760200177.1359997,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -2299,13 +2299,13 @@
      },
      "f.hjkl": {
       "python": {
-       "timeEma": 4446.522,
-       "effEma": 1.3216547619047618,
-       "parEma": 9.048,
+       "timeEma": 4358.7,
+       "effEma": 1.3325,
+       "parEma": 9.01,
        "acc": 1.0,
-       "n": 4,
-       "confidence": 0.48132587389120685,
-       "lastSeen": 1760200168.6850004,
+       "n": 3,
+       "confidence": 0.48584980520940396,
+       "lastSeen": 1760200169.3919997,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -2313,13 +2313,13 @@
      },
      "f.undo": {
       "python": {
-       "timeEma": 5029.7346535,
-       "effEma": 1.1883168348701298,
-       "parEma": 9.903016100000002,
+       "timeEma": 4623.998495,
+       "effEma": 1.3021576548701297,
+       "parEma": 9.873172000000002,
        "acc": 1.0,
-       "n": 8,
-       "confidence": 0.49901014477999034,
-       "lastSeen": 1760200192.1800003,
+       "n": 7,
+       "confidence": 0.49445015997969766,
+       "lastSeen": 1760200183.4709997,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -2327,13 +2327,13 @@
      },
      "f.xdd": {
       "python": {
-       "timeEma": 4684.3385,
-       "effEma": 1.3196779870129869,
-       "parEma": 9.8368,
+       "timeEma": 4556.0,
+       "effEma": 1.3499999999999999,
+       "parEma": 8.9,
        "acc": 1.0,
-       "n": 5,
-       "confidence": 0.48054210051826446,
-       "lastSeen": 1760200145.5020003,
+       "n": 2,
+       "confidence": 0.455565310701395,
+       "lastSeen": 1760200129.0079997,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -2341,13 +2341,13 @@
      },
      "f.save": {
       "python": {
-       "timeEma": 5089.2948,
-       "effEma": 1.295087012987013,
-       "parEma": 11.0135,
+       "timeEma": 5092.5146970000005,
+       "effEma": 1.2143473980519481,
+       "parEma": 9.704908,
        "acc": 1.0,
-       "n": 5,
-       "confidence": 0.4828389570111657,
-       "lastSeen": 1760200199.6850004,
+       "n": 7,
+       "confidence": 0.4765272280376384,
+       "lastSeen": 1760200198.9169996,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -2357,17 +2357,17 @@
     "logLen": 25,
     "recentLen": 25,
     "recentTail": [
-     "py/f.hjkl/0006",
-     "py/f.modes/0005",
-     "py/f.save/0002",
-     "py/f.undo/0005",
-     "py/f.save/0005"
+     "py/f.hjkl/0004",
+     "py/f.modes/0001",
+     "py/f.undo/0004",
+     "py/f.save/0003",
+     "py/f.save/0004"
     ],
     "focusTail": [
      "f.hjkl",
      "f.modes",
-     "f.save",
      "f.undo",
+     "f.save",
      "f.save"
     ]
    }
@@ -2378,56 +2378,55 @@
    "expect": {
     "improved": [
      {
-      "skill": "f.undo",
-      "delta": 0.49901014477999034
-     },
-     {
       "skill": "f.modes",
-      "delta": 0.49032847785227734
+      "delta": 0.5026402052994379
      },
      {
-      "skill": "f.save",
-      "delta": 0.4828389570111657
+      "skill": "f.undo",
+      "delta": 0.49445015997969766
      },
      {
       "skill": "f.hjkl",
-      "delta": 0.48132587389120685
+      "delta": 0.48584980520940396
+     },
+     {
+      "skill": "f.save",
+      "delta": 0.4765272280376384
      },
      {
       "skill": "f.xdd",
-      "delta": 0.48054210051826446
+      "delta": 0.455565310701395
      }
     ],
     "mastered": [],
     "unlocked": [],
-    "tip": "After an undo, `Ctrl-r` redoes it; you never need to retype what you just undid."
+    "tip": "Use `A` to append at the end of a line and `O` to open a line above, instead of moving first and then pressing `i`."
    }
   },
   {
    "op": "projection",
-   "skill": "f.xdd",
+   "skill": "f.save",
    "lang": "python",
    "expect": {
     "fit": "linear",
     "attemptsToTarget": 1,
-    "r2": 0.6584502199904365
+    "r2": 0.6458098962121214
    }
   },
   {
    "op": "diagnose",
-   "skill": "f.xdd",
+   "skill": "f.save",
    "lang": "python",
    "expect": {
     "status": "active",
     "failing": [
      "samples",
-     "efficiency",
      "speed"
     ],
-    "speed": 0.6341608318869356,
-    "efficiency": 0.7577606126957084,
+    "speed": 0.5786695994684136,
+    "efficiency": 0.8234875799167491,
     "acc": 1.0,
-    "n": 5
+    "n": 7
    }
   },
   {
@@ -2441,47 +2440,18 @@
    "skill": "f.xdd",
    "lang": "python",
    "seed": 1760286425,
-   "expect": "py/f.xdd/0002"
+   "expect": "py/f.xdd/0005"
   },
   {
    "op": "applyAttempt",
    "record": {
     "t": 1760286400.0,
-    "ex": "py/f.xdd/0002",
+    "ex": "py/f.xdd/0005",
     "skill": "f.xdd",
     "lang": "python",
     "ok": true,
-    "ms": 3059,
-    "keys": 8,
-    "par": 8,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760286407.059,
-   "expect": "f.hjkl"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.hjkl",
-   "lang": "python",
-   "seed": 1760286429,
-   "expect": "py/f.hjkl/0005"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760286407.059,
-    "ex": "py/f.hjkl/0005",
-    "skill": "f.hjkl",
-    "lang": "python",
-    "ok": false,
-    "ms": 4099,
-    "keys": 11,
+    "ms": 4171,
+    "keys": 12,
     "par": 11,
     "hint": false,
     "retry": false,
@@ -2491,26 +2461,26 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760286415.158,
-   "expect": "f.hjkl"
+   "now": 1760286408.171,
+   "expect": "f.xdd"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.hjkl",
+   "skill": "f.xdd",
    "lang": "python",
-   "seed": 1760286420,
-   "expect": "py/f.hjkl/0004"
+   "seed": 1760286418,
+   "expect": "py/f.xdd/0004"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760286415.158,
-    "ex": "py/f.hjkl/0004",
-    "skill": "f.hjkl",
+    "t": 1760286408.171,
+    "ex": "py/f.xdd/0004",
+    "skill": "f.xdd",
     "lang": "python",
-    "ok": true,
-    "ms": 3508,
-    "keys": 14,
+    "ok": false,
+    "ms": 4030,
+    "keys": 10,
     "par": 10,
     "hint": false,
     "retry": false,
@@ -2520,27 +2490,27 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760286422.666,
-   "expect": "f.save"
+   "now": 1760286416.201,
+   "expect": "f.hjkl"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.save",
+   "skill": "f.hjkl",
    "lang": "python",
-   "seed": 1760286410,
-   "expect": "py/f.save/0003"
+   "seed": 1760286411,
+   "expect": "py/f.hjkl/0006"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760286422.666,
-    "ex": "py/f.save/0003",
-    "skill": "f.save",
+    "t": 1760286416.201,
+    "ex": "py/f.hjkl/0006",
+    "skill": "f.hjkl",
     "lang": "python",
     "ok": true,
-    "ms": 2674,
-    "keys": 12,
-    "par": 9,
+    "ms": 4257,
+    "keys": 18,
+    "par": 12,
     "hint": false,
     "retry": false,
     "undo": 0
@@ -2549,26 +2519,26 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760286429.34,
-   "expect": "f.modes"
+   "now": 1760286424.458,
+   "expect": "f.hjkl"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.modes",
+   "skill": "f.hjkl",
    "lang": "python",
-   "seed": 1760286400,
-   "expect": "py/f.modes/0001"
+   "seed": 1760286404,
+   "expect": "py/f.hjkl/0001"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760286429.34,
-    "ex": "py/f.modes/0001",
-    "skill": "f.modes",
+    "t": 1760286424.458,
+    "ex": "py/f.hjkl/0001",
+    "skill": "f.hjkl",
     "lang": "python",
     "ok": true,
-    "ms": 3608,
-    "keys": 8,
+    "ms": 2426,
+    "keys": 9,
     "par": 7,
     "hint": false,
     "retry": false,
@@ -2578,54 +2548,25 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760286436.948,
-   "expect": "f.hjkl"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.hjkl",
-   "lang": "python",
-   "seed": 1760286458,
-   "expect": "py/f.hjkl/0003"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760286436.948,
-    "ex": "py/f.hjkl/0003",
-    "skill": "f.hjkl",
-    "lang": "python",
-    "ok": true,
-    "ms": 3237,
-    "keys": 11,
-    "par": 9,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760286444.185,
+   "now": 1760286430.884,
    "expect": "f.undo"
   },
   {
    "op": "chooseExercise",
    "skill": "f.undo",
    "lang": "python",
-   "seed": 1760286451,
+   "seed": 1760286403,
    "expect": "py/f.undo/0002"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760286444.185,
+    "t": 1760286430.884,
     "ex": "py/f.undo/0002",
     "skill": "f.undo",
     "lang": "python",
-    "ok": false,
-    "ms": 3488,
+    "ok": true,
+    "ms": 3329,
     "keys": 9,
     "par": 8,
     "hint": false,
@@ -2636,83 +2577,25 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760286451.6729999,
-   "expect": "f.undo"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.undo",
-   "lang": "python",
-   "seed": 1760286419,
-   "expect": "py/f.undo/0001"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760286451.6729999,
-    "ex": "py/f.undo/0001",
-    "skill": "f.undo",
-    "lang": "python",
-    "ok": true,
-    "ms": 3022,
-    "keys": 8,
-    "par": 7,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760286458.695,
-   "expect": "f.modes"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.modes",
-   "lang": "python",
-   "seed": 1760286427,
-   "expect": "py/f.modes/0004"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760286458.695,
-    "ex": "py/f.modes/0004",
-    "skill": "f.modes",
-    "lang": "python",
-    "ok": true,
-    "ms": 3698,
-    "keys": 13,
-    "par": 10,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760286466.393,
+   "now": 1760286438.213,
    "expect": "f.save"
   },
   {
    "op": "chooseExercise",
    "skill": "f.save",
    "lang": "python",
-   "seed": 1760286496,
+   "seed": 1760286456,
    "expect": "py/f.save/0006"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760286466.393,
+    "t": 1760286438.213,
     "ex": "py/f.save/0006",
     "skill": "f.save",
     "lang": "python",
     "ok": true,
-    "ms": 4869,
+    "ms": 3727,
     "keys": 14,
     "par": 12,
     "hint": false,
@@ -2723,25 +2606,54 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760286475.2619998,
-   "expect": "f.xdd"
+   "now": 1760286445.94,
+   "expect": "f.modes"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.xdd",
+   "skill": "f.modes",
    "lang": "python",
-   "seed": 1760286504,
-   "expect": "py/f.xdd/0004"
+   "seed": 1760286450,
+   "expect": "py/f.modes/0006"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760286475.2619998,
-    "ex": "py/f.xdd/0004",
-    "skill": "f.xdd",
+    "t": 1760286445.94,
+    "ex": "py/f.modes/0006",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": false,
+    "ms": 4745,
+    "keys": 14,
+    "par": 12,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760286454.685,
+   "expect": "f.modes"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.modes",
+   "lang": "python",
+   "seed": 1760286422,
+   "expect": "py/f.modes/0004"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760286454.685,
+    "ex": "py/f.modes/0004",
+    "skill": "f.modes",
     "lang": "python",
     "ok": true,
-    "ms": 3896,
+    "ms": 3922,
     "keys": 12,
     "par": 10,
     "hint": false,
@@ -2752,25 +2664,54 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760286483.1579998,
-   "expect": "f.save"
+   "now": 1760286462.6069999,
+   "expect": "f.xdd"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.save",
+   "skill": "f.xdd",
    "lang": "python",
-   "seed": 1760286519,
-   "expect": "py/f.save/0001"
+   "seed": 1760286431,
+   "expect": "py/f.xdd/0006"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760286483.1579998,
-    "ex": "py/f.save/0001",
-    "skill": "f.save",
+    "t": 1760286462.6069999,
+    "ex": "py/f.xdd/0006",
+    "skill": "f.xdd",
     "lang": "python",
     "ok": true,
-    "ms": 2836,
+    "ms": 4141,
+    "keys": 15,
+    "par": 12,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760286470.748,
+   "expect": "f.xdd"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.xdd",
+   "lang": "python",
+   "seed": 1760286500,
+   "expect": "py/f.xdd/0001"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760286470.748,
+    "ex": "py/f.xdd/0001",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 3697,
     "keys": 8,
     "par": 7,
     "hint": false,
@@ -2781,25 +2722,54 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760286489.9939997,
+   "now": 1760286478.445,
    "expect": "f.hjkl"
   },
   {
    "op": "chooseExercise",
    "skill": "f.hjkl",
    "lang": "python",
-   "seed": 1760286524,
-   "expect": "py/f.hjkl/0001"
+   "seed": 1760286509,
+   "expect": "py/f.hjkl/0005"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760286489.9939997,
-    "ex": "py/f.hjkl/0001",
+    "t": 1760286478.445,
+    "ex": "py/f.hjkl/0005",
     "skill": "f.hjkl",
     "lang": "python",
     "ok": true,
-    "ms": 2630,
+    "ms": 4284,
+    "keys": 13,
+    "par": 11,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760286486.7289999,
+   "expect": "f.undo"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.undo",
+   "lang": "python",
+   "seed": 1760286514,
+   "expect": "py/f.undo/0001"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760286486.7289999,
+    "ex": "py/f.undo/0001",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 2746,
     "keys": 8,
     "par": 7,
     "hint": false,
@@ -2810,27 +2780,27 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760286496.6239998,
+   "now": 1760286493.475,
    "expect": "f.modes"
   },
   {
    "op": "chooseExercise",
    "skill": "f.modes",
    "lang": "python",
-   "seed": 1760286470,
-   "expect": "py/f.modes/0006"
+   "seed": 1760286520,
+   "expect": "py/f.modes/0002"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760286496.6239998,
-    "ex": "py/f.modes/0006",
+    "t": 1760286493.475,
+    "ex": "py/f.modes/0002",
     "skill": "f.modes",
     "lang": "python",
     "ok": true,
-    "ms": 4930,
-    "keys": 15,
-    "par": 12,
+    "ms": 2733,
+    "keys": 9,
+    "par": 8,
     "hint": false,
     "retry": false,
     "undo": 0
@@ -2839,54 +2809,25 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760286505.554,
-   "expect": "f.undo"
+   "now": 1760286500.208,
+   "expect": "f.hjkl"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.undo",
+   "skill": "f.hjkl",
    "lang": "python",
-   "seed": 1760286478,
-   "expect": "py/f.undo/0006"
+   "seed": 1760286466,
+   "expect": "py/f.hjkl/0003"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760286505.554,
-    "ex": "py/f.undo/0006",
-    "skill": "f.undo",
+    "t": 1760286500.208,
+    "ex": "py/f.hjkl/0003",
+    "skill": "f.hjkl",
     "lang": "python",
     "ok": true,
-    "ms": 2528,
-    "keys": 15,
-    "par": 12,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760286512.082,
-   "expect": "f.modes"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.modes",
-   "lang": "python",
-   "seed": 1760286488,
-   "expect": "py/f.modes/0003"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760286512.082,
-    "ex": "py/f.modes/0003",
-    "skill": "f.modes",
-    "lang": "python",
-    "ok": false,
-    "ms": 3522,
+    "ms": 3989,
     "keys": 11,
     "par": 9,
     "hint": false,
@@ -2897,22 +2838,80 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760286519.604,
-   "expect": "f.modes"
+   "now": 1760286508.197,
+   "expect": "f.xdd"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.modes",
+   "skill": "f.xdd",
    "lang": "python",
-   "seed": 1760286494,
-   "expect": "py/f.modes/0002"
+   "seed": 1760286475,
+   "expect": "py/f.xdd/0003"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760286519.604,
-    "ex": "py/f.modes/0002",
-    "skill": "f.modes",
+    "t": 1760286508.197,
+    "ex": "py/f.xdd/0003",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 2403,
+    "keys": 12,
+    "par": 9,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760286514.6000001,
+   "expect": "f.xdd"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.xdd",
+   "lang": "python",
+   "seed": 1760286490,
+   "expect": "py/f.xdd/0002"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760286514.6000001,
+    "ex": "py/f.xdd/0002",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": false,
+    "ms": 3186,
+    "keys": 10,
+    "par": 8,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760286521.7860003,
+   "expect": "f.hjkl"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.hjkl",
+   "lang": "python",
+   "seed": 1760286480,
+   "expect": "py/f.hjkl/0002"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760286521.7860003,
+    "ex": "py/f.hjkl/0002",
+    "skill": "f.hjkl",
     "lang": "python",
     "ok": true,
     "ms": 2861,
@@ -2926,27 +2925,27 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760286526.4650002,
-   "expect": "f.xdd"
+   "now": 1760286528.6470003,
+   "expect": "f.modes"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.xdd",
+   "skill": "f.modes",
    "lang": "python",
-   "seed": 1760286484,
-   "expect": "py/f.xdd/0006"
+   "seed": 1760286570,
+   "expect": "py/f.modes/0005"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760286526.4650002,
-    "ex": "py/f.xdd/0006",
-    "skill": "f.xdd",
+    "t": 1760286528.6470003,
+    "ex": "py/f.modes/0005",
+    "skill": "f.modes",
     "lang": "python",
     "ok": false,
-    "ms": 4384,
-    "keys": 13,
-    "par": 12,
+    "ms": 3899,
+    "keys": 11,
+    "par": 11,
     "hint": false,
     "retry": false,
     "undo": 0
@@ -2955,22 +2954,22 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760286534.8490002,
-   "expect": "f.xdd"
+   "now": 1760286536.5460002,
+   "expect": "f.save"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.xdd",
+   "skill": "f.save",
    "lang": "python",
-   "seed": 1760286573,
-   "expect": "py/f.xdd/0005"
+   "seed": 1760286563,
+   "expect": "py/f.save/0005"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760286534.8490002,
-    "ex": "py/f.xdd/0005",
-    "skill": "f.xdd",
+    "t": 1760286536.5460002,
+    "ex": "py/f.save/0005",
+    "skill": "f.save",
     "lang": "python",
     "ok": true,
     "ms": 3676,
@@ -2984,26 +2983,113 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760286542.5250003,
+   "now": 1760286544.2220004,
    "expect": "f.save"
   },
   {
    "op": "chooseExercise",
    "skill": "f.save",
    "lang": "python",
-   "seed": 1760286562,
-   "expect": "py/f.save/0004"
+   "seed": 1760286588,
+   "expect": "py/f.save/0002"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760286542.5250003,
-    "ex": "py/f.save/0004",
+    "t": 1760286544.2220004,
+    "ex": "py/f.save/0002",
     "skill": "f.save",
     "lang": "python",
     "ok": true,
-    "ms": 3603,
+    "ms": 3077,
+    "keys": 11,
+    "par": 8,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760286551.2990003,
+   "expect": "f.xdd"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.xdd",
+   "lang": "python",
+   "seed": 1760286586,
+   "expect": "py/f.xdd/0005"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760286551.2990003,
+    "ex": "py/f.xdd/0005",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 5110,
     "keys": 13,
+    "par": 11,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760286560.4090002,
+   "expect": "f.save"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.save",
+   "lang": "python",
+   "seed": 1760286542,
+   "expect": "py/f.save/0001"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760286560.4090002,
+    "ex": "py/f.save/0001",
+    "skill": "f.save",
+    "lang": "python",
+    "ok": true,
+    "ms": 3134,
+    "keys": 8,
+    "par": 7,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760286567.5430002,
+   "expect": "f.xdd"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.xdd",
+   "lang": "python",
+   "seed": 1760286536,
+   "expect": "py/f.xdd/0004"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760286567.5430002,
+    "ex": "py/f.xdd/0004",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 2904,
+    "keys": 10,
     "par": 10,
     "hint": false,
     "retry": false,
@@ -3013,112 +3099,25 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760286550.1280003,
-   "expect": "f.hjkl"
+   "now": 1760286574.4470003,
+   "expect": "f.modes"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.hjkl",
+   "skill": "f.modes",
    "lang": "python",
-   "seed": 1760286587,
-   "expect": "py/f.hjkl/0002"
+   "seed": 1760286558,
+   "expect": "py/f.modes/0003"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760286550.1280003,
-    "ex": "py/f.hjkl/0002",
-    "skill": "f.hjkl",
+    "t": 1760286574.4470003,
+    "ex": "py/f.modes/0003",
+    "skill": "f.modes",
     "lang": "python",
     "ok": true,
-    "ms": 4243,
-    "keys": 10,
-    "par": 8,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760286558.3710003,
-   "expect": "f.hjkl"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.hjkl",
-   "lang": "python",
-   "seed": 1760286576,
-   "expect": "py/f.hjkl/0006"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760286558.3710003,
-    "ex": "py/f.hjkl/0006",
-    "skill": "f.hjkl",
-    "lang": "python",
-    "ok": true,
-    "ms": 4402,
-    "keys": 13,
-    "par": 12,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760286566.7730002,
-   "expect": "f.save"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.save",
-   "lang": "python",
-   "seed": 1760286537,
-   "expect": "py/f.save/0002"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760286566.7730002,
-    "ex": "py/f.save/0002",
-    "skill": "f.save",
-    "lang": "python",
-    "ok": true,
-    "ms": 2555,
-    "keys": 8,
-    "par": 8,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760286573.3280003,
-   "expect": "f.xdd"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.xdd",
-   "lang": "python",
-   "seed": 1760286557,
-   "expect": "py/f.xdd/0003"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760286573.3280003,
-    "ex": "py/f.xdd/0003",
-    "skill": "f.xdd",
-    "lang": "python",
-    "ok": true,
-    "ms": 2970,
+    "ms": 2888,
     "keys": 10,
     "par": 9,
     "hint": false,
@@ -3129,27 +3128,27 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760286580.2980003,
-   "expect": "f.modes"
+   "now": 1760286581.3350003,
+   "expect": "f.save"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.modes",
+   "skill": "f.save",
    "lang": "python",
-   "seed": 1760286533,
-   "expect": "py/f.modes/0005"
+   "seed": 1760286532,
+   "expect": "py/f.save/0003"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760286580.2980003,
-    "ex": "py/f.modes/0005",
-    "skill": "f.modes",
+    "t": 1760286581.3350003,
+    "ex": "py/f.save/0003",
+    "skill": "f.save",
     "lang": "python",
     "ok": true,
-    "ms": 4621,
-    "keys": 11,
-    "par": 11,
+    "ms": 3769,
+    "keys": 9,
+    "par": 9,
     "hint": false,
     "retry": false,
     "undo": 0
@@ -3161,13 +3160,13 @@
     "skills": {
      "f.modes": {
       "python": {
-       "timeEma": 4234.4763871000005,
-       "effEma": 1.2461973639610389,
-       "parEma": 9.359633899999999,
-       "acc": 0.8888888888888888,
-       "n": 9,
-       "confidence": 0.5466624518530856,
-       "lastSeen": 1760286580.2980003,
+       "timeEma": 4435.65773909,
+       "effEma": 1.2333426116435786,
+       "parEma": 10.24938522,
+       "acc": 0.8181818181818182,
+       "n": 11,
+       "confidence": 0.5565827588012676,
+       "lastSeen": 1760286574.4470003,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -3175,13 +3174,13 @@
      },
      "f.hjkl": {
       "python": {
-       "timeEma": 4126.86395578,
-       "effEma": 1.2747826822619048,
-       "parEma": 9.141953520000001,
-       "acc": 0.9,
-       "n": 10,
-       "confidence": 0.5408915079982467,
-       "lastSeen": 1760286558.3710003,
+       "timeEma": 4022.0399329999996,
+       "effEma": 1.2971987691558442,
+       "parEma": 9.1189349,
+       "acc": 1.0,
+       "n": 8,
+       "confidence": 0.5446038859565445,
+       "lastSeen": 1760286521.7860003,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -3189,13 +3188,13 @@
      },
      "f.undo": {
       "python": {
-       "timeEma": 4598.865069334999,
-       "effEma": 1.1903937791019479,
-       "parEma": 9.851443041000001,
-       "acc": 0.9090909090909091,
-       "n": 11,
-       "confidence": 0.54311467189783,
-       "lastSeen": 1760286505.554,
+       "timeEma": 4319.6487809499995,
+       "effEma": 1.2702834147305193,
+       "parEma": 9.41726932,
+       "acc": 1.0,
+       "n": 9,
+       "confidence": 0.5276133506182497,
+       "lastSeen": 1760286486.7289999,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -3203,13 +3202,13 @@
      },
      "f.xdd": {
       "python": {
-       "timeEma": 4239.81158985,
-       "effEma": 1.253415474753968,
-       "parEma": 9.73712448,
-       "acc": 0.9,
+       "timeEma": 4153.683885,
+       "effEma": 1.261552862987013,
+       "parEma": 9.3959839,
+       "acc": 0.8,
        "n": 10,
-       "confidence": 0.5556164897585733,
-       "lastSeen": 1760286573.3280003,
+       "confidence": 0.5517607732787325,
+       "lastSeen": 1760286567.5430002,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -3217,13 +3216,13 @@
      },
      "f.save": {
       "python": {
-       "timeEma": 4345.054926452,
-       "effEma": 1.2468373588701298,
-       "parEma": 10.235651615,
+       "timeEma": 4427.784873431529,
+       "effEma": 1.1939916833873832,
+       "parEma": 9.49787112492,
        "acc": 1.0,
-       "n": 10,
-       "confidence": 0.5615826776735696,
-       "lastSeen": 1760286566.7730002,
+       "n": 12,
+       "confidence": 0.5503614193258154,
+       "lastSeen": 1760286581.3350003,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -3233,18 +3232,18 @@
     "logLen": 50,
     "recentLen": 50,
     "recentTail": [
-     "py/f.hjkl/0002",
-     "py/f.hjkl/0006",
-     "py/f.save/0002",
-     "py/f.xdd/0003",
-     "py/f.modes/0005"
+     "py/f.xdd/0005",
+     "py/f.save/0001",
+     "py/f.xdd/0004",
+     "py/f.modes/0003",
+     "py/f.save/0003"
     ],
     "focusTail": [
-     "f.hjkl",
-     "f.hjkl",
+     "f.xdd",
      "f.save",
      "f.xdd",
-     "f.modes"
+     "f.modes",
+     "f.save"
     ]
    }
   },
@@ -3265,7 +3264,7 @@
    "expect": {
     "fit": "none",
     "attemptsToTarget": null,
-    "r2": 0.05360891455798933
+    "r2": 0.12707800360137322
    }
   },
   {
@@ -3278,36 +3277,36 @@
      "efficiency",
      "speed"
     ],
-    "speed": 0.6895191273786915,
-    "efficiency": 0.7844474308559437,
-    "acc": 0.9,
-    "n": 10
+    "speed": 0.7064594905403193,
+    "efficiency": 0.7708918816279426,
+    "acc": 1.0,
+    "n": 8
    }
   },
   {
    "op": "chooseFocus",
    "lang": "python",
    "now": 1760372800.0,
-   "expect": "f.hjkl"
+   "expect": "f.xdd"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.hjkl",
+   "skill": "f.xdd",
    "lang": "python",
    "seed": 1760372850,
-   "expect": "py/f.hjkl/0005"
+   "expect": "py/f.xdd/0006"
   },
   {
    "op": "applyAttempt",
    "record": {
     "t": 1760372800.0,
-    "ex": "py/f.hjkl/0005",
-    "skill": "f.hjkl",
+    "ex": "py/f.xdd/0006",
+    "skill": "f.xdd",
     "lang": "python",
     "ok": true,
-    "ms": 3106,
-    "keys": 14,
-    "par": 11,
+    "ms": 3282,
+    "keys": 15,
+    "par": 12,
     "hint": false,
     "retry": false,
     "undo": 0
@@ -3316,25 +3315,54 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760372807.106,
+   "now": 1760372807.282,
+   "expect": "f.modes"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.modes",
+   "lang": "python",
+   "seed": 1760372852,
+   "expect": "py/f.modes/0001"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760372807.282,
+    "ex": "py/f.modes/0001",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": true,
+    "ms": 2208,
+    "keys": 7,
+    "par": 7,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760372813.49,
    "expect": "f.undo"
   },
   {
    "op": "chooseExercise",
    "skill": "f.undo",
    "lang": "python",
-   "seed": 1760372852,
+   "seed": 1760372857,
    "expect": "py/f.undo/0003"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760372807.106,
+    "t": 1760372813.49,
     "ex": "py/f.undo/0003",
     "skill": "f.undo",
     "lang": "python",
     "ok": true,
-    "ms": 2531,
+    "ms": 2790,
     "keys": 9,
     "par": 9,
     "hint": false,
@@ -3345,56 +3373,27 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760372813.6369998,
-   "expect": "f.modes"
+   "now": 1760372820.28,
+   "expect": "f.undo"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.modes",
-   "lang": "python",
-   "seed": 1760372857,
-   "expect": "py/f.modes/0001"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760372813.6369998,
-    "ex": "py/f.modes/0001",
-    "skill": "f.modes",
-    "lang": "python",
-    "ok": true,
-    "ms": 2434,
-    "keys": 7,
-    "par": 7,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760372820.0709999,
-   "expect": "f.xdd"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.xdd",
+   "skill": "f.undo",
    "lang": "python",
    "seed": 1760372833,
-   "expect": "py/f.xdd/0001"
+   "expect": "py/f.undo/0005"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760372820.0709999,
-    "ex": "py/f.xdd/0001",
-    "skill": "f.xdd",
+    "t": 1760372820.28,
+    "ex": "py/f.undo/0005",
+    "skill": "f.undo",
     "lang": "python",
     "ok": true,
-    "ms": 3752,
-    "keys": 7,
-    "par": 7,
+    "ms": 4850,
+    "keys": 11,
+    "par": 11,
     "hint": false,
     "retry": false,
     "undo": 0
@@ -3403,25 +3402,25 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760372827.823,
+   "now": 1760372829.1299999,
    "expect": "f.hjkl"
   },
   {
    "op": "chooseExercise",
    "skill": "f.hjkl",
    "lang": "python",
-   "seed": 1760372845,
+   "seed": 1760372843,
    "expect": "py/f.hjkl/0004"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760372827.823,
+    "t": 1760372829.1299999,
     "ex": "py/f.hjkl/0004",
     "skill": "f.hjkl",
     "lang": "python",
     "ok": true,
-    "ms": 4663,
+    "ms": 5071,
     "keys": 11,
     "par": 10,
     "hint": false,
@@ -3432,27 +3431,27 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760372836.486,
-   "expect": "f.save"
+   "now": 1760372838.201,
+   "expect": "f.undo"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.save",
+   "skill": "f.undo",
    "lang": "python",
-   "seed": 1760372819,
-   "expect": "py/f.save/0005"
+   "seed": 1760372817,
+   "expect": "py/f.undo/0006"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760372836.486,
-    "ex": "py/f.save/0005",
-    "skill": "f.save",
+    "t": 1760372838.201,
+    "ex": "py/f.undo/0006",
+    "skill": "f.undo",
     "lang": "python",
     "ok": true,
-    "ms": 4738,
-    "keys": 13,
-    "par": 11,
+    "ms": 4878,
+    "keys": 14,
+    "par": 12,
     "hint": false,
     "retry": false,
     "undo": 0
@@ -3461,56 +3460,27 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760372845.224,
-   "expect": "f.save"
+   "now": 1760372847.079,
+   "expect": "f.undo"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.save",
+   "skill": "f.undo",
    "lang": "python",
-   "seed": 1760372821,
-   "expect": "py/f.save/0003"
+   "seed": 1760372823,
+   "expect": "py/f.undo/0004"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760372845.224,
-    "ex": "py/f.save/0003",
-    "skill": "f.save",
+    "t": 1760372847.079,
+    "ex": "py/f.undo/0004",
+    "skill": "f.undo",
     "lang": "python",
     "ok": true,
-    "ms": 3740,
-    "keys": 10,
-    "par": 9,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760372852.964,
-   "expect": "f.hjkl"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.hjkl",
-   "lang": "python",
-   "seed": 1760372813,
-   "expect": "py/f.hjkl/0003"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760372852.964,
-    "ex": "py/f.hjkl/0003",
-    "skill": "f.hjkl",
-    "lang": "python",
-    "ok": true,
-    "ms": 3263,
+    "ms": 3884,
     "keys": 11,
-    "par": 9,
+    "par": 10,
     "hint": false,
     "retry": false,
     "undo": 0
@@ -3519,27 +3489,56 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760372860.227,
+   "now": 1760372854.963,
+   "expect": "f.save"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.save",
+   "lang": "python",
+   "seed": 1760372815,
+   "expect": "py/f.save/0004"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760372854.963,
+    "ex": "py/f.save/0004",
+    "skill": "f.save",
+    "lang": "python",
+    "ok": true,
+    "ms": 3471,
+    "keys": 12,
+    "par": 10,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760372862.434,
    "expect": "f.xdd"
   },
   {
    "op": "chooseExercise",
    "skill": "f.xdd",
    "lang": "python",
-   "seed": 1760372806,
-   "expect": "py/f.xdd/0002"
+   "seed": 1760372804,
+   "expect": "py/f.xdd/0001"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760372860.227,
-    "ex": "py/f.xdd/0002",
+    "t": 1760372862.434,
+    "ex": "py/f.xdd/0001",
     "skill": "f.xdd",
     "lang": "python",
     "ok": true,
-    "ms": 2794,
-    "keys": 8,
-    "par": 8,
+    "ms": 2603,
+    "keys": 7,
+    "par": 7,
     "hint": false,
     "retry": false,
     "undo": 0
@@ -3548,22 +3547,22 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760372867.021,
-   "expect": "f.save"
+   "now": 1760372869.037,
+   "expect": "f.modes"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.save",
+   "skill": "f.modes",
    "lang": "python",
-   "seed": 1760372920,
-   "expect": "py/f.save/0006"
+   "seed": 1760372926,
+   "expect": "py/f.modes/0006"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760372867.021,
-    "ex": "py/f.save/0006",
-    "skill": "f.save",
+    "t": 1760372869.037,
+    "ex": "py/f.modes/0006",
+    "skill": "f.modes",
     "lang": "python",
     "ok": false,
     "ms": 4909,
@@ -3577,141 +3576,25 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760372875.9299998,
-   "expect": "f.save"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.save",
-   "lang": "python",
-   "seed": 1760372919,
-   "expect": "py/f.save/0001"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760372875.9299998,
-    "ex": "py/f.save/0001",
-    "skill": "f.save",
-    "lang": "python",
-    "ok": true,
-    "ms": 2641,
-    "keys": 7,
-    "par": 7,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760372882.5709999,
+   "now": 1760372877.9459999,
    "expect": "f.modes"
   },
   {
    "op": "chooseExercise",
    "skill": "f.modes",
    "lang": "python",
-   "seed": 1760372911,
+   "seed": 1760372913,
    "expect": "py/f.modes/0004"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760372882.5709999,
+    "t": 1760372877.9459999,
     "ex": "py/f.modes/0004",
     "skill": "f.modes",
     "lang": "python",
     "ok": true,
-    "ms": 3497,
-    "keys": 10,
-    "par": 10,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760372890.0679998,
-   "expect": "f.hjkl"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.hjkl",
-   "lang": "python",
-   "seed": 1760372900,
-   "expect": "py/f.hjkl/0001"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760372890.0679998,
-    "ex": "py/f.hjkl/0001",
-    "skill": "f.hjkl",
-    "lang": "python",
-    "ok": true,
-    "ms": 2694,
-    "keys": 7,
-    "par": 7,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760372896.7619998,
-   "expect": "f.undo"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.undo",
-   "lang": "python",
-   "seed": 1760372895,
-   "expect": "py/f.undo/0004"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760372896.7619998,
-    "ex": "py/f.undo/0004",
-    "skill": "f.undo",
-    "lang": "python",
-    "ok": true,
-    "ms": 2678,
-    "keys": 13,
-    "par": 10,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760372903.4399998,
-   "expect": "f.xdd"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.xdd",
-   "lang": "python",
-   "seed": 1760372967,
-   "expect": "py/f.xdd/0004"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760372903.4399998,
-    "ex": "py/f.xdd/0004",
-    "skill": "f.xdd",
-    "lang": "python",
-    "ok": false,
-    "ms": 2607,
+    "ms": 3221,
     "keys": 11,
     "par": 10,
     "hint": false,
@@ -3722,26 +3605,26 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760372910.047,
-   "expect": "f.xdd"
+   "now": 1760372885.1669998,
+   "expect": "f.hjkl"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.xdd",
+   "skill": "f.hjkl",
    "lang": "python",
-   "seed": 1760372975,
-   "expect": "py/f.xdd/0006"
+   "seed": 1760372904,
+   "expect": "py/f.hjkl/0006"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760372910.047,
-    "ex": "py/f.xdd/0006",
-    "skill": "f.xdd",
+    "t": 1760372885.1669998,
+    "ex": "py/f.hjkl/0006",
+    "skill": "f.hjkl",
     "lang": "python",
     "ok": true,
-    "ms": 4165,
-    "keys": 13,
+    "ms": 4028,
+    "keys": 12,
     "par": 12,
     "hint": false,
     "retry": false,
@@ -3751,26 +3634,84 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760372918.212,
-   "expect": "f.undo"
+   "now": 1760372893.195,
+   "expect": "f.hjkl"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.undo",
+   "skill": "f.hjkl",
    "lang": "python",
-   "seed": 1760372980,
-   "expect": "py/f.undo/0005"
+   "seed": 1760372899,
+   "expect": "py/f.hjkl/0001"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760372918.212,
-    "ex": "py/f.undo/0005",
-    "skill": "f.undo",
+    "t": 1760372893.195,
+    "ex": "py/f.hjkl/0001",
+    "skill": "f.hjkl",
     "lang": "python",
     "ok": true,
-    "ms": 3707,
-    "keys": 11,
+    "ms": 2895,
+    "keys": 7,
+    "par": 7,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760372900.09,
+   "expect": "f.save"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.save",
+   "lang": "python",
+   "seed": 1760372891,
+   "expect": "py/f.save/0006"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760372900.09,
+    "ex": "py/f.save/0006",
+    "skill": "f.save",
+    "lang": "python",
+    "ok": true,
+    "ms": 2934,
+    "keys": 15,
+    "par": 12,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760372907.024,
+   "expect": "f.hjkl"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.hjkl",
+   "lang": "python",
+   "seed": 1760372971,
+   "expect": "py/f.hjkl/0005"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760372907.024,
+    "ex": "py/f.hjkl/0005",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": false,
+    "ms": 2831,
+    "keys": 12,
     "par": 11,
     "hint": false,
     "retry": false,
@@ -3780,80 +3721,138 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760372925.919,
-   "expect": "f.save"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.save",
-   "lang": "python",
-   "seed": 1760372990,
-   "expect": "py/f.save/0004"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760372925.919,
-    "ex": "py/f.save/0004",
-    "skill": "f.save",
-    "lang": "python",
-    "ok": true,
-    "ms": 2533,
-    "keys": 12,
-    "par": 10,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760372932.452,
-   "expect": "f.modes"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.modes",
-   "lang": "python",
-   "seed": 1760372864,
-   "expect": "py/f.modes/0006"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760372932.452,
-    "ex": "py/f.modes/0006",
-    "skill": "f.modes",
-    "lang": "python",
-    "ok": true,
-    "ms": 4766,
-    "keys": 13,
-    "par": 12,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760372941.218,
+   "now": 1760372913.855,
    "expect": "f.hjkl"
   },
   {
    "op": "chooseExercise",
    "skill": "f.hjkl",
    "lang": "python",
-   "seed": 1760372872,
-   "expect": "py/f.hjkl/0002"
+   "seed": 1760372976,
+   "expect": "py/f.hjkl/0003"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760372941.218,
-    "ex": "py/f.hjkl/0002",
+    "t": 1760372913.855,
+    "ex": "py/f.hjkl/0003",
     "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 3574,
+    "keys": 10,
+    "par": 9,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760372921.429,
+   "expect": "f.undo"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.undo",
+   "lang": "python",
+   "seed": 1760372987,
+   "expect": "py/f.undo/0002"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760372921.429,
+    "ex": "py/f.undo/0002",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 3078,
+    "keys": 8,
+    "par": 8,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760372928.507,
+   "expect": "f.undo"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.undo",
+   "lang": "python",
+   "seed": 1760372867,
+   "expect": "py/f.undo/0001"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760372928.507,
+    "ex": "py/f.undo/0001",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 2077,
+    "keys": 8,
+    "par": 7,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760372934.5839999,
+   "expect": "f.xdd"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.xdd",
+   "lang": "python",
+   "seed": 1760372866,
+   "expect": "py/f.xdd/0003"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760372934.5839999,
+    "ex": "py/f.xdd/0003",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 3905,
+    "keys": 10,
+    "par": 9,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760372942.4889998,
+   "expect": "f.modes"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.modes",
+   "lang": "python",
+   "seed": 1760372875,
+   "expect": "py/f.modes/0002"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760372942.4889998,
+    "ex": "py/f.modes/0002",
+    "skill": "f.modes",
     "lang": "python",
     "ok": true,
     "ms": 3095,
@@ -3867,55 +3866,26 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760372948.313,
+   "now": 1760372949.5839999,
    "expect": "f.modes"
   },
   {
    "op": "chooseExercise",
    "skill": "f.modes",
    "lang": "python",
-   "seed": 1760372882,
-   "expect": "py/f.modes/0003"
+   "seed": 1760372883,
+   "expect": "py/f.modes/0005"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760372948.313,
-    "ex": "py/f.modes/0003",
+    "t": 1760372949.5839999,
+    "ex": "py/f.modes/0005",
     "skill": "f.modes",
     "lang": "python",
     "ok": true,
-    "ms": 3025,
-    "keys": 9,
-    "par": 9,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760372955.338,
-   "expect": "f.xdd"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.xdd",
-   "lang": "python",
-   "seed": 1760372892,
-   "expect": "py/f.xdd/0005"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760372955.338,
-    "ex": "py/f.xdd/0005",
-    "skill": "f.xdd",
-    "lang": "python",
-    "ok": true,
-    "ms": 2149,
-    "keys": 12,
+    "ms": 3207,
+    "keys": 11,
     "par": 11,
     "hint": false,
     "retry": false,
@@ -3925,54 +3895,25 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760372961.487,
-   "expect": "f.hjkl"
+   "now": 1760372956.791,
+   "expect": "f.xdd"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.hjkl",
+   "skill": "f.xdd",
    "lang": "python",
-   "seed": 1760372905,
-   "expect": "py/f.hjkl/0006"
+   "seed": 1760372891,
+   "expect": "py/f.xdd/0002"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760372961.487,
-    "ex": "py/f.hjkl/0006",
-    "skill": "f.hjkl",
+    "t": 1760372956.791,
+    "ex": "py/f.xdd/0002",
+    "skill": "f.xdd",
     "lang": "python",
     "ok": true,
-    "ms": 3847,
-    "keys": 14,
-    "par": 12,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1760372969.3339999,
-   "expect": "f.undo"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.undo",
-   "lang": "python",
-   "seed": 1760372896,
-   "expect": "py/f.undo/0002"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1760372969.3339999,
-    "ex": "py/f.undo/0002",
-    "skill": "f.undo",
-    "lang": "python",
-    "ok": true,
-    "ms": 2245,
+    "ms": 1821,
     "keys": 9,
     "par": 8,
     "hint": false,
@@ -3983,20 +3924,78 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1760372975.5789998,
+   "now": 1760372962.612,
    "expect": "f.save"
   },
   {
    "op": "chooseExercise",
    "skill": "f.save",
    "lang": "python",
-   "seed": 1760372901,
+   "seed": 1760372906,
+   "expect": "py/f.save/0005"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760372962.612,
+    "ex": "py/f.save/0005",
+    "skill": "f.save",
+    "lang": "python",
+    "ok": true,
+    "ms": 3711,
+    "keys": 13,
+    "par": 11,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760372970.323,
+   "expect": "f.undo"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.undo",
+   "lang": "python",
+   "seed": 1760372899,
+   "expect": "py/f.undo/0003"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1760372970.323,
+    "ex": "py/f.undo/0003",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 2352,
+    "keys": 10,
+    "par": 9,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1760372976.675,
+   "expect": "f.save"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.save",
+   "lang": "python",
+   "seed": 1760372922,
    "expect": "py/f.save/0002"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1760372975.5789998,
+    "t": 1760372976.675,
     "ex": "py/f.save/0002",
     "skill": "f.save",
     "lang": "python",
@@ -4015,13 +4014,13 @@
     "skills": {
      "f.modes": {
       "python": {
-       "timeEma": 3970.3755575763103,
-       "effEma": 1.1690300904948376,
-       "parEma": 9.44115580179,
-       "acc": 0.9230769230769231,
-       "n": 13,
-       "confidence": 0.6246720305272512,
-       "lastSeen": 1760372948.313,
+       "timeEma": 3931.3492426169487,
+       "effEma": 1.172446087499352,
+       "parEma": 9.864921642842,
+       "acc": 0.8125,
+       "n": 16,
+       "confidence": 0.6455837326781992,
+       "lastSeen": 1760372949.5839999,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -4029,13 +4028,13 @@
      },
      "f.hjkl": {
       "python": {
-       "timeEma": 3801.867031523679,
-       "effEma": 1.2128127228378887,
-       "parEma": 9.30714792062232,
-       "acc": 0.9375,
-       "n": 16,
-       "confidence": 0.6235775573538049,
-       "lastSeen": 1760372961.487,
+       "timeEma": 3952.7543000413,
+       "effEma": 1.2133932235542606,
+       "parEma": 9.21393318789,
+       "acc": 0.9230769230769231,
+       "n": 13,
+       "confidence": 0.5959886965166544,
+       "lastSeen": 1760372913.855,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -4043,13 +4042,13 @@
      },
      "f.undo": {
       "python": {
-       "timeEma": 3976.8732719906925,
-       "effEma": 1.161717358468788,
-       "parEma": 9.719631779200101,
-       "acc": 0.9333333333333333,
-       "n": 15,
-       "confidence": 0.6384268373423911,
-       "lastSeen": 1760372969.3339999,
+       "timeEma": 3775.3714900171635,
+       "effEma": 1.1714689733552757,
+       "parEma": 9.326406622221109,
+       "acc": 1.0,
+       "n": 16,
+       "confidence": 0.6508995180021392,
+       "lastSeen": 1760372970.323,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -4057,13 +4056,13 @@
      },
      "f.xdd": {
       "python": {
-       "timeEma": 3871.325184100585,
-       "effEma": 1.1828568020769874,
-       "parEma": 9.726827371328,
-       "acc": 0.8666666666666667,
-       "n": 15,
-       "confidence": 0.6443950679143076,
-       "lastSeen": 1760372955.338,
+       "timeEma": 3708.8827969485,
+       "effEma": 1.2123298334057793,
+       "parEma": 9.21650503679,
+       "acc": 0.8571428571428571,
+       "n": 14,
+       "confidence": 0.635837054840444,
+       "lastSeen": 1760372956.791,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -4071,13 +4070,13 @@
      },
      "f.save": {
       "python": {
-       "timeEma": 3851.8086635206405,
-       "effEma": 1.1837840829483137,
-       "parEma": 9.68885992214135,
-       "acc": 0.9375,
+       "timeEma": 3990.4495554584273,
+       "effEma": 1.1784715798340986,
+       "parEma": 9.722553245060011,
+       "acc": 1.0,
        "n": 16,
-       "confidence": 0.6456539832297451,
-       "lastSeen": 1760372975.5789998,
+       "confidence": 0.6273210333285568,
+       "lastSeen": 1760372976.675,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -4087,16 +4086,16 @@
     "logLen": 75,
     "recentLen": 50,
     "recentTail": [
-     "py/f.modes/0003",
-     "py/f.xdd/0005",
-     "py/f.hjkl/0006",
-     "py/f.undo/0002",
+     "py/f.modes/0005",
+     "py/f.xdd/0002",
+     "py/f.save/0005",
+     "py/f.undo/0003",
      "py/f.save/0002"
     ],
     "focusTail": [
      "f.modes",
      "f.xdd",
-     "f.hjkl",
+     "f.save",
      "f.undo",
      "f.save"
     ]
@@ -4106,7 +4105,12 @@
    "op": "sessionSummary",
    "since": 1760372800,
    "expect": {
-    "improved": [],
+    "improved": [
+     {
+      "skill": "f.undo",
+      "delta": 0.12328616738388953
+     }
+    ],
     "mastered": [],
     "unlocked": [],
     "tip": "After an undo, `Ctrl-r` redoes it; you never need to retype what you just undid."
@@ -4114,26 +4118,26 @@
   },
   {
    "op": "projection",
-   "skill": "f.hjkl",
+   "skill": "f.save",
    "lang": "python",
    "expect": {
-    "fit": "none",
+    "fit": "quadratic",
     "attemptsToTarget": null,
-    "r2": 0.14252737307871033
+    "r2": 0.6915611385580145
    }
   },
   {
    "op": "diagnose",
-   "skill": "f.hjkl",
+   "skill": "f.save",
    "lang": "python",
    "expect": {
     "status": "active",
     "failing": [
      "speed"
     ],
-    "speed": 0.7562827952348679,
-    "efficiency": 0.8245296088748779,
-    "acc": 0.9375,
+    "speed": 0.7392800092098636,
+    "efficiency": 0.8485567383311668,
+    "acc": 1.0,
     "n": 16
    }
   },
@@ -4141,21 +4145,21 @@
    "op": "chooseFocus",
    "lang": "python",
    "now": 1765643200.0,
-   "expect": "f.hjkl"
+   "expect": "f.xdd"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.hjkl",
+   "skill": "f.xdd",
    "lang": "python",
    "seed": 1765643147,
-   "expect": "py/f.hjkl/0005"
+   "expect": "py/f.xdd/0005"
   },
   {
    "op": "applyAttempt",
    "record": {
     "t": 1765643200.0,
-    "ex": "py/f.hjkl/0005",
-    "skill": "f.hjkl",
+    "ex": "py/f.xdd/0005",
+    "skill": "f.xdd",
     "lang": "python",
     "ok": true,
     "ms": 5309,
@@ -4170,21 +4174,21 @@
    "op": "chooseFocus",
    "lang": "python",
    "now": 1765643209.309,
-   "expect": "f.hjkl"
+   "expect": "f.xdd"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.hjkl",
+   "skill": "f.xdd",
    "lang": "python",
    "seed": 1765643141,
-   "expect": "py/f.hjkl/0004"
+   "expect": "py/f.xdd/0004"
   },
   {
    "op": "applyAttempt",
    "record": {
     "t": 1765643209.309,
-    "ex": "py/f.hjkl/0004",
-    "skill": "f.hjkl",
+    "ex": "py/f.xdd/0004",
+    "skill": "f.xdd",
     "lang": "python",
     "ok": true,
     "ms": 3606,
@@ -4199,430 +4203,24 @@
    "op": "chooseFocus",
    "lang": "python",
    "now": 1765643216.915,
-   "expect": "f.hjkl"
+   "expect": "f.save"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.hjkl",
+   "skill": "f.save",
    "lang": "python",
    "seed": 1765643165,
-   "expect": "py/f.hjkl/0003"
+   "expect": "py/f.save/0001"
   },
   {
    "op": "applyAttempt",
    "record": {
     "t": 1765643216.915,
-    "ex": "py/f.hjkl/0003",
-    "skill": "f.hjkl",
+    "ex": "py/f.save/0001",
+    "skill": "f.save",
     "lang": "python",
     "ok": true,
-    "ms": 4382,
-    "keys": 11,
-    "par": 9,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765643225.297,
-   "expect": "f.modes"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.modes",
-   "lang": "python",
-   "seed": 1765643159,
-   "expect": "py/f.modes/0002"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765643225.297,
-    "ex": "py/f.modes/0002",
-    "skill": "f.modes",
-    "lang": "python",
-    "ok": true,
-    "ms": 3686,
-    "keys": 10,
-    "par": 8,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765643232.983,
-   "expect": "f.hjkl"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.hjkl",
-   "lang": "python",
-   "seed": 1765643183,
-   "expect": "py/f.hjkl/0001"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765643232.983,
-    "ex": "py/f.hjkl/0001",
-    "skill": "f.hjkl",
-    "lang": "python",
-    "ok": false,
-    "ms": 4162,
-    "keys": 8,
-    "par": 7,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765643241.145,
-   "expect": "f.hjkl"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.hjkl",
-   "lang": "python",
-   "seed": 1765643193,
-   "expect": "py/f.hjkl/0002"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765643241.145,
-    "ex": "py/f.hjkl/0002",
-    "skill": "f.hjkl",
-    "lang": "python",
-    "ok": true,
-    "ms": 3285,
-    "keys": 11,
-    "par": 8,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765643248.43,
-   "expect": "f.hjkl"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.hjkl",
-   "lang": "python",
-   "seed": 1765643169,
-   "expect": "py/f.hjkl/0006"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765643248.43,
-    "ex": "py/f.hjkl/0006",
-    "skill": "f.hjkl",
-    "lang": "python",
-    "ok": true,
-    "ms": 4161,
-    "keys": 13,
-    "par": 12,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765643256.591,
-   "expect": "f.modes"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.modes",
-   "lang": "python",
-   "seed": 1765643178,
-   "expect": "py/f.modes/0005"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765643256.591,
-    "ex": "py/f.modes/0005",
-    "skill": "f.modes",
-    "lang": "python",
-    "ok": true,
-    "ms": 4886,
-    "keys": 16,
-    "par": 11,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765643265.477,
-   "expect": "f.modes"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.modes",
-   "lang": "python",
-   "seed": 1765643346,
-   "expect": "py/f.modes/0001"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765643265.477,
-    "ex": "py/f.modes/0001",
-    "skill": "f.modes",
-    "lang": "python",
-    "ok": true,
-    "ms": 3747,
-    "keys": 7,
-    "par": 7,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765643273.224,
-   "expect": "f.hjkl"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.hjkl",
-   "lang": "python",
-   "seed": 1765643357,
-   "expect": "py/f.hjkl/0005"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765643273.224,
-    "ex": "py/f.hjkl/0005",
-    "skill": "f.hjkl",
-    "lang": "python",
-    "ok": true,
-    "ms": 3596,
-    "keys": 12,
-    "par": 11,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765643280.82,
-   "expect": "f.modes"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.modes",
-   "lang": "python",
-   "seed": 1765643333,
-   "expect": "py/f.modes/0004"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765643280.82,
-    "ex": "py/f.modes/0004",
-    "skill": "f.modes",
-    "lang": "python",
-    "ok": true,
-    "ms": 4823,
-    "keys": 12,
-    "par": 10,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765643289.643,
-   "expect": "f.modes"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.modes",
-   "lang": "python",
-   "seed": 1765643343,
-   "expect": "py/f.modes/0006"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765643289.643,
-    "ex": "py/f.modes/0006",
-    "skill": "f.modes",
-    "lang": "python",
-    "ok": true,
-    "ms": 4049,
-    "keys": 17,
-    "par": 12,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765643297.692,
-   "expect": "f.modes"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.modes",
-   "lang": "python",
-   "seed": 1765643382,
-   "expect": "py/f.modes/0003"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765643297.692,
-    "ex": "py/f.modes/0003",
-    "skill": "f.modes",
-    "lang": "python",
-    "ok": true,
-    "ms": 3205,
-    "keys": 10,
-    "par": 9,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765643304.8969998,
-   "expect": "f.hjkl"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.hjkl",
-   "lang": "python",
-   "seed": 1765643376,
-   "expect": "py/f.hjkl/0004"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765643304.8969998,
-    "ex": "py/f.hjkl/0004",
-    "skill": "f.hjkl",
-    "lang": "python",
-    "ok": true,
-    "ms": 3660,
-    "keys": 11,
-    "par": 10,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765643312.557,
-   "expect": "f.modes"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.modes",
-   "lang": "python",
-   "seed": 1765643369,
-   "expect": "py/f.modes/0002"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765643312.557,
-    "ex": "py/f.modes/0002",
-    "skill": "f.modes",
-    "lang": "python",
-    "ok": true,
-    "ms": 3410,
-    "keys": 10,
-    "par": 8,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765643319.967,
-   "expect": "f.modes"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.modes",
-   "lang": "python",
-   "seed": 1765643373,
-   "expect": "py/f.modes/0005"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765643319.967,
-    "ex": "py/f.modes/0005",
-    "skill": "f.modes",
-    "lang": "python",
-    "ok": true,
-    "ms": 3939,
-    "keys": 12,
-    "par": 11,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765643327.906,
-   "expect": "f.modes"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.modes",
-   "lang": "python",
-   "seed": 1765643364,
-   "expect": "py/f.modes/0001"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765643327.906,
-    "ex": "py/f.modes/0001",
-    "skill": "f.modes",
-    "lang": "python",
-    "ok": true,
-    "ms": 2489,
+    "ms": 4204,
     "keys": 9,
     "par": 7,
     "hint": false,
@@ -4633,25 +4231,112 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1765643334.395,
+   "now": 1765643225.119,
+   "expect": "f.xdd"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.xdd",
+   "lang": "python",
+   "seed": 1765643159,
+   "expect": "py/f.xdd/0006"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765643225.119,
+    "ex": "py/f.xdd/0006",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 4266,
+    "keys": 15,
+    "par": 12,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765643233.385,
    "expect": "f.hjkl"
   },
   {
    "op": "chooseExercise",
    "skill": "f.hjkl",
    "lang": "python",
-   "seed": 1765643290,
-   "expect": "py/f.hjkl/0003"
+   "seed": 1765643182,
+   "expect": "py/f.hjkl/0002"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1765643334.395,
-    "ex": "py/f.hjkl/0003",
+    "t": 1765643233.385,
+    "ex": "py/f.hjkl/0002",
     "skill": "f.hjkl",
     "lang": "python",
+    "ok": false,
+    "ms": 5131,
+    "keys": 10,
+    "par": 8,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765643242.516,
+   "expect": "f.modes"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.modes",
+   "lang": "python",
+   "seed": 1765643194,
+   "expect": "py/f.modes/0003"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765643242.516,
+    "ex": "py/f.modes/0003",
+    "skill": "f.modes",
+    "lang": "python",
     "ok": true,
-    "ms": 3116,
+    "ms": 4202,
+    "keys": 13,
+    "par": 9,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765643250.718,
+   "expect": "f.save"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.save",
+   "lang": "python",
+   "seed": 1765643171,
+   "expect": "py/f.save/0003"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765643250.718,
+    "ex": "py/f.save/0003",
+    "skill": "f.save",
+    "lang": "python",
+    "ok": true,
+    "ms": 4141,
     "keys": 10,
     "par": 9,
     "hint": false,
@@ -4662,7 +4347,297 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1765643341.511,
+   "now": 1765643258.859,
+   "expect": "f.hjkl"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.hjkl",
+   "lang": "python",
+   "seed": 1765643176,
+   "expect": "py/f.hjkl/0004"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765643258.859,
+    "ex": "py/f.hjkl/0004",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 4610,
+    "keys": 15,
+    "par": 10,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765643267.4689999,
+   "expect": "f.xdd"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.xdd",
+   "lang": "python",
+   "seed": 1765643344,
+   "expect": "py/f.xdd/0001"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765643267.4689999,
+    "ex": "py/f.xdd/0001",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 3586,
+    "keys": 7,
+    "par": 7,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765643275.0549998,
+   "expect": "f.save"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.save",
+   "lang": "python",
+   "seed": 1765643359,
+   "expect": "py/f.save/0004"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765643275.0549998,
+    "ex": "py/f.save/0004",
+    "skill": "f.save",
+    "lang": "python",
+    "ok": true,
+    "ms": 3984,
+    "keys": 11,
+    "par": 10,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765643283.0389998,
+   "expect": "f.save"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.save",
+   "lang": "python",
+   "seed": 1765643334,
+   "expect": "py/f.save/0006"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765643283.0389998,
+    "ex": "py/f.save/0006",
+    "skill": "f.save",
+    "lang": "python",
+    "ok": true,
+    "ms": 5402,
+    "keys": 14,
+    "par": 12,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765643292.4409997,
+   "expect": "f.hjkl"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.hjkl",
+   "lang": "python",
+   "seed": 1765643338,
+   "expect": "py/f.hjkl/0006"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765643292.4409997,
+    "ex": "py/f.hjkl/0006",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 4409,
+    "keys": 17,
+    "par": 12,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765643300.8499997,
+   "expect": "f.hjkl"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.hjkl",
+   "lang": "python",
+   "seed": 1765643379,
+   "expect": "py/f.hjkl/0001"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765643300.8499997,
+    "ex": "py/f.hjkl/0001",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 3030,
+    "keys": 8,
+    "par": 7,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765643307.8799996,
+   "expect": "f.save"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.save",
+   "lang": "python",
+   "seed": 1765643379,
+   "expect": "py/f.save/0005"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765643307.8799996,
+    "ex": "py/f.save/0005",
+    "skill": "f.save",
+    "lang": "python",
+    "ok": true,
+    "ms": 4330,
+    "keys": 12,
+    "par": 11,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765643316.2099996,
+   "expect": "f.modes"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.modes",
+   "lang": "python",
+   "seed": 1765643373,
+   "expect": "py/f.modes/0001"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765643316.2099996,
+    "ex": "py/f.modes/0001",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": true,
+    "ms": 3908,
+    "keys": 9,
+    "par": 7,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765643324.1179996,
+   "expect": "f.xdd"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.xdd",
+   "lang": "python",
+   "seed": 1765643366,
+   "expect": "py/f.xdd/0003"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765643324.1179996,
+    "ex": "py/f.xdd/0003",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 3899,
+    "keys": 10,
+    "par": 9,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765643332.0169995,
+   "expect": "f.modes"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.modes",
+   "lang": "python",
+   "seed": 1765643295,
+   "expect": "py/f.modes/0006"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765643332.0169995,
+    "ex": "py/f.modes/0006",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": true,
+    "ms": 4266,
+    "keys": 16,
+    "par": 12,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765643340.2829995,
    "expect": "f.modes"
   },
   {
@@ -4675,13 +4650,13 @@
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1765643341.511,
+    "t": 1765643340.2829995,
     "ex": "py/f.modes/0004",
     "skill": "f.modes",
     "lang": "python",
     "ok": true,
-    "ms": 3682,
-    "keys": 11,
+    "ms": 3981,
+    "keys": 12,
     "par": 10,
     "hint": false,
     "retry": false,
@@ -4691,27 +4666,27 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1765643349.1929998,
-   "expect": "f.undo"
+   "now": 1765643348.2639995,
+   "expect": "f.save"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.undo",
+   "skill": "f.save",
    "lang": "python",
-   "seed": 1765643275,
-   "expect": "py/f.undo/0006"
+   "seed": 1765643273,
+   "expect": "py/f.save/0002"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1765643349.1929998,
-    "ex": "py/f.undo/0006",
-    "skill": "f.undo",
+    "t": 1765643348.2639995,
+    "ex": "py/f.save/0002",
+    "skill": "f.save",
     "lang": "python",
-    "ok": false,
-    "ms": 5069,
-    "keys": 17,
-    "par": 12,
+    "ok": true,
+    "ms": 3701,
+    "keys": 9,
+    "par": 8,
     "hint": false,
     "retry": false,
     "undo": 0
@@ -4720,25 +4695,25 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1765643358.2619998,
-   "expect": "f.undo"
+   "now": 1765643355.9649994,
+   "expect": "f.save"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.undo",
+   "skill": "f.save",
    "lang": "python",
-   "seed": 1765643265,
-   "expect": "py/f.undo/0001"
+   "seed": 1765643269,
+   "expect": "py/f.save/0001"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1765643358.2619998,
-    "ex": "py/f.undo/0001",
-    "skill": "f.undo",
+    "t": 1765643355.9649994,
+    "ex": "py/f.save/0001",
+    "skill": "f.save",
     "lang": "python",
-    "ok": true,
-    "ms": 5392,
+    "ok": false,
+    "ms": 2874,
     "keys": 9,
     "par": 7,
     "hint": false,
@@ -4749,26 +4724,55 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1765643367.6539998,
-   "expect": "f.undo"
+   "now": 1765643362.8389995,
+   "expect": "f.hjkl"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.undo",
+   "skill": "f.hjkl",
    "lang": "python",
-   "seed": 1765643271,
-   "expect": "py/f.undo/0003"
+   "seed": 1765643325,
+   "expect": "py/f.hjkl/0005"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1765643367.6539998,
-    "ex": "py/f.undo/0003",
-    "skill": "f.undo",
+    "t": 1765643362.8389995,
+    "ex": "py/f.hjkl/0005",
+    "skill": "f.hjkl",
     "lang": "python",
     "ok": true,
-    "ms": 4471,
-    "keys": 10,
+    "ms": 6112,
+    "keys": 14,
+    "par": 11,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765643372.9509995,
+   "expect": "f.hjkl"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.hjkl",
+   "lang": "python",
+   "seed": 1765643276,
+   "expect": "py/f.hjkl/0003"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765643372.9509995,
+    "ex": "py/f.hjkl/0003",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 3949,
+    "keys": 9,
     "par": 9,
     "hint": false,
     "retry": false,
@@ -4778,85 +4782,85 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1765643376.1249998,
+   "now": 1765643380.8999994,
+   "expect": "f.save"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.save",
+   "lang": "python",
+   "seed": 1765643285,
+   "expect": "py/f.save/0003"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765643380.8999994,
+    "ex": "py/f.save/0003",
+    "skill": "f.save",
+    "lang": "python",
+    "ok": true,
+    "ms": 3762,
+    "keys": 11,
+    "par": 9,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765643388.6619995,
+   "expect": "f.hjkl"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.hjkl",
+   "lang": "python",
+   "seed": 1765643294,
+   "expect": "py/f.hjkl/0002"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765643388.6619995,
+    "ex": "py/f.hjkl/0002",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 2384,
+    "keys": 9,
+    "par": 8,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765643395.0459995,
    "expect": "f.modes"
   },
   {
    "op": "chooseExercise",
    "skill": "f.modes",
    "lang": "python",
-   "seed": 1765643281,
-   "expect": "py/f.modes/0006"
+   "seed": 1765643488,
+   "expect": "py/f.modes/0002"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1765643376.1249998,
-    "ex": "py/f.modes/0006",
+    "t": 1765643395.0459995,
+    "ex": "py/f.modes/0002",
     "skill": "f.modes",
     "lang": "python",
     "ok": true,
-    "ms": 4097,
-    "keys": 15,
-    "par": 12,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765643384.2219996,
-   "expect": "f.undo"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.undo",
-   "lang": "python",
-   "seed": 1765643290,
-   "expect": "py/f.undo/0004"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765643384.2219996,
-    "ex": "py/f.undo/0004",
-    "skill": "f.undo",
-    "lang": "python",
-    "ok": true,
-    "ms": 3045,
-    "keys": 11,
-    "par": 10,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765643391.2669997,
-   "expect": "f.undo"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.undo",
-   "lang": "python",
-   "seed": 1765643292,
-   "expect": "py/f.undo/0005"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765643391.2669997,
-    "ex": "py/f.undo/0005",
-    "skill": "f.undo",
-    "lang": "python",
-    "ok": true,
-    "ms": 4572,
-    "keys": 13,
-    "par": 11,
+    "ms": 3796,
+    "keys": 10,
+    "par": 8,
     "hint": false,
     "retry": false,
     "undo": 0
@@ -4868,13 +4872,13 @@
     "skills": {
      "f.modes": {
       "python": {
-       "timeEma": 3813.745808727448,
-       "effEma": 1.1978133595552345,
-       "parEma": 9.610414166918282,
-       "acc": 0.95,
-       "n": 24,
-       "confidence": 0.641369242975364,
-       "lastSeen": 1765643376.1249998,
+       "timeEma": 3965.4448342728815,
+       "effEma": 1.221816261636064,
+       "parEma": 9.597927580881773,
+       "acc": 0.85,
+       "n": 21,
+       "confidence": 0.6042517612837907,
+       "lastSeen": 1765643395.0459995,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -4882,13 +4886,13 @@
      },
      "f.hjkl": {
       "python": {
-       "timeEma": 3792.0390106609807,
-       "effEma": 1.2015346510727312,
-       "parEma": 9.686110588447592,
-       "acc": 0.95,
-       "n": 25,
-       "confidence": 0.6460333377805475,
-       "lastSeen": 1765643334.395,
+       "timeEma": 3971.915077968249,
+       "effEma": 1.2152731029240946,
+       "parEma": 9.28577186730545,
+       "acc": 0.9,
+       "n": 20,
+       "confidence": 0.5948750367321828,
+       "lastSeen": 1765643388.6619995,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -4896,13 +4900,13 @@
      },
      "f.undo": {
       "python": {
-       "timeEma": 4095.704353753093,
-       "effEma": 1.1631131485017616,
-       "parEma": 9.616350410333187,
-       "acc": 0.9,
-       "n": 20,
-       "confidence": 0.615257361071612,
-       "lastSeen": 1765643391.2669997,
+       "timeEma": 3775.3714900171635,
+       "effEma": 1.1714689733552757,
+       "parEma": 9.326406622221109,
+       "acc": 1.0,
+       "n": 16,
+       "confidence": 0.6508995180021392,
+       "lastSeen": 1760372970.323,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -4910,13 +4914,13 @@
      },
      "f.xdd": {
       "python": {
-       "timeEma": 3871.325184100585,
-       "effEma": 1.1828568020769874,
-       "parEma": 9.726827371328,
-       "acc": 0.8666666666666667,
-       "n": 15,
-       "confidence": 0.6443950679143076,
-       "lastSeen": 1760372955.338,
+       "timeEma": 3859.44509277012,
+       "effEma": 1.2097579362570714,
+       "parEma": 9.394964059174127,
+       "acc": 0.8947368421052632,
+       "n": 19,
+       "confidence": 0.6192111889596106,
+       "lastSeen": 1765643324.1179996,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -4924,13 +4928,13 @@
      },
      "f.save": {
       "python": {
-       "timeEma": 3851.8086635206405,
-       "effEma": 1.1837840829483137,
-       "parEma": 9.68885992214135,
-       "acc": 0.9375,
-       "n": 16,
-       "confidence": 0.6456539832297451,
-       "lastSeen": 1760372975.5789998,
+       "timeEma": 4091.775397382144,
+       "effEma": 1.166654290530039,
+       "parEma": 9.595616777197144,
+       "acc": 0.95,
+       "n": 24,
+       "confidence": 0.6131970574704572,
+       "lastSeen": 1765643380.8999994,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -4940,18 +4944,18 @@
     "logLen": 100,
     "recentLen": 50,
     "recentTail": [
-     "py/f.undo/0001",
-     "py/f.undo/0003",
-     "py/f.modes/0006",
-     "py/f.undo/0004",
-     "py/f.undo/0005"
+     "py/f.hjkl/0005",
+     "py/f.hjkl/0003",
+     "py/f.save/0003",
+     "py/f.hjkl/0002",
+     "py/f.modes/0002"
     ],
     "focusTail": [
-     "f.undo",
-     "f.undo",
-     "f.modes",
-     "f.undo",
-     "f.undo"
+     "f.hjkl",
+     "f.hjkl",
+     "f.save",
+     "f.hjkl",
+     "f.modes"
     ]
    }
   },
@@ -4962,58 +4966,59 @@
     "improved": [],
     "mastered": [],
     "unlocked": [],
-    "tip": "Use `A` to append at the end of a line and `O` to open a line above, instead of moving first and then pressing `i`."
+    "tip": null
    }
   },
   {
    "op": "projection",
-   "skill": "f.undo",
+   "skill": "f.modes",
    "lang": "python",
    "expect": {
     "fit": "quadratic",
     "attemptsToTarget": null,
-    "r2": 0.5061233447995297
+    "r2": 0.6226830484102943
    }
   },
   {
    "op": "diagnose",
-   "skill": "f.undo",
+   "skill": "f.modes",
    "lang": "python",
    "expect": {
     "status": "active",
     "failing": [
+     "accuracy",
      "speed"
     ],
-    "speed": 0.7156139263748879,
-    "efficiency": 0.8597615814833903,
-    "acc": 0.9,
-    "n": 20
+    "speed": 0.7382846280587685,
+    "efficiency": 0.8184536672158524,
+    "acc": 0.85,
+    "n": 21
    }
   },
   {
    "op": "chooseFocus",
    "lang": "python",
    "now": 1765729600.0,
-   "expect": "f.undo"
+   "expect": "f.hjkl"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.undo",
+   "skill": "f.hjkl",
    "lang": "python",
    "seed": 1765729572,
-   "expect": "py/f.undo/0002"
+   "expect": "py/f.hjkl/0004"
   },
   {
    "op": "applyAttempt",
    "record": {
     "t": 1765729600.0,
-    "ex": "py/f.undo/0002",
-    "skill": "f.undo",
+    "ex": "py/f.hjkl/0004",
+    "skill": "f.hjkl",
     "lang": "python",
     "ok": true,
-    "ms": 3033,
-    "keys": 8,
-    "par": 8,
+    "ms": 3211,
+    "keys": 10,
+    "par": 10,
     "hint": false,
     "retry": false,
     "undo": 0
@@ -5022,7 +5027,7 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1765729607.033,
+   "now": 1765729607.211,
    "expect": "f.modes"
   },
   {
@@ -5030,75 +5035,46 @@
    "skill": "f.modes",
    "lang": "python",
    "seed": 1765729570,
+   "expect": "py/f.modes/0005"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765729607.211,
+    "ex": "py/f.modes/0005",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": true,
+    "ms": 4350,
+    "keys": 12,
+    "par": 11,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765729615.5609999,
+   "expect": "f.modes"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.modes",
+   "lang": "python",
+   "seed": 1765729577,
    "expect": "py/f.modes/0003"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1765729607.033,
+    "t": 1765729615.5609999,
     "ex": "py/f.modes/0003",
     "skill": "f.modes",
     "lang": "python",
     "ok": true,
-    "ms": 3200,
-    "keys": 9,
-    "par": 9,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765729614.233,
-   "expect": "f.undo"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.undo",
-   "lang": "python",
-   "seed": 1765729576,
-   "expect": "py/f.undo/0006"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765729614.233,
-    "ex": "py/f.undo/0006",
-    "skill": "f.undo",
-    "lang": "python",
-    "ok": true,
-    "ms": 3518,
-    "keys": 15,
-    "par": 12,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765729621.751,
-   "expect": "f.xdd"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.xdd",
-   "lang": "python",
-   "seed": 1765729586,
-   "expect": "py/f.xdd/0003"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765729621.751,
-    "ex": "py/f.xdd/0003",
-    "skill": "f.xdd",
-    "lang": "python",
-    "ok": true,
-    "ms": 4348,
+    "ms": 2952,
     "keys": 11,
     "par": 9,
     "hint": false,
@@ -5109,54 +5085,25 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1765729630.099,
+   "now": 1765729622.5129998,
    "expect": "f.xdd"
   },
   {
    "op": "chooseExercise",
    "skill": "f.xdd",
    "lang": "python",
-   "seed": 1765729590,
-   "expect": "py/f.xdd/0001"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765729630.099,
-    "ex": "py/f.xdd/0001",
-    "skill": "f.xdd",
-    "lang": "python",
-    "ok": true,
-    "ms": 3400,
-    "keys": 10,
-    "par": 7,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765729637.499,
-   "expect": "f.xdd"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.xdd",
-   "lang": "python",
-   "seed": 1765729548,
+   "seed": 1765729585,
    "expect": "py/f.xdd/0002"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1765729637.499,
+    "t": 1765729622.5129998,
     "ex": "py/f.xdd/0002",
     "skill": "f.xdd",
     "lang": "python",
     "ok": true,
-    "ms": 4340,
+    "ms": 3269,
     "keys": 9,
     "par": 8,
     "hint": false,
@@ -5167,113 +5114,26 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1765729645.839,
-   "expect": "f.save"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.save",
-   "lang": "python",
-   "seed": 1765729543,
-   "expect": "py/f.save/0005"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765729645.839,
-    "ex": "py/f.save/0005",
-    "skill": "f.save",
-    "lang": "python",
-    "ok": true,
-    "ms": 5351,
-    "keys": 13,
-    "par": 11,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765729655.19,
+   "now": 1765729629.7819998,
    "expect": "f.xdd"
   },
   {
    "op": "chooseExercise",
    "skill": "f.xdd",
    "lang": "python",
-   "seed": 1765729564,
-   "expect": "py/f.xdd/0004"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765729655.19,
-    "ex": "py/f.xdd/0004",
-    "skill": "f.xdd",
-    "lang": "python",
-    "ok": true,
-    "ms": 4596,
-    "keys": 12,
-    "par": 10,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765729663.786,
-   "expect": "f.xdd"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.xdd",
-   "lang": "python",
-   "seed": 1765729555,
-   "expect": "py/f.xdd/0006"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765729663.786,
-    "ex": "py/f.xdd/0006",
-    "skill": "f.xdd",
-    "lang": "python",
-    "ok": true,
-    "ms": 4177,
-    "keys": 13,
-    "par": 12,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765729671.963,
-   "expect": "f.xdd"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.xdd",
-   "lang": "python",
-   "seed": 1765729770,
+   "seed": 1765729589,
    "expect": "py/f.xdd/0005"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1765729671.963,
+    "t": 1765729629.7819998,
     "ex": "py/f.xdd/0005",
     "skill": "f.xdd",
     "lang": "python",
     "ok": true,
-    "ms": 4991,
-    "keys": 13,
+    "ms": 3574,
+    "keys": 14,
     "par": 11,
     "hint": false,
     "retry": false,
@@ -5283,84 +5143,26 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1765729680.954,
-   "expect": "f.save"
+   "now": 1765729637.3559997,
+   "expect": "f.modes"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.save",
+   "skill": "f.modes",
    "lang": "python",
-   "seed": 1765729790,
-   "expect": "py/f.save/0006"
+   "seed": 1765729548,
+   "expect": "py/f.modes/0001"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1765729680.954,
-    "ex": "py/f.save/0006",
-    "skill": "f.save",
+    "t": 1765729637.3559997,
+    "ex": "py/f.modes/0001",
+    "skill": "f.modes",
     "lang": "python",
     "ok": true,
-    "ms": 7403,
-    "keys": 17,
-    "par": 12,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765729692.357,
-   "expect": "f.save"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.save",
-   "lang": "python",
-   "seed": 1765729779,
-   "expect": "py/f.save/0003"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765729692.357,
-    "ex": "py/f.save/0003",
-    "skill": "f.save",
-    "lang": "python",
-    "ok": true,
-    "ms": 4907,
-    "keys": 11,
-    "par": 9,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765729701.2640002,
-   "expect": "f.save"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.save",
-   "lang": "python",
-   "seed": 1765729749,
-   "expect": "py/f.save/0001"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765729701.2640002,
-    "ex": "py/f.save/0001",
-    "skill": "f.save",
-    "lang": "python",
-    "ok": true,
-    "ms": 3776,
-    "keys": 9,
+    "ms": 3328,
+    "keys": 8,
     "par": 7,
     "hint": false,
     "retry": false,
@@ -5370,55 +5172,26 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1765729709.0400002,
-   "expect": "f.xdd"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.xdd",
-   "lang": "python",
-   "seed": 1765729756,
-   "expect": "py/f.xdd/0003"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765729709.0400002,
-    "ex": "py/f.xdd/0003",
-    "skill": "f.xdd",
-    "lang": "python",
-    "ok": true,
-    "ms": 4647,
-    "keys": 10,
-    "par": 9,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765729717.6870003,
+   "now": 1765729644.6839998,
    "expect": "f.save"
   },
   {
    "op": "chooseExercise",
    "skill": "f.save",
    "lang": "python",
-   "seed": 1765729735,
+   "seed": 1765729542,
    "expect": "py/f.save/0004"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1765729717.6870003,
+    "t": 1765729644.6839998,
     "ex": "py/f.save/0004",
     "skill": "f.save",
     "lang": "python",
     "ok": true,
-    "ms": 4281,
-    "keys": 13,
+    "ms": 3658,
+    "keys": 11,
     "par": 10,
     "hint": false,
     "retry": false,
@@ -5428,112 +5201,25 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1765729725.9680002,
-   "expect": "f.save"
+   "now": 1765729652.3419998,
+   "expect": "f.hjkl"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.save",
+   "skill": "f.hjkl",
    "lang": "python",
-   "seed": 1765729742,
-   "expect": "py/f.save/0002"
+   "seed": 1765729567,
+   "expect": "py/f.hjkl/0006"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1765729725.9680002,
-    "ex": "py/f.save/0002",
-    "skill": "f.save",
+    "t": 1765729652.3419998,
+    "ex": "py/f.hjkl/0006",
+    "skill": "f.hjkl",
     "lang": "python",
     "ok": true,
-    "ms": 3693,
-    "keys": 9,
-    "par": 8,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765729733.6610003,
-   "expect": "f.save"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.save",
-   "lang": "python",
-   "seed": 1765729713,
-   "expect": "py/f.save/0005"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765729733.6610003,
-    "ex": "py/f.save/0005",
-    "skill": "f.save",
-    "lang": "python",
-    "ok": true,
-    "ms": 3639,
-    "keys": 12,
-    "par": 11,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765729741.3000002,
-   "expect": "f.xdd"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.xdd",
-   "lang": "python",
-   "seed": 1765729720,
-   "expect": "py/f.xdd/0001"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765729741.3000002,
-    "ex": "py/f.xdd/0001",
-    "skill": "f.xdd",
-    "lang": "python",
-    "ok": true,
-    "ms": 2904,
-    "keys": 9,
-    "par": 7,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765729748.2040002,
-   "expect": "f.save"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.save",
-   "lang": "python",
-   "seed": 1765729698,
-   "expect": "py/f.save/0006"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765729748.2040002,
-    "ex": "py/f.save/0006",
-    "skill": "f.save",
-    "lang": "python",
-    "ok": true,
-    "ms": 4151,
+    "ms": 4285,
     "keys": 14,
     "par": 12,
     "hint": false,
@@ -5544,141 +5230,25 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1765729756.3550003,
+   "now": 1765729660.6269999,
    "expect": "f.save"
   },
   {
    "op": "chooseExercise",
    "skill": "f.save",
    "lang": "python",
-   "seed": 1765729707,
-   "expect": "py/f.save/0003"
+   "seed": 1765729552,
+   "expect": "py/f.save/0006"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1765729756.3550003,
-    "ex": "py/f.save/0003",
+    "t": 1765729660.6269999,
+    "ex": "py/f.save/0006",
     "skill": "f.save",
     "lang": "python",
     "ok": true,
-    "ms": 3398,
-    "keys": 10,
-    "par": 9,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765729763.7530003,
-   "expect": "f.xdd"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.xdd",
-   "lang": "python",
-   "seed": 1765729691,
-   "expect": "py/f.xdd/0002"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765729763.7530003,
-    "ex": "py/f.xdd/0002",
-    "skill": "f.xdd",
-    "lang": "python",
-    "ok": true,
-    "ms": 2835,
-    "keys": 11,
-    "par": 8,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765729770.5880003,
-   "expect": "f.save"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.save",
-   "lang": "python",
-   "seed": 1765729683,
-   "expect": "py/f.save/0001"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765729770.5880003,
-    "ex": "py/f.save/0001",
-    "skill": "f.save",
-    "lang": "python",
-    "ok": true,
-    "ms": 2698,
-    "keys": 7,
-    "par": 7,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765729777.2860003,
-   "expect": "f.xdd"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.xdd",
-   "lang": "python",
-   "seed": 1765729675,
-   "expect": "py/f.xdd/0004"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765729777.2860003,
-    "ex": "py/f.xdd/0004",
-    "skill": "f.xdd",
-    "lang": "python",
-    "ok": true,
-    "ms": 4012,
-    "keys": 10,
-    "par": 10,
-    "hint": false,
-    "retry": false,
-    "undo": 0
-   }
-  },
-  {
-   "op": "chooseFocus",
-   "lang": "python",
-   "now": 1765729785.2980003,
-   "expect": "f.xdd"
-  },
-  {
-   "op": "chooseExercise",
-   "skill": "f.xdd",
-   "lang": "python",
-   "seed": 1765729666,
-   "expect": "py/f.xdd/0006"
-  },
-  {
-   "op": "applyAttempt",
-   "record": {
-    "t": 1765729785.2980003,
-    "ex": "py/f.xdd/0006",
-    "skill": "f.xdd",
-    "lang": "python",
-    "ok": true,
-    "ms": 3383,
+    "ms": 3517,
     "keys": 12,
     "par": 12,
     "hint": false,
@@ -5689,27 +5259,462 @@
   {
    "op": "chooseFocus",
    "lang": "python",
-   "now": 1765729792.6810002,
-   "expect": "f.save"
+   "now": 1765729668.1439998,
+   "expect": "f.xdd"
   },
   {
    "op": "chooseExercise",
-   "skill": "f.save",
+   "skill": "f.xdd",
    "lang": "python",
-   "seed": 1765729916,
-   "expect": "py/f.save/0004"
+   "seed": 1765729769,
+   "expect": "py/f.xdd/0004"
   },
   {
    "op": "applyAttempt",
    "record": {
-    "t": 1765729792.6810002,
-    "ex": "py/f.save/0004",
-    "skill": "f.save",
+    "t": 1765729668.1439998,
+    "ex": "py/f.xdd/0004",
+    "skill": "f.xdd",
     "lang": "python",
     "ok": true,
-    "ms": 3010,
+    "ms": 4386,
     "keys": 11,
     "par": 10,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765729676.5299997,
+   "expect": "f.hjkl"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.hjkl",
+   "lang": "python",
+   "seed": 1765729762,
+   "expect": "py/f.hjkl/0001"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765729676.5299997,
+    "ex": "py/f.hjkl/0001",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 4002,
+    "keys": 9,
+    "par": 7,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765729684.5319998,
+   "expect": "f.hjkl"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.hjkl",
+   "lang": "python",
+   "seed": 1765729787,
+   "expect": "py/f.hjkl/0005"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765729684.5319998,
+    "ex": "py/f.hjkl/0005",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 4161,
+    "keys": 12,
+    "par": 11,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765729692.6929998,
+   "expect": "f.hjkl"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.hjkl",
+   "lang": "python",
+   "seed": 1765729772,
+   "expect": "py/f.hjkl/0003"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765729692.6929998,
+    "ex": "py/f.hjkl/0003",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 3314,
+    "keys": 10,
+    "par": 9,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765729700.0069997,
+   "expect": "f.modes"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.modes",
+   "lang": "python",
+   "seed": 1765729749,
+   "expect": "py/f.modes/0006"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765729700.0069997,
+    "ex": "py/f.modes/0006",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": true,
+    "ms": 5181,
+    "keys": 13,
+    "par": 12,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765729709.1879997,
+   "expect": "f.xdd"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.xdd",
+   "lang": "python",
+   "seed": 1765729759,
+   "expect": "py/f.xdd/0006"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765729709.1879997,
+    "ex": "py/f.xdd/0006",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 4161,
+    "keys": 14,
+    "par": 12,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765729717.3489997,
+   "expect": "f.xdd"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.xdd",
+   "lang": "python",
+   "seed": 1765729734,
+   "expect": "py/f.xdd/0001"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765729717.3489997,
+    "ex": "py/f.xdd/0001",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 3013,
+    "keys": 8,
+    "par": 7,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765729724.3619998,
+   "expect": "f.undo"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.undo",
+   "lang": "python",
+   "seed": 1765729736,
+   "expect": "py/f.undo/0006"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765729724.3619998,
+    "ex": "py/f.undo/0006",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 4964,
+    "keys": 14,
+    "par": 12,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765729733.3259997,
+   "expect": "f.modes"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.modes",
+   "lang": "python",
+   "seed": 1765729712,
+   "expect": "py/f.modes/0004"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765729733.3259997,
+    "ex": "py/f.modes/0004",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": true,
+    "ms": 3328,
+    "keys": 12,
+    "par": 10,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765729740.6539998,
+   "expect": "f.undo"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.undo",
+   "lang": "python",
+   "seed": 1765729722,
+   "expect": "py/f.undo/0005"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765729740.6539998,
+    "ex": "py/f.undo/0005",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 5000,
+    "keys": 14,
+    "par": 11,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765729749.6539998,
+   "expect": "f.hjkl"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.hjkl",
+   "lang": "python",
+   "seed": 1765729698,
+   "expect": "py/f.hjkl/0002"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765729749.6539998,
+    "ex": "py/f.hjkl/0002",
+    "skill": "f.hjkl",
+    "lang": "python",
+    "ok": true,
+    "ms": 2856,
+    "keys": 9,
+    "par": 8,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765729756.5099998,
+   "expect": "f.modes"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.modes",
+   "lang": "python",
+   "seed": 1765729700,
+   "expect": "py/f.modes/0002"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765729756.5099998,
+    "ex": "py/f.modes/0002",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": true,
+    "ms": 2676,
+    "keys": 10,
+    "par": 8,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765729763.1859999,
+   "expect": "f.xdd"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.xdd",
+   "lang": "python",
+   "seed": 1765729690,
+   "expect": "py/f.xdd/0003"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765729763.1859999,
+    "ex": "py/f.xdd/0003",
+    "skill": "f.xdd",
+    "lang": "python",
+    "ok": true,
+    "ms": 3008,
+    "keys": 9,
+    "par": 9,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765729770.1939998,
+   "expect": "f.undo"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.undo",
+   "lang": "python",
+   "seed": 1765729680,
+   "expect": "py/f.undo/0002"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765729770.1939998,
+    "ex": "py/f.undo/0002",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 4566,
+    "keys": 9,
+    "par": 8,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765729778.7599998,
+   "expect": "f.undo"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.undo",
+   "lang": "python",
+   "seed": 1765729673,
+   "expect": "py/f.undo/0001"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765729778.7599998,
+    "ex": "py/f.undo/0001",
+    "skill": "f.undo",
+    "lang": "python",
+    "ok": true,
+    "ms": 3152,
+    "keys": 8,
+    "par": 7,
+    "hint": false,
+    "retry": false,
+    "undo": 0
+   }
+  },
+  {
+   "op": "chooseFocus",
+   "lang": "python",
+   "now": 1765729785.9119997,
+   "expect": "f.modes"
+  },
+  {
+   "op": "chooseExercise",
+   "skill": "f.modes",
+   "lang": "python",
+   "seed": 1765729669,
+   "expect": "py/f.modes/0005"
+  },
+  {
+   "op": "applyAttempt",
+   "record": {
+    "t": 1765729785.9119997,
+    "ex": "py/f.modes/0005",
+    "skill": "f.modes",
+    "lang": "python",
+    "ok": true,
+    "ms": 3109,
+    "keys": 12,
+    "par": 11,
     "hint": false,
     "retry": false,
     "undo": 0
@@ -5721,13 +5726,13 @@
     "skills": {
      "f.modes": {
       "python": {
-       "timeEma": 3752.371227854703,
-       "effEma": 1.178032023599711,
-       "parEma": 9.549372750226453,
-       "acc": 0.95,
-       "n": 25,
-       "confidence": 0.6603199257922506,
-       "lastSeen": 1765729607.033,
+       "timeEma": 3719.502434353733,
+       "effEma": 1.1872860783620662,
+       "parEma": 9.67075510836025,
+       "acc": 0.9,
+       "n": 28,
+       "confidence": 0.6659104090008047,
+       "lastSeen": 1765729785.9119997,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -5735,13 +5740,13 @@
      },
      "f.hjkl": {
       "python": {
-       "timeEma": 3792.0390106609807,
-       "effEma": 1.2015346510727312,
-       "parEma": 9.686110588447592,
-       "acc": 0.95,
-       "n": 25,
-       "confidence": 0.6460333377805475,
-       "lastSeen": 1765643334.395,
+       "timeEma": 3794.2305099505247,
+       "effEma": 1.1760321608832915,
+       "parEma": 9.323949886932676,
+       "acc": 0.9,
+       "n": 26,
+       "confidence": 0.6450521155201502,
+       "lastSeen": 1765729749.6539998,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -5749,13 +5754,13 @@
      },
      "f.undo": {
       "python": {
-       "timeEma": 3942.2905265400054,
-       "effEma": 1.157121650286427,
-       "parEma": 9.70924383236988,
-       "acc": 0.9,
-       "n": 22,
-       "confidence": 0.6461752436629087,
-       "lastSeen": 1765729614.233,
+       "timeEma": 3970.036834600261,
+       "effEma": 1.1722774167950196,
+       "parEma": 9.30485538483927,
+       "acc": 1.0,
+       "n": 20,
+       "confidence": 0.617723147509281,
+       "lastSeen": 1765729778.7599998,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -5763,13 +5768,13 @@
      },
      "f.xdd": {
       "python": {
-       "timeEma": 3867.141974776313,
-       "effEma": 1.170339753453501,
-       "parEma": 9.596115301850968,
-       "acc": 0.9,
-       "n": 26,
-       "confidence": 0.6467929401025699,
-       "lastSeen": 1765729785.2980003,
+       "timeEma": 3707.3390805468453,
+       "effEma": 1.1703958716231737,
+       "parEma": 9.417971094571557,
+       "acc": 0.95,
+       "n": 25,
+       "confidence": 0.6672501795160402,
+       "lastSeen": 1765729763.1859999,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -5777,13 +5782,13 @@
      },
      "f.save": {
       "python": {
-       "timeEma": 3879.957302515248,
-       "effEma": 1.1638259851675135,
-       "parEma": 9.57048909750969,
+       "timeEma": 3995.2580718795366,
+       "effEma": 1.1439899753293314,
+       "parEma": 9.872449589529687,
        "acc": 0.95,
-       "n": 27,
-       "confidence": 0.647243154757048,
-       "lastSeen": 1765729792.6810002,
+       "n": 26,
+       "confidence": 0.6513549960481227,
+       "lastSeen": 1765729660.6269999,
        "status": "active",
        "reviewsPassed": 0,
        "nextReview": null
@@ -5793,18 +5798,18 @@
     "logLen": 125,
     "recentLen": 50,
     "recentTail": [
-     "py/f.xdd/0002",
-     "py/f.save/0001",
-     "py/f.xdd/0004",
-     "py/f.xdd/0006",
-     "py/f.save/0004"
+     "py/f.modes/0002",
+     "py/f.xdd/0003",
+     "py/f.undo/0002",
+     "py/f.undo/0001",
+     "py/f.modes/0005"
     ],
     "focusTail": [
+     "f.modes",
      "f.xdd",
-     "f.save",
-     "f.xdd",
-     "f.xdd",
-     "f.save"
+     "f.undo",
+     "f.undo",
+     "f.modes"
     ]
    }
   },
@@ -5815,32 +5820,32 @@
     "improved": [],
     "mastered": [],
     "unlocked": [],
-    "tip": "After an undo, `Ctrl-r` redoes it; you never need to retype what you just undid."
+    "tip": "Use `A` to append at the end of a line and `O` to open a line above, instead of moving first and then pressing `i`."
    }
   },
   {
    "op": "projection",
-   "skill": "f.hjkl",
+   "skill": "f.save",
    "lang": "python",
    "expect": {
     "fit": "none",
     "attemptsToTarget": null,
-    "r2": 0.015778877385381418
+    "r2": 0.3096394442620809
    }
   },
   {
    "op": "diagnose",
-   "skill": "f.hjkl",
+   "skill": "f.save",
    "lang": "python",
    "expect": {
     "status": "active",
     "failing": [
      "speed"
     ],
-    "speed": 0.776231441091502,
-    "efficiency": 0.8322689646172078,
+    "speed": 0.7451435858597287,
+    "efficiency": 0.8741335340041947,
     "acc": 0.95,
-    "n": 25
+    "n": 26
    }
   },
   {

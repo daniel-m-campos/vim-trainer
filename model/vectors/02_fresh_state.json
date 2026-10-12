@@ -7,7 +7,7 @@
    "lang": "python",
    "now": 1760200000,
    "seed": null,
-   "expect": "f.modes"
+   "expect": "f.hjkl"
   },
   {
    "op": "chooseFocus",

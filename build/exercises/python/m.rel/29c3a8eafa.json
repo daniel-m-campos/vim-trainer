@@ -3,7 +3,7 @@
   "skill": "m.rel",
   "lang": "python",
   "kind": "cursor",
-  "task": "Move the cursor to the highlighted line `verse += chain` (the highlighted one)",
+  "task": "Move the cursor to the highlighted line",
   "start": {
     "lines": [
       "chain = ''",
@@ -48,7 +48,7 @@
   "par": {
     "keys": "7j",
     "count": 2,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "7+"

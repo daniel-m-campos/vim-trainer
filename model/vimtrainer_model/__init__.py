@@ -16,8 +16,8 @@ Example
 -------
 >>> from vimtrainer_model import load_graph, new_state, choose_focus
 >>> graph = load_graph()
->>> choose_focus(new_state(graph), "python", graph, 1760200000)
-'f.modes'
+>>> choose_focus(new_state(graph), "python", graph, 1760200000) in ("f.modes", "f.hjkl", "f.undo")
+True
 """
 
 from __future__ import annotations

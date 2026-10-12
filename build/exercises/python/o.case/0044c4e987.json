@@ -3,7 +3,7 @@
   "skill": "o.case",
   "lang": "python",
   "kind": "edit",
-  "task": "Uppercase the identifier `rounded` under the cursor",
+  "task": "Make `rounded` a constant name: uppercase it to `ROUNDED`",
   "start": {
     "lines": [
       "\"\"\"Functions for organizing and calculating student exam scores.\"\"\"",
@@ -59,7 +59,7 @@
   "par": {
     "keys": "gUiw",
     "count": 4,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "viwU",

@@ -3,7 +3,7 @@
   "skill": "o.case",
   "lang": "python",
   "kind": "edit",
-  "task": "Uppercase the identifier `first` under the cursor",
+  "task": "Make `first` a constant name: uppercase it to `FIRST`",
   "start": {
     "lines": [
       "\"\"\"Functions which helps the locomotive engineer to keep track of the train.\"\"\"",
@@ -61,7 +61,7 @@
   "par": {
     "keys": "gUiw",
     "count": 4,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "viwU",

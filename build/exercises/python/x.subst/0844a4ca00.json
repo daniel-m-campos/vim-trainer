@@ -1,0 +1,168 @@
+{
+  "id": "py/x.subst/0844a4ca00",
+  "skill": "x.subst",
+  "lang": "python",
+  "kind": "ex",
+  "task": "Rename every `ukrainian` to `item` (3 occurrences)",
+  "start": {
+    "lines": [
+      "def solution():",
+      "    houses = first, _, middle, _, _ = range(5)",
+      "    orderings = list(permutations(houses))",
+      "",
+      "    # The following you are about to witness is code from someone who loves 'comprehensions'.",
+      "    # I just fixed the PEP-8 violations...",
+      "    # Someone please write this in a way that it is actually read-able?",
+      "    # Anyways, enjoy.",
+      "    # - J08K <3 (1:05 AM, nov 29th, 2021)",
+      "",
+      "    result = next(",
+      "        [{",
+      "            english_man: 'Englishman',",
+      "            spaniard: 'Spaniard',",
+      "            ukrainian: 'Ukrainian',",
+      "            japanese: 'Japanese',",
+      "            norwegian: 'Norwegian'",
+      "        }[idx] for idx in (water, zebra)]",
+      "        for (red, green, ivory, yellow, blue) in orderings",
+      "        if just_right_of(green, ivory)",
+      "        for (english_man, spaniard, ukrainian, japanese, norwegian) in orderings",
+      "        if english_man is red if norwegian is first if next_to(norwegian, blue)",
+      "        for (coffee, tea, milk, orange_juice, water) in orderings if coffee is green",
+      "        if ukrainian is tea if milk is middle",
+      "        for (old_gold, kools, chesterfields, lucky_strike, parliaments",
+      "             ) in orderings if kools is yellow if lucky_strike is orange_juice",
+      "        if japanese is parliaments",
+      "        for (dog, snails, fox, horse, zebra) in orderings if spaniard is dog",
+      "        if old_gold is snails if next_to(chesterfields, fox)",
+      "        if next_to(kools, horse))",
+      "    return result"
+    ],
+    "cursor": [
+      1,
+      0
+    ]
+  },
+  "expect": {
+    "lines": [
+      "def solution():",
+      "    houses = first, _, middle, _, _ = range(5)",
+      "    orderings = list(permutations(houses))",
+      "",
+      "    # The following you are about to witness is code from someone who loves 'comprehensions'.",
+      "    # I just fixed the PEP-8 violations...",
+      "    # Someone please write this in a way that it is actually read-able?",
+      "    # Anyways, enjoy.",
+      "    # - J08K <3 (1:05 AM, nov 29th, 2021)",
+      "",
+      "    result = next(",
+      "        [{",
+      "            english_man: 'Englishman',",
+      "            spaniard: 'Spaniard',",
+      "            item: 'Ukrainian',",
+      "            japanese: 'Japanese',",
+      "            norwegian: 'Norwegian'",
+      "        }[idx] for idx in (water, zebra)]",
+      "        for (red, green, ivory, yellow, blue) in orderings",
+      "        if just_right_of(green, ivory)",
+      "        for (english_man, spaniard, item, japanese, norwegian) in orderings",
+      "        if english_man is red if norwegian is first if next_to(norwegian, blue)",
+      "        for (coffee, tea, milk, orange_juice, water) in orderings if coffee is green",
+      "        if item is tea if milk is middle",
+      "        for (old_gold, kools, chesterfields, lucky_strike, parliaments",
+      "             ) in orderings if kools is yellow if lucky_strike is orange_juice",
+      "        if japanese is parliaments",
+      "        for (dog, snails, fox, horse, zebra) in orderings if spaniard is dog",
+      "        if old_gold is snails if next_to(chesterfields, fox)",
+      "        if next_to(kools, horse))",
+      "    return result"
+    ]
+  },
+  "par": {
+    "keys": ":%s/ukrainian/item<CR>",
+    "count": 19,
+    "verified": "nvim 0.12.5 2026-10-12"
+  },
+  "alternates": [
+    ":%s/ukrainian\\>/item<CR>",
+    ":%s/\\<ukrainian/item<CR>",
+    ":%s/ukrainian/item/g<CR>",
+    ":%s/\\<ukrainian\\>/item<CR>",
+    ":%s/ukrainian\\>/item/g<CR>",
+    ":%s/\\<ukrainian/item/g<CR>",
+    ":%s/\\<ukrainian\\>/item/g<CR>"
+  ],
+  "hints": [
+    {
+      "trigger": "^[*#]|cgn|ciw|cw|\\.",
+      "text": ":%s/old/new/g renames every occurrence in one command."
+    },
+    {
+      "trigger": "^:s/",
+      "text": "Without % only the cursor line is substituted; :%s covers the whole buffer."
+    },
+    {
+      "trigger": null,
+      "text": ":%s/ukrainian/item/g: substitute in every line; add /g for several per line."
+    }
+  ],
+  "tags": [
+    "identifier",
+    "substitute"
+  ],
+  "target": [
+    {
+      "start": [
+        15,
+        12
+      ],
+      "end": [
+        15,
+        20
+      ]
+    },
+    {
+      "start": [
+        21,
+        36
+      ],
+      "end": [
+        21,
+        44
+      ]
+    },
+    {
+      "start": [
+        24,
+        11
+      ],
+      "end": [
+        24,
+        19
+      ]
+    }
+  ],
+  "template": "rename_all_subst",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/zebra-puzzle/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      17,
+      47
+    ]
+  },
+  "emulator": {
+    "vscodevim": "full",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "old": "ukrainian",
+    "new": "item"
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 116,
+  "reviewed": false
+}

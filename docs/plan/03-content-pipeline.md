@@ -20,7 +20,7 @@ An exercise is a small, self-contained edit on a short buffer.
 
 ```json
 {
-  "id": "ts/t.quote/0193",
+  "id": "py/t.quote/03e1381c96",
   "skill": "t.quote",
   "lang": "typescript",
   "kind": "edit",                       // "edit" | "cursor" | "ex"
@@ -29,10 +29,11 @@ An exercise is a small, self-contained edit on a short buffer.
   "expect": { "lines": ["...", "..."] },   // for kind=edit
   "par": { "keys": "ci\"retrying<Esc>", "count": 12, "verified": "nvim 0.12.5 2026-10-11" },
   "alternates": ["f\"ci\"retrying<Esc>"],
-  "hints": ["ci\" works from anywhere inside the quotes"],
+  "hints": [{ "trigger": "^f\"", "text": "ci\" works from anywhere inside the quotes" }],
   "tags": ["string", "call-argument"],
   "source": { "repo": "github.com/org/repo", "path": "src/x.ts", "commit": "abc123", "license": "MIT" },
-  "emulator": { "vscodevim": "ok", "ideavim": "ok" }
+  "emulator": { "vscodevim": "full", "ideavim": "full", "web": "pass" },
+  "target": [{ "start": [4, 12], "end": [4, 20] }]
 }
 ```
 
@@ -145,19 +146,18 @@ The generator checks `par.count < retype_cost / 3` and discards exercises that f
 For each exercise, each canonical and alternate solution is replayed in real Neovim:
 
 ```sh
-nvim --headless --clean -u content/oracle.lua \
-  -c 'lua Oracle.run("build/exercises/ts/t.quote/0193.json")'
+nvim --headless --clean -u NONE -l content/src/vimtrainer_content/oracle.lua JOBS.json
 ```
 
-`oracle.lua` (the one Lua file, ~50 lines) loads `start.lines`, places the cursor,
-feeds the solution with `nvim_feedkeys` (or `nvim_input`), then writes the resulting
+`oracle.lua` (the one Lua file, 58 lines) loads `start.lines`, places the cursor,
+feeds the solution with `nvim_feedkeys(keys, 'mtx')` inside `silent!`, then writes the resulting
 buffer and cursor as JSON to stdout. The Python driver (`oracle.py`) spawns one
 `nvim --headless` per batch of exercises via `subprocess`, parses the JSON and compares
 to `expect`. It records the Neovim version and date in `par.verified`. Exercises whose
 canonical solution fails are rejected at build time, never shipped.
 
-Alternative to evaluate: `pynvim` over msgpack-RPC to a single long-lived headless
-Neovim, which avoids process startup per batch and gives direct buffer access.
+`pynvim` over msgpack-RPC is supported as a second backend and was no faster than a
+batch subprocess (see Resolved).
 
 The oracle also **searches for a better par**: it tries a small library of candidate
 idioms for the skill and keeps the shortest that passes. If a human-written canonical
@@ -235,18 +235,82 @@ per non-zero (language, skill) pair for the v1 languages, so roughly 10k exercis
 4. Expand templates to tiers 7–8. Import and review vimhjkl.
 5. Remaining languages are grammar + mapping + weights.
 
+## Resolved
+
+Answers from the M1 spikes and the M2 build (2026-10-11). Decisions are in
+`docs/decisions/` (0002 to 0005).
+
+- **`pynvim` or `subprocess`.** Both work. Per job, one subprocess per exercise took
+  19.5 ms, one subprocess per batch 2.8 ms, and pynvim 3.35 ms (50 replays, median of
+  5 trials). The build uses the batch subprocess: it is as fast, needs no RPC
+  dependency and gets a timeout from `subprocess`. A batch that times out is split in
+  half until only the looping job fails. pynvim stays for the review CLI, has no
+  timeout, and uses an asyncio call that is removed in Python 3.14.
+- **`nvim_feedkeys` or `nvim_input`.** `nvim_feedkeys(keys, 'mtx')`. `nvim_input` is
+  asynchronous, so its timing is not deterministic. Flag `m` is needed because `gcc` and
+  `Y` are default mappings in 0.10 and later. Flag `t` makes a failed motion not flush
+  the rest of the keys, so undo, `.` and macros behave like typing. Flag `x` runs
+  everything synchronously. Never use `x!`: it leaves insert mode pending and the
+  script is abandoned. `<Esc>` and counts were identical across 50 replays. A `:`
+  command without `<CR>` is abandoned, and the oracle grades that as a fail.
+- **What `--clean` disables.** Nothing the exercises need. The command is
+  `nvim --headless --clean -u NONE -l oracle.lua JOBS.json`. Filetype detection,
+  ftplugins, indent scripts, matchit and the default mappings stay active. `gcc` needs a
+  filetype, so the oracle sets it from `lang`. The python3 provider probe cost 570 ms
+  per start, so the oracle turns the python3, node, perl and ruby providers off.
+  The option set is `number relativenumber expandtab shiftwidth=4 tabstop=4
+  softtabstop=0 autoindent nowrap`, and an exercise may override it with `options`.
+- **jsdom or Playwright.** Playwright. The same script drives Chromium, Firefox and
+  WebKit headless. jsdom was not tried. It runs in JavaScript inside `app/`, not in
+  Python (0005).
+- **Node type names per grammar.** For Python they are taken from tree-sitter-python
+  0.25 (`string`, `argument_list`, `interpolation`, `subscript`). The mapping is in
+  `content/src/vimtrainer_content/lang/python.py`. C++ and TypeScript are not done.
+- **Exercism layout and licence.** `exercism/python` at commit 6105f6d9 has 142
+  `exercises/practice/*/.meta/example.py` and 21 `exercises/concept/*/.meta/exemplar.py`.
+  Its LICENSE is MIT ("Copyright (c) 2021 Exercism"). The build reads it with
+  `git show <commit>:LICENSE` and refuses a source whose licence text does not match.
+- **vimhjkl par and buffer heuristics.** Not recorded. The pipeline computes par by
+  replaying candidate variants, and does not reuse vimhjkl's code.
+
 ## To research
 
-- `pynvim` RPC vs `subprocess` per batch for the oracle (startup cost vs simplicity).
-- Exact `nvim_feedkeys` vs `nvim_input` semantics for replaying `<Esc>`, counts and
-  `:` commands deterministically in headless mode; whether `--clean` disables anything
-  the exercises need (e.g. `filetype` for `gcc`).
-- Whether `@replit/codemirror-vim` can run headless without a DOM (jsdom) for the
-  emulator oracle, or needs Playwright.
-- Node type names differ across grammars (e.g. `string` vs `string_literal`); build the
-  mapping from each grammar's `node-types.json`.
-- How vimhjkl computes par and sizes buffers, to reuse its heuristics (MIT).
-- Exercism repo structure per language and whether example solutions are consistently
-  present and MIT (most `exercism/<track>` repos are MIT; verify each).
 - Playback UI for showing the canonical solution keystroke-by-keystroke (needed by
   grading/replays, see 05).
+- Policy for ties and 2-key motions in cursor drills (see Cursor-drill gate below).
+- Whether pars for `.` and `@:` need one Neovim process per job. Batch and pynvim
+  replays carry `.` and `@:` over between jobs. No current template starts with them.
+
+## As built (Python, 2026-10-11 and 12)
+
+`make content` builds `build/` from scratch in about 25 s, then replays every par in the
+browser (about 90 s more). It fetches `exercism/python` at the pinned commit, cuts 237
+snippet windows from 163 files, generates 6,807 drafts from 17 templates, and replays
+about 28k candidate key strings in Neovim. The result is 587 exercises, 40 for each of
+14 skills and 27 for `t.brace`. The corpus yields no more braces, so a second source
+is needed to grow it. No skill is thin.
+
+Details not in the sections above:
+- Snippets are runs of whole sibling statements, 8 to 40 lines and at most 100
+  columns, ASCII-only and tab-free. Multi-line docstrings are cut to the summary line,
+  and ATTRIBUTION.md says so.
+- Each template emits several variants that use the drilled skill, and the shortest
+  passing one becomes `par.keys`.
+- Gate 4 for edit and ex drills rejects when a candidate beats the canonical by more
+  than 1 key. A win of exactly 1 key is stored as `par.best`.
+- Anti-shortcut gate: `par.count - typed < (naive - typed) / 3`, with `typed` the text
+  every solution must type.
+- Pattern golf policy: `x.subst` canonicals use whole identifiers, never prefixes.
+- Cursor-drill gate: after the first review round, the build tries about 1,500 short
+  motions on every cursor draft. It rejects any motion strictly shorter than par, and
+  any tie by a 1-key motion or by `f/t/F/T` plus a character outside `m.find`, unless
+  the motion is a declared variant, alternate or a motion of the drilled skill. Other
+  2-key ties ship. The probe uses `H`, `M` and `L`, which depend on the headless window
+  height.
+- Gate 6 for `copy_line` and `move_line`: a quoted destination must match exactly one
+  line, and both highlight the destination line.
+- `sources.toml` accepts `local = "dir"` sources besides pinned git clones.
+- The review CLI is plain text (accept, reject, skip, `--list`). The `edit` action is
+  not built. Accepted ids go to `content/reviewed.txt`, rejected ids to
+  `content/rejected.txt`. No exercise has been reviewed by a human yet.
+- Output also has `build/stats/gates.json` and `build/stats/emulator_web.json`.

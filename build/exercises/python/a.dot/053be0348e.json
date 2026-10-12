@@ -1,0 +1,215 @@
+{
+  "id": "py/a.dot/053be0348e",
+  "skill": "a.dot",
+  "lang": "python",
+  "kind": "edit",
+  "task": "Rename every `min_factor` to `result` (8 occurrences), one match at a time",
+  "start": {
+    "lines": [
+      "from itertools import chain",
+      "from math import log10, floor, ceil",
+      "",
+      "",
+      "def largest(min_factor, max_factor):",
+      "    return get_extreme_palindrome_with_factors(max_factor, min_factor, 'largest')",
+      "",
+      "",
+      "def smallest(max_factor, min_factor):",
+      "    return get_extreme_palindrome_with_factors(max_factor, min_factor, 'smallest')",
+      "",
+      "",
+      "def get_extreme_palindrome_with_factors(max_factor, min_factor, extreme):",
+      "    palindromes_found = palindromes(max_factor, min_factor, reverse=(extreme == 'largest'))",
+      "    factor_pairs = None",
+      "    for palindrome in palindromes_found:",
+      "        factor_pairs = ((factor, palindrome // factor)",
+      "                        for factor in range(min_factor, max_factor + 1)",
+      "                        if palindrome % factor == 0)",
+      "        factor_pairs = list(pair for pair in factor_pairs",
+      "                            if min_factor <= pair[1] <= max_factor)",
+      "        if len(factor_pairs) > 0:",
+      "            break",
+      "",
+      "    if not factor_pairs:",
+      "        return (None, [])",
+      "",
+      "    return (palindrome, factor_pairs)"
+    ],
+    "cursor": [
+      5,
+      19
+    ]
+  },
+  "expect": {
+    "lines": [
+      "from itertools import chain",
+      "from math import log10, floor, ceil",
+      "",
+      "",
+      "def largest(result, max_factor):",
+      "    return get_extreme_palindrome_with_factors(max_factor, result, 'largest')",
+      "",
+      "",
+      "def smallest(max_factor, result):",
+      "    return get_extreme_palindrome_with_factors(max_factor, result, 'smallest')",
+      "",
+      "",
+      "def get_extreme_palindrome_with_factors(max_factor, result, extreme):",
+      "    palindromes_found = palindromes(max_factor, result, reverse=(extreme == 'largest'))",
+      "    factor_pairs = None",
+      "    for palindrome in palindromes_found:",
+      "        factor_pairs = ((factor, palindrome // factor)",
+      "                        for factor in range(result, max_factor + 1)",
+      "                        if palindrome % factor == 0)",
+      "        factor_pairs = list(pair for pair in factor_pairs",
+      "                            if result <= pair[1] <= max_factor)",
+      "        if len(factor_pairs) > 0:",
+      "            break",
+      "",
+      "    if not factor_pairs:",
+      "        return (None, [])",
+      "",
+      "    return (palindrome, factor_pairs)"
+    ]
+  },
+  "par": {
+    "keys": "*cgnresult<Esc>.......",
+    "count": 18,
+    "verified": "nvim 0.12.5 2026-10-12"
+  },
+  "alternates": [
+    "#cgnresult<Esc>.......",
+    "*Ncgnresult<Esc>.......",
+    "*ciwresult<Esc>n.n.n.n.n.n.n.",
+    "/\\<min_factor\\><CR>cgnresult<Esc>......."
+  ],
+  "hints": [
+    {
+      "trigger": "ciw|cw",
+      "text": "cgn changes the next match of the last search, so . alone repeats it on the next one."
+    },
+    {
+      "trigger": "n\\.",
+      "text": "With cgn the . finds the next match itself; no n needed between repeats."
+    },
+    {
+      "trigger": "^:",
+      "text": ":%s works too; this drill is about * + cgn + ."
+    },
+    {
+      "trigger": null,
+      "text": "* searches for the word under the cursor; cgnresult<Esc> changes a match; . repeats on the next."
+    }
+  ],
+  "tags": [
+    "identifier",
+    "gn",
+    "dot"
+  ],
+  "target": [
+    {
+      "start": [
+        5,
+        12
+      ],
+      "end": [
+        5,
+        21
+      ]
+    },
+    {
+      "start": [
+        6,
+        59
+      ],
+      "end": [
+        6,
+        68
+      ]
+    },
+    {
+      "start": [
+        9,
+        25
+      ],
+      "end": [
+        9,
+        34
+      ]
+    },
+    {
+      "start": [
+        10,
+        59
+      ],
+      "end": [
+        10,
+        68
+      ]
+    },
+    {
+      "start": [
+        13,
+        52
+      ],
+      "end": [
+        13,
+        61
+      ]
+    },
+    {
+      "start": [
+        14,
+        48
+      ],
+      "end": [
+        14,
+        57
+      ]
+    },
+    {
+      "start": [
+        18,
+        44
+      ],
+      "end": [
+        18,
+        53
+      ]
+    },
+    {
+      "start": [
+        21,
+        31
+      ],
+      "end": [
+        21,
+        40
+      ]
+    }
+  ],
+  "template": "rename_all_dot",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/palindrome-products/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      1,
+      28
+    ]
+  },
+  "emulator": {
+    "vscodevim": "full",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "old": "min_factor",
+    "new": "result",
+    "n": 8
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 293,
+  "reviewed": false
+}

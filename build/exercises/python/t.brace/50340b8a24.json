@@ -3,7 +3,7 @@
   "skill": "t.brace",
   "lang": "python",
   "kind": "edit",
-  "task": "Delete everything inside this set `{2, 3, 4, 5, 6}`, keeping the {}",
+  "task": "Delete everything inside the set `{2, 3, 4, 5, 6}`, keeping the braces",
   "start": {
     "lines": [
       "def full_house(dice):",
@@ -53,7 +53,7 @@
   "par": {
     "keys": "di{",
     "count": 3,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "di}",

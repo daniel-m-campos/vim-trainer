@@ -50,13 +50,8 @@ page.on("pageerror", (e) => errors.push(String(e)));
 await page.goto(`${url}emulator-check.html`);
 await page.waitForFunction(() => !!window.emu);
 
-async function typeKeys(keys) {
-  for (const tok of keys.match(/<Esc>|<CR>|./gs) ?? []) {
-    if (tok === "<Esc>") await page.keyboard.press("Escape");
-    else if (tok === "<CR>") await page.keyboard.press("Enter");
-    else await page.keyboard.type(tok);
-  }
-}
+const { typeKeys: typeInto } = await import("./keys.mjs");
+const typeKeys = (keys) => typeInto(page, keys);
 
 async function tryKeys(ex, keys) {
   await page.evaluate((ex) => window.emu.mount(ex), ex);
@@ -73,7 +68,8 @@ const altFailures = [];
 for (const [lang, { skills }] of Object.entries(index.langs)) {
   for (const [skill, entry] of Object.entries(skills)) {
     if (only && skill !== only) continue;
-    const ids = [...entry.ids, ...(entry.webFail ?? [])];
+    // Sorted, so a re-run that rescues a webFail id writes the same index as a fresh build.
+    const ids = [...entry.ids, ...(entry.webFail ?? [])].sort();
     const keep = [], drop = [];
     for (const id of ids) {
       const file = join(build, "exercises", lang, skill, `${id.split("/").pop()}.json`);

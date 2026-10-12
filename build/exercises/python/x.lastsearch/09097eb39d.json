@@ -1,0 +1,237 @@
+{
+  "id": "py/x.lastsearch/09097eb39d",
+  "skill": "x.lastsearch",
+  "lang": "python",
+  "kind": "edit",
+  "task": "Rename every `palindrome` to `result` (8 occurrences), one match at a time",
+  "start": {
+    "lines": [
+      "def gen_palindromes_of_length(digit_count, reverse=reverse):",
+      "    \"\"\"Generates all palindromes with `nd` number of digits that are\"\"\"",
+      "    even_nd = (digit_count % 2 == 0)",
+      "",
+      "    min_left_half = max(10 ** (int(ceil(digit_count / 2)) - 1),",
+      "                        minimum // (10 ** (digit_count // 2)))",
+      "    max_left_half = min((10 ** int(ceil(digit_count / 2))) - 1,",
+      "                        maximum // (10 ** (digit_count // 2)))",
+      "",
+      "    current_left_half = min_left_half if not reverse else max_left_half",
+      "",
+      "    def make_palindrome(left_half, even_nd=False):",
+      "        right_half = (reverse_num(left_half)",
+      "                      if even_nd",
+      "                      else reverse_num(left_half // 10))",
+      "        return (left_half * (10 ** (digit_count // 2))) + right_half",
+      "",
+      "    if not reverse:",
+      "        while current_left_half <= max_left_half:",
+      "            palindrome = make_palindrome(current_left_half, even_nd)",
+      "            if minimum <= palindrome <= maximum:",
+      "                yield palindrome",
+      "            elif palindrome > maximum:",
+      "                # since palindromes are generated in increasing order,",
+      "                #   we break out of the loop once we've exceeded the",
+      "                #   maximum value",
+      "                break",
+      "            current_left_half += 1",
+      "    else:",
+      "        while current_left_half >= min_left_half:",
+      "            palindrome = make_palindrome(current_left_half, even_nd)",
+      "            if minimum <= palindrome <= maximum:",
+      "                yield palindrome",
+      "            elif palindrome < minimum:",
+      "                # since palindromes are generated in decreasing order,",
+      "                #   we break out of the loop once we've gone below the",
+      "                #   minimum value",
+      "                break",
+      "            current_left_half -= 1"
+    ],
+    "cursor": [
+      20,
+      19
+    ]
+  },
+  "expect": {
+    "lines": [
+      "def gen_palindromes_of_length(digit_count, reverse=reverse):",
+      "    \"\"\"Generates all palindromes with `nd` number of digits that are\"\"\"",
+      "    even_nd = (digit_count % 2 == 0)",
+      "",
+      "    min_left_half = max(10 ** (int(ceil(digit_count / 2)) - 1),",
+      "                        minimum // (10 ** (digit_count // 2)))",
+      "    max_left_half = min((10 ** int(ceil(digit_count / 2))) - 1,",
+      "                        maximum // (10 ** (digit_count // 2)))",
+      "",
+      "    current_left_half = min_left_half if not reverse else max_left_half",
+      "",
+      "    def make_palindrome(left_half, even_nd=False):",
+      "        right_half = (reverse_num(left_half)",
+      "                      if even_nd",
+      "                      else reverse_num(left_half // 10))",
+      "        return (left_half * (10 ** (digit_count // 2))) + right_half",
+      "",
+      "    if not reverse:",
+      "        while current_left_half <= max_left_half:",
+      "            result = make_palindrome(current_left_half, even_nd)",
+      "            if minimum <= result <= maximum:",
+      "                yield result",
+      "            elif result > maximum:",
+      "                # since palindromes are generated in increasing order,",
+      "                #   we break out of the loop once we've exceeded the",
+      "                #   maximum value",
+      "                break",
+      "            current_left_half += 1",
+      "    else:",
+      "        while current_left_half >= min_left_half:",
+      "            result = make_palindrome(current_left_half, even_nd)",
+      "            if minimum <= result <= maximum:",
+      "                yield result",
+      "            elif result < minimum:",
+      "                # since palindromes are generated in decreasing order,",
+      "                #   we break out of the loop once we've gone below the",
+      "                #   minimum value",
+      "                break",
+      "            current_left_half -= 1"
+    ]
+  },
+  "par": {
+    "keys": "*cgnresult<Esc>.......",
+    "count": 18,
+    "verified": "nvim 0.12.5 2026-10-12"
+  },
+  "alternates": [
+    "#cgnresult<Esc>.......",
+    "*Ncgnresult<Esc>.......",
+    "*ciwresult<Esc>n.n.n.n.n.n.n.",
+    "/\\<palindrome\\><CR>cgnresult<Esc>......."
+  ],
+  "hints": [
+    {
+      "trigger": "ciw|cw",
+      "text": "cgn changes the next match of the last search, so . alone repeats it on the next one."
+    },
+    {
+      "trigger": "n\\.",
+      "text": "With cgn the . finds the next match itself; no n needed between repeats."
+    },
+    {
+      "trigger": "^:",
+      "text": ":%s works too; this drill is about * + cgn + ."
+    },
+    {
+      "trigger": null,
+      "text": "* searches for the word under the cursor; cgnresult<Esc> changes a match; . repeats on the next."
+    }
+  ],
+  "tags": [
+    "identifier",
+    "gn",
+    "dot"
+  ],
+  "target": [
+    {
+      "start": [
+        20,
+        12
+      ],
+      "end": [
+        20,
+        21
+      ]
+    },
+    {
+      "start": [
+        21,
+        26
+      ],
+      "end": [
+        21,
+        35
+      ]
+    },
+    {
+      "start": [
+        22,
+        22
+      ],
+      "end": [
+        22,
+        31
+      ]
+    },
+    {
+      "start": [
+        23,
+        17
+      ],
+      "end": [
+        23,
+        26
+      ]
+    },
+    {
+      "start": [
+        31,
+        12
+      ],
+      "end": [
+        31,
+        21
+      ]
+    },
+    {
+      "start": [
+        32,
+        26
+      ],
+      "end": [
+        32,
+        35
+      ]
+    },
+    {
+      "start": [
+        33,
+        22
+      ],
+      "end": [
+        33,
+        31
+      ]
+    },
+    {
+      "start": [
+        34,
+        17
+      ],
+      "end": [
+        34,
+        26
+      ]
+    }
+  ],
+  "template": "rename_all_dot",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/palindrome-products/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      57,
+      99
+    ]
+  },
+  "emulator": {
+    "vscodevim": "unverified",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "old": "palindrome",
+    "new": "result",
+    "n": 8
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 200,
+  "reviewed": false
+}

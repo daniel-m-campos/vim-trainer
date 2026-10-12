@@ -3,7 +3,7 @@
   "skill": "t.bracket",
   "lang": "python",
   "kind": "edit",
-  "task": "Delete everything inside this list comprehension `[''.join(row) for row in board]`, keeping the []",
+  "task": "Delete everything inside the list comprehension `[''.join(row) for row in board]`, keeping the brackets",
   "start": {
     "lines": [
       "def annotate(garden):",
@@ -71,7 +71,7 @@
   "par": {
     "keys": "di[",
     "count": 3,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "di]"

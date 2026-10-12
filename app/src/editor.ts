@@ -1,20 +1,23 @@
 // The practice editor: CodeMirror 6 + codemirror-vim configured to match the
-// par oracle (nvim --clean with expandtab, sw=4, ts=4; see content/oracle.lua).
+// par oracle (nvim --clean with expandtab, sw=4, ts=4, sts=0; see
+// content/src/vimtrainer_content/oracle.lua). Insert-mode <Tab> is handled by the
+// recorder (grading.tabSpaces), since codemirror-vim leaves it to the browser.
 // No basicSetup: closeBrackets / autocompletion / indent-on-input would make
 // insert mode diverge from the oracle. A fresh view is built per exercise so
 // marks, registers and undo history never leak between exercises.
 
-import { EditorState, Compartment, StateField, RangeSetBuilder, type Extension } from "@codemirror/state";
+import { EditorState, Compartment, StateEffect, StateField, RangeSetBuilder, type Extension } from "@codemirror/state";
 import { EditorView, Decoration, type DecorationSet, drawSelection, gutter, GutterMarker, lineNumbers } from "@codemirror/view";
 import { indentUnit, syntaxHighlighting, HighlightStyle } from "@codemirror/language";
 import { history } from "@codemirror/commands";
 import { python } from "@codemirror/lang-python";
+import { cpp } from "@codemirror/lang-cpp";
 import { tags as t } from "@lezer/highlight";
 import { vim, Vim, getCM } from "@replit/codemirror-vim";
 import { attachRecorder, recorderExtension, type Recorder } from "./recorder.ts";
 import { targetRanges } from "./grading.ts";
 import { caseSensitiveSearch, installVimFixes } from "./vimfixes.ts";
-import type { EscapePref, Exercise } from "./types.ts";
+import type { EscapePref, Exercise, Pos } from "./types.ts";
 
 // Mock palette (docs/mocks/practice-screen.html).
 const highlight = HighlightStyle.define([
@@ -90,12 +93,33 @@ function targetField(ranges: { from: number; to: number }[]): Extension {
   });
 }
 
+// --- give-up reveal: where a cursor exercise wanted the cursor -------------------
+const revealEffect = StateEffect.define<number>();
+const revealMark = Decoration.mark({ class: "cm-target-reveal", attributes: { title: "the target" } });
+const revealField = StateField.define<DecorationSet>({
+  create: () => Decoration.none,
+  update(deco, tr) {
+    deco = deco.map(tr.changes);
+    for (const e of tr.effects) {
+      if (!e.is(revealEffect)) continue;
+      const len = tr.state.doc.length;
+      const from = Math.min(e.value, len);
+      const to = Math.min(from + 1, len);
+      deco = to > from ? Decoration.set([revealMark.range(from, to)]) : Decoration.none;
+    }
+    return deco;
+  },
+  provide: (f) => EditorView.decorations.from(f),
+});
+
 function langExt(lang: string): Extension {
   switch (lang) {
     case "python":
       return python();
+    case "cpp":
+      return cpp();
     default:
-      return []; // TODO(mvp): grammars for cpp / typescript when their content exists.
+      return []; // TODO(mvp): grammars for typescript and the rest when their content exists.
   }
 }
 
@@ -123,6 +147,8 @@ export interface EditorHandle {
   recorder: Recorder;
   /** Lock the editor (result strip showing): not focusable, no edits. */
   setLocked(locked: boolean): void;
+  /** Mark a buffer position ([line 1-based, col 0-based]) as the target and scroll to it. */
+  revealTarget(pos: Pos): void;
   destroy(): void;
 }
 
@@ -146,6 +172,7 @@ export function mountEditor(parent: HTMLElement, ex: Exercise, opts: { relativeN
       history(), // without it `u` is a silent no-op
       opts.relativeNumbers ? relativeNumbers : lineNumbers(),
       drawSelection(),
+      EditorState.allowMultipleSelections.of(true), // <C-v> block insert / append edits every line
       langExt(ex.lang),
       syntaxHighlighting(highlight),
       EditorState.tabSize.of(4),
@@ -154,6 +181,7 @@ export function mountEditor(parent: HTMLElement, ex: Exercise, opts: { relativeN
       ranges.length ? targetField(ranges) : [],
       editable.of([]),
       recorderExtension,
+      revealField,
     ],
   });
   parent.replaceChildren();
@@ -171,6 +199,12 @@ export function mountEditor(parent: HTMLElement, ex: Exercise, opts: { relativeN
       view.dispatch({ effects: editable.reconfigure(locked ? [EditorView.editable.of(false), EditorState.readOnly.of(true)] : []) });
       if (locked) view.contentDOM.blur();
       else view.focus();
+    },
+    revealTarget([ln, col]) {
+      const doc = view.state.doc;
+      const line = doc.line(Math.min(Math.max(ln, 1), doc.lines));
+      const at = line.from + Math.min(Math.max(col, 0), Math.max(0, line.length - 1));
+      view.dispatch({ effects: [revealEffect.of(at), EditorView.scrollIntoView(at, { y: "nearest" })] });
     },
     destroy() {
       recorder.destroy();

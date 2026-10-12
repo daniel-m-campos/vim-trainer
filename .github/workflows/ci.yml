@@ -46,10 +46,11 @@ jobs:
           cache: npm
           cache-dependency-path: app/package-lock.json
 
+      # Every pinned clone (content/.cache/<source name>); the key changes with any pin.
       - name: Cache pinned content sources
         uses: actions/cache@v4
         with:
-          path: content/.cache/exercism-python
+          path: content/.cache/exercism-*
           key: content-sources-${{ hashFiles('content/sources.toml') }}
 
       - name: Install Python and Node dependencies

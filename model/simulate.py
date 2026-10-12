@@ -9,6 +9,8 @@ Example
 -------
     uv run --project model python model/simulate.py            # all four learners
     uv run --project model python model/simulate.py quitter    # one learner
+    uv run --project model python model/simulate.py picks plateaued_expert 40 5
+        # the 40 focus picks of one session after 5 days, and their distribution
 """
 
 from __future__ import annotations
@@ -17,7 +19,7 @@ import math
 import random
 import sys
 from collections import Counter
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from vimtrainer_model import (
     apply_attempt,
@@ -165,10 +167,40 @@ def run_learner(learner: Learner, graph: dict, index: dict, quiet: bool = False)
     return state, reports
 
 
+def pick_sequence(learner: Learner, graph: dict, index: dict, picks: int, after_days: int) -> list[str]:
+    """The focus picks of one ``picks``-attempt session after ``after_days`` days of practice."""
+    state, _ = run_learner(replace(learner, days=after_days), graph, index, quiet=True)
+    rng = random.Random(learner.seed + 1000)
+    exposures: Counter = Counter()
+    t = float(T0 + after_days * DAY)
+    sequence = []
+    for _ in range(picks):
+        focus = choose_focus(state, LANG, graph, t)
+        if focus is None:
+            break
+        exercise_id = choose_exercise(state, focus, LANG, index, int(t) ^ len(state["log"]), graph)
+        skill = "+".join(_exercise_skills(index, focus, exercise_id))
+        state = apply_attempt(state, make_record(learner, rng, exposures, graph, exercise_id, skill, t), graph)
+        sequence.append(focus)
+        t += 10
+    return sequence
+
+
 def main(argv: list[str]):
     """Run the named learners (all by default) and print their diagnosis over time."""
     graph = load_graph()
     index = make_index(graph)
+    if argv and argv[0] == "picks":
+        name = argv[1] if len(argv) > 1 else "plateaued_expert"
+        count = int(argv[2]) if len(argv) > 2 else 40
+        after = int(argv[3]) if len(argv) > 3 else 5
+        sequence = pick_sequence(LEARNERS[name], graph, index, count, after)
+        print(f"== {name}: {len(sequence)} picks after {after} days")
+        for start in range(0, len(sequence), 10):
+            print("   " + " ".join(sequence[start:start + 10]))
+        for skill, n in Counter(sequence).most_common():
+            print(f"   {skill:<14} {n:3d}  {100 * n / len(sequence):5.1f}%")
+        return
     names = argv or list(LEARNERS)
     for name in names:
         learner = LEARNERS[name]

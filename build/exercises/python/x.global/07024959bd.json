@@ -1,0 +1,232 @@
+{
+  "id": "py/x.global/07024959bd",
+  "skill": "x.global",
+  "lang": "python",
+  "kind": "ex",
+  "task": "Delete every comment-only line (12 lines)",
+  "start": {
+    "lines": [
+      "total_chars = set()  # Keep track of letters already seen at lower ranks",
+      "# go through the accumulated rank dictionaries",
+      "for picasso, chardict in enumerate(multipliers_chars):",
+      "    for caesar, cnt in tuple(chardict.items()):",
+      "        if cnt == 0:  # if the cumulative is 0",
+      "            del chardict[caesar]  # remove the letter from check dictionry",
+      "            # it does not impact the sum with 0-multiplier",
+      "        # if the letter contributes to the sum",
+      "        # and was not yet seen at lower ranks",
+      "        elif caesar not in total_chars:",
+      "            # add the letter to either non-zero set",
+      "            # or allowed-zero set",
+      "            if caesar in nzchars:",
+      "                non_zero_chars[picasso].add(caesar)",
+      "            else:",
+      "                zero_chars[picasso].add(caesar)",
+      "            # add to the list as seen letter to ignore at the next",
+      "            # ranks",
+      "            total_chars.add(caesar)",
+      "    # pre-build the combo list of letters for the rank",
+      "    # non-zero first, followed by zero-allowed",
+      "    unique_chars.append(tuple(non_zero_chars[picasso]) + tuple(zero_chars[picasso]))",
+      "    # pre-convert check dictionaries to tuples",
+      "    multipliers_chars[picasso] = tuple(chardict.items())",
+      "# go for the recursion",
+      "return check_rec([max_digit_rank, multipliers_chars, non_zero_chars, zero_chars, unique_chars])"
+    ],
+    "cursor": [
+      1,
+      0
+    ]
+  },
+  "expect": {
+    "lines": [
+      "total_chars = set()  # Keep track of letters already seen at lower ranks",
+      "for picasso, chardict in enumerate(multipliers_chars):",
+      "    for caesar, cnt in tuple(chardict.items()):",
+      "        if cnt == 0:  # if the cumulative is 0",
+      "            del chardict[caesar]  # remove the letter from check dictionry",
+      "        elif caesar not in total_chars:",
+      "            if caesar in nzchars:",
+      "                non_zero_chars[picasso].add(caesar)",
+      "            else:",
+      "                zero_chars[picasso].add(caesar)",
+      "            total_chars.add(caesar)",
+      "    unique_chars.append(tuple(non_zero_chars[picasso]) + tuple(zero_chars[picasso]))",
+      "    multipliers_chars[picasso] = tuple(chardict.items())",
+      "return check_rec([max_digit_rank, multipliers_chars, non_zero_chars, zero_chars, unique_chars])"
+    ]
+  },
+  "par": {
+    "keys": ":g/^ *#/d<CR>",
+    "count": 10,
+    "verified": "nvim 0.12.5 2026-10-12"
+  },
+  "alternates": [
+    ":g/^\\s*#/d<CR>",
+    ":global/^ *#/d<CR>"
+  ],
+  "hints": [
+    {
+      "trigger": "dd|^[0-9]*[jk]",
+      "text": ":g/pattern/d deletes all 12 lines in one command."
+    },
+    {
+      "trigger": "^:%?s/",
+      "text": ":s edits text inside lines; :g/pattern/d removes the matching lines."
+    },
+    {
+      "trigger": null,
+      "text": ":g/^ *#/d: run :d on every line that matches the pattern."
+    }
+  ],
+  "tags": [
+    "global",
+    "delete",
+    "lines"
+  ],
+  "target": [
+    {
+      "start": [
+        2,
+        0
+      ],
+      "end": [
+        2,
+        45
+      ]
+    },
+    {
+      "start": [
+        7,
+        0
+      ],
+      "end": [
+        7,
+        57
+      ]
+    },
+    {
+      "start": [
+        8,
+        0
+      ],
+      "end": [
+        8,
+        45
+      ]
+    },
+    {
+      "start": [
+        9,
+        0
+      ],
+      "end": [
+        9,
+        44
+      ]
+    },
+    {
+      "start": [
+        11,
+        0
+      ],
+      "end": [
+        11,
+        50
+      ]
+    },
+    {
+      "start": [
+        12,
+        0
+      ],
+      "end": [
+        12,
+        32
+      ]
+    },
+    {
+      "start": [
+        17,
+        0
+      ],
+      "end": [
+        17,
+        65
+      ]
+    },
+    {
+      "start": [
+        18,
+        0
+      ],
+      "end": [
+        18,
+        18
+      ]
+    },
+    {
+      "start": [
+        20,
+        0
+      ],
+      "end": [
+        20,
+        53
+      ]
+    },
+    {
+      "start": [
+        21,
+        0
+      ],
+      "end": [
+        21,
+        45
+      ]
+    },
+    {
+      "start": [
+        23,
+        0
+      ],
+      "end": [
+        23,
+        45
+      ]
+    },
+    {
+      "start": [
+        25,
+        0
+      ],
+      "end": [
+        25,
+        21
+      ]
+    }
+  ],
+  "template": "delete_matching_lines",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/alphametics/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      152,
+      177
+    ]
+  },
+  "emulator": {
+    "vscodevim": "partial",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "pattern": "^\\s*#",
+    "n": 12
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 48,
+  "reviewed": false
+}

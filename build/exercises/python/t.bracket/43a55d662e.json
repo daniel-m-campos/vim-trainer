@@ -3,7 +3,7 @@
   "skill": "t.bracket",
   "lang": "python",
   "kind": "edit",
-  "task": "Delete everything inside this list comprehension `[len(warhol) for sigmund in full_exp ...`, keeping the []",
+  "task": "Delete everything inside the list comprehension `[len(warhol) for sigmund in full_exp ...`, keeping the brackets",
   "start": {
     "lines": [
       "\"\"\"A function to solve the alphametics problem\"\"\"",
@@ -51,7 +51,7 @@
   "par": {
     "keys": "di[",
     "count": 3,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "di]"

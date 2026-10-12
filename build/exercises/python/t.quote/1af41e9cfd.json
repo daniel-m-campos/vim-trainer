@@ -3,7 +3,7 @@
   "skill": "t.quote",
   "lang": "python",
   "kind": "edit",
-  "task": "Delete everything inside this string `'square must be between 1 and 64'`, keeping the ''",
+  "task": "Delete everything inside the string `'square must be between 1 and 64'`, keeping the quotes",
   "start": {
     "lines": [
       "def square(number):",
@@ -45,7 +45,7 @@
   "par": {
     "keys": "di'",
     "count": 3,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [],
   "hints": [

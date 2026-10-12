@@ -3,7 +3,7 @@
   "skill": "t.quote",
   "lang": "python",
   "kind": "edit",
-  "task": "Delete everything inside this string `\"Impossible board: game should have e...`, keeping the \"\"",
+  "task": "Delete everything inside the string `\"Impossible board: game should have e...`, keeping the quotes",
   "start": {
     "lines": [
       "x_count = sum(row.count(\"X\") for row in board)",
@@ -55,7 +55,7 @@
   "par": {
     "keys": "di\"",
     "count": 3,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [],
   "hints": [

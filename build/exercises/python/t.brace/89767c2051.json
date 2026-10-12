@@ -3,7 +3,7 @@
   "skill": "t.brace",
   "lang": "python",
   "kind": "edit",
-  "task": "Delete everything inside this dict `{'users': [lender_name, borrower_name]}`, keeping the {}",
+  "task": "Delete everything inside the dict `{'users': [lender_name, borrower_name]}`, keeping the braces",
   "start": {
     "lines": [
       "if url == '/add':",
@@ -99,7 +99,7 @@
   "par": {
     "keys": "di{",
     "count": 3,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "di}",

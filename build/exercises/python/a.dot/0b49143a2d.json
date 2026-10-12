@@ -1,0 +1,219 @@
+{
+  "id": "py/a.dot/0b49143a2d",
+  "skill": "a.dot",
+  "lang": "python",
+  "kind": "edit",
+  "task": "Rename every `root` to `record` (6 occurrences), one match at a time",
+  "start": {
+    "lines": [
+      "class BinarySearchTree:",
+      "    def __init__(self, tree_data):",
+      "        self.root = None",
+      "        for data in tree_data:",
+      "            self.add(data)",
+      "",
+      "    def add(self, data):",
+      "        if self.root is None:",
+      "            self.root = TreeNode(data)",
+      "            return",
+      "        inserted = False",
+      "        cur_node = self.root",
+      "",
+      "        while not inserted:",
+      "            if data <= cur_node.data:",
+      "                if cur_node.left:",
+      "                    cur_node = cur_node.left",
+      "                else:",
+      "                    cur_node.left = TreeNode(data)",
+      "                    inserted = True",
+      "            elif data > cur_node.data:",
+      "                if cur_node.right:",
+      "                    cur_node = cur_node.right",
+      "                else:",
+      "                    cur_node.right = TreeNode(data)",
+      "                    inserted = True",
+      "",
+      "    def _inorder_traverse(self, node, elements):",
+      "        if node is not None:",
+      "            self._inorder_traverse(node.left, elements)",
+      "            elements.append(node.data)",
+      "            self._inorder_traverse(node.right, elements)",
+      "",
+      "    def data(self):",
+      "        return self.root",
+      "",
+      "    def sorted_data(self):",
+      "        elements = []",
+      "        self._inorder_traverse(self.root, elements)",
+      "        return elements"
+    ],
+    "cursor": [
+      3,
+      16
+    ]
+  },
+  "expect": {
+    "lines": [
+      "class BinarySearchTree:",
+      "    def __init__(self, tree_data):",
+      "        self.record = None",
+      "        for data in tree_data:",
+      "            self.add(data)",
+      "",
+      "    def add(self, data):",
+      "        if self.record is None:",
+      "            self.record = TreeNode(data)",
+      "            return",
+      "        inserted = False",
+      "        cur_node = self.record",
+      "",
+      "        while not inserted:",
+      "            if data <= cur_node.data:",
+      "                if cur_node.left:",
+      "                    cur_node = cur_node.left",
+      "                else:",
+      "                    cur_node.left = TreeNode(data)",
+      "                    inserted = True",
+      "            elif data > cur_node.data:",
+      "                if cur_node.right:",
+      "                    cur_node = cur_node.right",
+      "                else:",
+      "                    cur_node.right = TreeNode(data)",
+      "                    inserted = True",
+      "",
+      "    def _inorder_traverse(self, node, elements):",
+      "        if node is not None:",
+      "            self._inorder_traverse(node.left, elements)",
+      "            elements.append(node.data)",
+      "            self._inorder_traverse(node.right, elements)",
+      "",
+      "    def data(self):",
+      "        return self.record",
+      "",
+      "    def sorted_data(self):",
+      "        elements = []",
+      "        self._inorder_traverse(self.record, elements)",
+      "        return elements"
+    ]
+  },
+  "par": {
+    "keys": "*cgnrecord<Esc>.....",
+    "count": 16,
+    "verified": "nvim 0.12.5 2026-10-12"
+  },
+  "alternates": [
+    "#cgnrecord<Esc>.....",
+    "*Ncgnrecord<Esc>.....",
+    "*ciwrecord<Esc>n.n.n.n.n.",
+    "/\\<root\\><CR>cgnrecord<Esc>....."
+  ],
+  "hints": [
+    {
+      "trigger": "ciw|cw",
+      "text": "cgn changes the next match of the last search, so . alone repeats it on the next one."
+    },
+    {
+      "trigger": "n\\.",
+      "text": "With cgn the . finds the next match itself; no n needed between repeats."
+    },
+    {
+      "trigger": "^:",
+      "text": ":%s works too; this drill is about * + cgn + ."
+    },
+    {
+      "trigger": null,
+      "text": "* searches for the word under the cursor; cgnrecord<Esc> changes a match; . repeats on the next."
+    }
+  ],
+  "tags": [
+    "identifier",
+    "gn",
+    "dot"
+  ],
+  "target": [
+    {
+      "start": [
+        3,
+        13
+      ],
+      "end": [
+        3,
+        16
+      ]
+    },
+    {
+      "start": [
+        8,
+        16
+      ],
+      "end": [
+        8,
+        19
+      ]
+    },
+    {
+      "start": [
+        9,
+        17
+      ],
+      "end": [
+        9,
+        20
+      ]
+    },
+    {
+      "start": [
+        12,
+        24
+      ],
+      "end": [
+        12,
+        27
+      ]
+    },
+    {
+      "start": [
+        35,
+        20
+      ],
+      "end": [
+        35,
+        23
+      ]
+    },
+    {
+      "start": [
+        39,
+        36
+      ],
+      "end": [
+        39,
+        39
+      ]
+    }
+  ],
+  "template": "rename_all_dot",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/binary-search-tree/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      11,
+      50
+    ]
+  },
+  "emulator": {
+    "vscodevim": "full",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "old": "root",
+    "new": "record",
+    "n": 6
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 129,
+  "reviewed": false
+}

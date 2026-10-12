@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  tokenize, displayKeys, splitKeys, checkPass, band, isGiveUp, chooseHint, diffLines, usedExCommand, targetRange, targetRanges, exerciseHints,
+  tokenize, displayKeys, splitKeys, checkPass, band, isGiveUp, armsGiveUp, PausableClock, tabSpaces, chooseHint, diffLines, usedExCommand, targetRange, targetRanges, exerciseHints,
   type KeyEvent, type Mode,
 } from "./grading.ts";
 import type { Exercise } from "./types.ts";
@@ -94,6 +94,51 @@ test("give-up needs two escapes pressed in normal mode", () => {
   assert.ok(!isGiveUp([ev("<Esc>", "insert", false, 0), ev("<Esc>", "normal", false, 200)]));
   assert.ok(!isGiveUp([ev("<Esc>", "normal", false, 0), ev("<Esc>", "normal", false, 2000)]));
   assert.ok(isGiveUp([ev("<C-[>", "normal", false, 0), ev("<Esc>", "normal", false, 100)]));
+});
+
+test("an <Esc> that cancels a pending operator or count does not start the give-up", () => {
+  const pend = (k: string, active: number): KeyEvent => ({ ...ev(k, "normal", false, active), pending: true });
+  // d<Esc><Esc>: the first <Esc> cancels `d`, so this is not a give-up...
+  assert.ok(!isGiveUp([ev("d"), pend("<Esc>", 100), ev("<Esc>", "normal", false, 200)]));
+  assert.ok(!armsGiveUp(pend("<Esc>", 0)));
+  // ...but a further <Esc> pair is.
+  assert.ok(isGiveUp([ev("d"), pend("<Esc>", 100), ev("<Esc>", "normal", false, 200), ev("<Esc>", "normal", false, 300)]));
+  assert.ok(armsGiveUp(ev("<Esc>")));
+  assert.ok(!armsGiveUp(ev("<Esc>", "normal", true)));
+  assert.ok(!armsGiveUp(ev("<Esc>", "insert")));
+  assert.ok(!armsGiveUp(undefined));
+});
+
+test("attempt clock subtracts paused stretches, overlapping reasons included", () => {
+  let t = 1000;
+  const c = new PausableClock(() => t);
+  t = 1500;
+  assert.equal(c.active(), 500);
+  c.setPaused("away", true); // stats opened
+  t = 4500;
+  assert.equal(c.active(), 500);
+  c.setPaused("hidden", true); // tab hidden while stats is open
+  t = 5000;
+  c.setPaused("away", false); // still hidden: clock stays stopped
+  t = 6000;
+  assert.equal(c.active(), 500);
+  assert.ok(c.paused());
+  c.setPaused("hidden", false);
+  t = 6250;
+  assert.equal(c.active(), 750);
+  c.setPaused("away", false); // releasing a reason that is not held changes nothing
+  assert.equal(c.active(), 750);
+  assert.ok(!c.paused());
+});
+
+test("insert-mode <Tab> fills to the next 4-column stop like nvim (expandtab, ts=sw=4, sts=0)", () => {
+  // Expected values observed in nvim 0.12 --clean with the oracle's options.
+  assert.equal(tabSpaces(""), 4);
+  assert.equal(tabSpaces("ab"), 2);
+  assert.equal(tabSpaces("abcd"), 4);
+  assert.equal(tabSpaces("  "), 2);
+  assert.equal(tabSpaces("a\tb"), 3); // the tab occupies columns 1-3
+  assert.equal(tabSpaces("        x = 1"), 3);
 });
 
 test("hint order: exercise trigger, then generic detectors, then nothing at par", () => {

@@ -59,7 +59,7 @@
   "par": {
     "keys": "C0<Esc>",
     "count": 3,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "c$0<Esc>",

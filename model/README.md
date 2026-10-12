@@ -13,7 +13,7 @@ This directory holds the Python half of the adaptive model from
 | `skill-graph.json` | 93 skills: id, tier, keys, prereqs, emulator flags, `targetBase` 1200, `perKey` 180, `langWeights` for 16 language ids, `enabled`, and `tips` |
 | `tips.json` | "try in your editor today" lines for 53 skills (source for `graph.tips`) |
 | `vimtrainer_model/` | the model: `state`, `attempt`, `placement`, `selection`, `projection`, `summary`, `rng`, `graph`, `vectors` (shared runner) |
-| `gen_vectors.py` | builds the 23 scenarios and stores the Python outputs as `expect` |
+| `gen_vectors.py` | builds the 25 scenarios and stores the Python outputs as `expect` |
 | `vectors/*.json` | the shared scenarios |
 | `simulate.py` | the four simulated learners from the validation plan |
 | `tests/` | pytest suite (vectors, gates, unlocking, placement, selection, projection, summary, purity) |
@@ -24,9 +24,10 @@ This directory holds the Python half of the adaptive model from
 # from the repo root
 uv run --project model python model/gen_graph.py     # regenerate skill-graph.json (both copies)
 uv run --project model python model/gen_vectors.py   # regenerate vectors/*.json from Python
-uv run --project model pytest model                  # 69 tests incl. doctests and every vector
+uv run --project model pytest model                  # 75 tests incl. doctests and every vector
 node --test app/src/model/model.test.ts              # TS mirror against the same vectors (Node >= 23, zero install)
 uv run --project model python model/simulate.py      # all four learners; or name one: fast_sloppy, slow_precise, plateaued_expert, quitter
+uv run --project model python model/simulate.py picks plateaued_expert 40 5   # 40 focus picks after 5 days, with their distribution
 ```
 
 After any change to model behaviour, regenerate the vectors and run both suites.
@@ -73,7 +74,7 @@ something extra, and why:
 - **Composite records.** `AttemptRecord.skill` stays a string. A composite names its
   skills joined by `+`, for example `"m.find+o.change"`, and every named skill is credited.
 - **`focusHistory`** holds the primary skill of the last 20 attempts and drives the
-  "max 3 in a row" rule. Retries are not appended: a retry repeats the exercise just
+  "max 3 in a row" rule, the share cap and the starvation guard (decision 18). Retries are not appended: a retry repeats the exercise just
   shown and is not another pick of the skill.
 - **Forced skills.** The stats screen can force a locked skill. Its first counted attempt
   sets it active (04: forcing makes a skill active), so it can be mastered.
@@ -157,6 +158,23 @@ composite. The pipeline should list composites under each skill they tag (it emi
     "JSON/YAML" covers json/yaml.
 17. **Warm-ups** are not modelled. The app should call `chooseWarmup` for the first 2
     exercises and not pass those attempts to `applyAttempt`.
+18. **Spreading the focus.** Pure argmin let two weak skills take 13 of 15 picks in every
+    e2e session, and o.dot 20-23 of 30 for the plateaued expert. `chooseFocus` now runs,
+    in order (each filter is skipped when it would leave no candidate):
+    1. review slot: first seeded draw < 0.2 and a review is due -> most overdue review;
+    2. starvation guard: an in-rotation skill with language weight in (0, 0.3] that is
+       absent from the last 11 picks is picked outright (lowest graph order first);
+    3. streak: the skill of the last 3 picks is dropped;
+    4. share cap: a skill with 4 of the last 9 picks is dropped, so no skill exceeds 4 of
+       any 10 consecutive picks;
+    5. the 3 lowest by priority `1 - (1 - confidence) * weight` are kept and one is drawn
+       with the second seeded draw, weight `(highest priority of the three - priority) + 0.1`.
+    Example: priorities 0.2, 0.3, 0.4 give weights 0.3, 0.2, 0.1, so the weakest is picked
+    1 time in 2, the next 1 in 3, the third 1 in 6. Equal priorities give a uniform draw.
+    Constants: `FOCUS_CANDIDATES` 3, `FOCUS_FLOOR` 0.1, `SHARE_WINDOW` 10, `SHARE_MAX` 4,
+    `LOW_WEIGHT` 0.3, `STARVE_WINDOW` 12. A review pick or a second starved skill can delay
+    a starved skill by a pick or two. Vectors `24_share_cap` and `25_starvation_guard`
+    check both guarantees in both mirrors.
 
 ## Simulation results (`simulate.py`)
 
@@ -167,27 +185,32 @@ after the session, followed by its failing mastery gates.
 
 | learner | diagnosis | how the focus moved |
 |---|---|---|
-| fast sloppy (0.6-0.8x target time, 2.2x par improving to 1.1x, 12% give-ups) | correct: every active skill fails **efficiency** (and often **accuracy**) while speed is 1.3-1.6 | stays in tier 0 for 14 days, rotating across all 5 skills. Efficiency climbs from 0.44 to 0.78 of par but has not crossed the 1.25 gate |
-| slow precise (2.2x target falling to 0.85x, at par, 2% errors) | correct: only **speed** fails | masters f.modes/f.undo on day 6, which unlocks o.replace and i.*. The focus moves to those; o.replace and i.oneshot master on day 12 |
-| plateaued expert (placement through tier 7; o.dot at 1.7x par) | correct: o.dot fails **efficiency** (eff 0.58-0.60) | placement infers 12 skills mastered. Days 0-4 sweep tiers 1-2 (13 masteries). From day 5 on, o.dot takes 20-23 of 30 attempts, with reviews in the 0.2 slot (passes and a few fails) |
-| quitter (10 days, 60-day gap, forgets 95%) | correct: due reviews fail on return | day 70 has 2 failed reviews out of 3. Failed skills go back into rotation (f.modes is re-mastered on day 73, i.delete and i.oneshot on day 75) |
+| fast sloppy (0.6-0.8x target time, 2.2x par improving to 1.1x, 12% give-ups) | correct: every active skill fails **efficiency** (and often **accuracy**) while speed is 1.3-1.6 | stays in tier 0 for 14 days, rotating across all 5 skills (the top skill gets 8-10 of 30 picks). Efficiency climbs from 0.47 to 0.79 of par but has not crossed the 1.25 gate |
+| slow precise (2.2x target falling to 0.85x, at par, 2% errors) | correct: only **speed** fails | masters f.modes/f.xdd on day 6, which unlocks o.replace and i.*. The focus moves to those; f.save, f.undo and i.oneshot master on days 11-12 |
+| plateaued expert (placement through tier 7; o.dot at 1.7x par) | correct: o.dot fails **efficiency** (eff 0.59) | placement infers 12 skills mastered. Days 0-4 sweep tiers 1-2 (13 masteries). From day 5 on, o.dot takes 8-11 of 30 attempts (was 20-23 before the share cap) and o.change, o.case, o.join and o.replace master alongside it, with reviews in the 0.2 slot |
+| quitter (10 days, 60-day gap, forgets 95%) | correct: due reviews fail on return | day 70 has 3 failed reviews out of 3. Failed skills go back into rotation (f.modes, f.undo, m.word, o.replace and i.escape master on day 75) |
 
 Excerpt (full output: run the script):
 
 ```
 == plateaued_expert
-day   0 | focus m.find x11, t.word x7, r.named x7, x.subst x4    | next: m.find [accuracy] ...
-day   4 | focus o.dot x11, m.rel x9, m.file x3, f.modes x1       | next: o.dot [efficiency/speed] speed 0.97 eff 0.60
-day   9 | focus o.dot x23, o.change x7                           | next: o.dot [efficiency/speed] speed 0.98 eff 0.58
+day   0 | focus t.word x7, r.named x7, x.subst x7, m.file x4         | next: m.file [samples/accuracy] ...
+day   4 | focus o.indent x8, o.dot x7, m.screen x3, o.put x2         | next: o.case [samples/speed] ...
+day   9 | focus o.dot x11, o.case x6, o.replace x4, o.number x3      | next: o.number [samples] ...
 == quitter
-day  70 | focus i.escape x11, o.replace x10, i.oneshot x7, ...   | next: f.modes [speed] speed 0.77
-        reviews: 1 passed, 2 failed
-day  73 | ...                                                    mastered: f.modes
+day  70 | focus m.word x11, i.escape x9, f.undo x6, o.replace x2     | next: f.undo [speed] speed 0.70
+        reviews: 0 passed, 3 failed
+day  75 | ...                  mastered: f.modes, f.undo, m.word, o.replace, i.escape
 ```
+
+One 40-pick session of the plateaued expert after 5 days
+(`simulate.py picks plateaued_expert 40 5`): o.dot 13 (32.5%), o.change 8, o.case 5,
+x.subst 4, and 10 other skills once each (mostly reviews in the 0.2 slot). No skill
+has more than 4 of any 10 consecutive picks.
 
 ### What the simulation suggests changing (for the author to decide)
 
-1. **One weak skill can take over a session.** The interleave rule only breaks runs of 3,
+1. **Done (decision 18).** *One weak skill can take over a session.* The interleave rule only breaks runs of 3,
    so the plateaued expert spends about 70% of every session on o.dot. Option: cap any
    one skill at about 40% of a session's attempts.
 2. **The efficiency gate can block all progress.** A sloppy learner whose keys/par stays

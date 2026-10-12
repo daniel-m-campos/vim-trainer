@@ -1,0 +1,354 @@
+{
+  "id": "py/x.global/0c6cbd31fc",
+  "skill": "x.global",
+  "lang": "python",
+  "kind": "ex",
+  "task": "Delete every line except the 2 `return` lines",
+  "start": {
+    "lines": [
+      "def update_masked_word(self):",
+      "    self.masked_word = ''",
+      "    for idx in self.word:",
+      "        if idx not in self.guesses:",
+      "            self.masked_word += '_'",
+      "        else:",
+      "            self.masked_word += idx",
+      "",
+      "def update_remaining_guesses(self, char):",
+      "    if char not in self.word or char in self.guesses:",
+      "        self.remaining_guesses -= 1",
+      "    else:",
+      "        self.guesses.append(char)",
+      "",
+      "def update_status(self):",
+      "    if self.masked_word == self.word:",
+      "        self.status = STATUS_WIN",
+      "    elif self.remaining_guesses < 0:",
+      "        self.status = STATUS_LOSE",
+      "    else:",
+      "        self.status = STATUS_ONGOING",
+      "",
+      "def get_masked_word(self):",
+      "    return self.masked_word",
+      "",
+      "def get_status(self):",
+      "    return self.status"
+    ],
+    "cursor": [
+      1,
+      0
+    ]
+  },
+  "expect": {
+    "lines": [
+      "    return self.masked_word",
+      "    return self.status"
+    ]
+  },
+  "par": {
+    "keys": ":v/ret/d<CR>",
+    "count": 9,
+    "verified": "nvim 0.12.5 2026-10-12"
+  },
+  "alternates": [
+    ":v/retu/d<CR>",
+    ":v/retur/d<CR>",
+    ":v/return/d<CR>",
+    ":v/return /d<CR>",
+    ":g!/ret/d<CR>"
+  ],
+  "hints": [
+    {
+      "trigger": "dd|^[0-9]*[jk]",
+      "text": ":v/pattern/d deletes every line that does not match, in one command."
+    },
+    {
+      "trigger": "^:g/",
+      "text": ":g runs on matching lines; :v (or :g!) runs on the lines that do not match."
+    },
+    {
+      "trigger": null,
+      "text": ":v/ret/d: delete every line that does not contain the pattern."
+    }
+  ],
+  "tags": [
+    "global",
+    "invert",
+    "lines"
+  ],
+  "target": [
+    {
+      "start": [
+        1,
+        0
+      ],
+      "end": [
+        1,
+        28
+      ]
+    },
+    {
+      "start": [
+        2,
+        0
+      ],
+      "end": [
+        2,
+        24
+      ]
+    },
+    {
+      "start": [
+        3,
+        0
+      ],
+      "end": [
+        3,
+        24
+      ]
+    },
+    {
+      "start": [
+        4,
+        0
+      ],
+      "end": [
+        4,
+        34
+      ]
+    },
+    {
+      "start": [
+        5,
+        0
+      ],
+      "end": [
+        5,
+        34
+      ]
+    },
+    {
+      "start": [
+        6,
+        0
+      ],
+      "end": [
+        6,
+        12
+      ]
+    },
+    {
+      "start": [
+        7,
+        0
+      ],
+      "end": [
+        7,
+        34
+      ]
+    },
+    {
+      "start": [
+        8,
+        0
+      ],
+      "end": [
+        8,
+        0
+      ]
+    },
+    {
+      "start": [
+        9,
+        0
+      ],
+      "end": [
+        9,
+        40
+      ]
+    },
+    {
+      "start": [
+        10,
+        0
+      ],
+      "end": [
+        10,
+        52
+      ]
+    },
+    {
+      "start": [
+        11,
+        0
+      ],
+      "end": [
+        11,
+        34
+      ]
+    },
+    {
+      "start": [
+        12,
+        0
+      ],
+      "end": [
+        12,
+        8
+      ]
+    },
+    {
+      "start": [
+        13,
+        0
+      ],
+      "end": [
+        13,
+        32
+      ]
+    },
+    {
+      "start": [
+        14,
+        0
+      ],
+      "end": [
+        14,
+        0
+      ]
+    },
+    {
+      "start": [
+        15,
+        0
+      ],
+      "end": [
+        15,
+        23
+      ]
+    },
+    {
+      "start": [
+        16,
+        0
+      ],
+      "end": [
+        16,
+        36
+      ]
+    },
+    {
+      "start": [
+        17,
+        0
+      ],
+      "end": [
+        17,
+        31
+      ]
+    },
+    {
+      "start": [
+        18,
+        0
+      ],
+      "end": [
+        18,
+        35
+      ]
+    },
+    {
+      "start": [
+        19,
+        0
+      ],
+      "end": [
+        19,
+        32
+      ]
+    },
+    {
+      "start": [
+        20,
+        0
+      ],
+      "end": [
+        20,
+        8
+      ]
+    },
+    {
+      "start": [
+        21,
+        0
+      ],
+      "end": [
+        21,
+        35
+      ]
+    },
+    {
+      "start": [
+        22,
+        0
+      ],
+      "end": [
+        22,
+        0
+      ]
+    },
+    {
+      "start": [
+        23,
+        0
+      ],
+      "end": [
+        23,
+        25
+      ]
+    },
+    {
+      "start": [
+        25,
+        0
+      ],
+      "end": [
+        25,
+        0
+      ]
+    },
+    {
+      "start": [
+        26,
+        0
+      ],
+      "end": [
+        26,
+        20
+      ]
+    }
+  ],
+  "template": "keep_matching_lines",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/hangman/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      24,
+      50
+    ]
+  },
+  "emulator": {
+    "vscodevim": "partial",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "pattern": "return ",
+    "n": 2
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 74,
+  "reviewed": false
+}

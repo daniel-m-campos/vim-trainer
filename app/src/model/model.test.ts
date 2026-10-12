@@ -150,3 +150,36 @@ test('exercisePool reads the build/index.json shape (langs.<lang>.skills.<skill>
   assert.deepEqual(exercisePool(build as any, 'python', 't.quote'), [{ id: 'a', skills: ['t.quote'] }]);
   assert.deepEqual(exercisePool(build as any, 'cpp', 't.quote'), []);
 });
+
+function focusPicks(file) {
+  const vector = JSON.parse(readFileSync(join(VECTOR_DIR, file), 'utf8'));
+  const graph = vectorGraph(vector);
+  let state = newState(graph);
+  const picks = [];
+  for (const op of vector.ops) {
+    let output;
+    [state, output] = runOp(op, state, graph, vector.index || {});
+    if (op.op === 'chooseFocus') picks.push(output);
+  }
+  return picks;
+}
+
+function maxWindowCount(picks, window) {
+  let worst = 0;
+  for (let i = 0; i + window <= picks.length; i++) {
+    const counts = new Map();
+    for (const id of picks.slice(i, i + window)) counts.set(id, (counts.get(id) ?? 0) + 1);
+    worst = Math.max(worst, ...counts.values());
+  }
+  return worst;
+}
+
+test('share cap: no skill takes more than 4 of any 10 consecutive picks', () => {
+  const picks = focusPicks('24_share_cap.json');
+  assert.ok(maxWindowCount(picks, 10) <= 4, picks.join(' '));
+});
+
+test('starvation guard: the weight-0.2 skill appears in every 12 consecutive picks', () => {
+  const picks = focusPicks('25_starvation_guard.json');
+  for (let i = 0; i + 12 <= picks.length; i++) assert.ok(picks.slice(i, i + 12).includes('d0'), `window at ${i}`);
+});

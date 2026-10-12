@@ -40,6 +40,8 @@ code { font-family: var(--mono); font-size: .93em; }
 .code .cm-editor { height: 100%; }
 .code .cm-editor.cm-focused { outline: none; }
 .cm-target { background: var(--accent-tint); box-shadow: inset 0 -2px 0 var(--accent); border-radius: 2px; }
+/* cursor give-up: where the cursor should have been (outline + tint, not colour alone) */
+.cm-target-reveal { outline: 2px solid var(--pass); outline-offset: -1px; background: rgba(127, 191, 127, .22); border-radius: 2px; }
 .cm-relnums .cm-gutterElement .cur, .cm-lineNumbers .cm-activeLineGutter { color: var(--fg); }
 .code .cm-editor .cm-fat-cursor { background: var(--fg) !important; color: var(--panel) !important; }
 .code .cm-editor:not(.cm-focused) .cm-fat-cursor { background: none !important; outline: 1px solid var(--muted) !important; color: transparent !important; }
@@ -56,6 +58,9 @@ code { font-family: var(--mono); font-size: .93em; }
 .bar { display: inline-block; width: 120px; height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; vertical-align: middle; }
 .bar i { display: block; height: 100%; background: var(--accent); }
 .skill .keys { margin-left: auto; display: flex; gap: 14px; }
+/* fixed width so arming the give-up ("Esc again to give up") does not shift the row */
+.skill .giveup { display: inline-block; min-width: 12.5em; text-align: right; white-space: nowrap; }
+.skill .giveup.armed { color: var(--accent); }
 .midhint { margin-top: 8px; font-size: 14px; }
 .result { display: grid; gap: 8px; font-size: 14px; }
 .result .row1 { display: flex; flex-wrap: wrap; gap: 6px 22px; align-items: baseline; }
@@ -69,6 +74,9 @@ code { font-family: var(--mono); font-size: .93em; }
 .hint::before { content: 'hint  '; color: var(--muted); letter-spacing: .08em; font-size: 12px; text-transform: uppercase; }
 .result .keys { display: flex; flex-wrap: wrap; gap: 14px; color: var(--muted); font-size: 13px; }
 .result .keys .off { opacity: .55; }
+/* snippet source: always rendered (nbsp when unknown) so the strip height is stable */
+.result .src { color: var(--muted); font-size: 12.5px; line-height: 1.4; min-height: 1.4em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.settings a { color: var(--accent); }
 .stopline { color: var(--accent); font-size: 13.5px; }
 .note { color: var(--muted); font-size: 13px; }
 .diff { margin: 0; padding: 8px 10px; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; font: 13px/1.5 var(--mono); overflow-x: auto; white-space: pre; }

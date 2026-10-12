@@ -3,7 +3,7 @@
   "skill": "t.quote",
   "lang": "python",
   "kind": "edit",
-  "task": "Delete everything inside this string `'Insufficient number of items in stack'`, keeping the ''",
+  "task": "Delete everything inside the string `'Insufficient number of items in stack'`, keeping the quotes",
   "start": {
     "lines": [
       "input_data = input_data[-1].split()",
@@ -85,7 +85,7 @@
   "par": {
     "keys": "di'",
     "count": 3,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [],
   "hints": [

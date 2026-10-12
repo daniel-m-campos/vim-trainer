@@ -3,7 +3,7 @@
   "skill": "m.find",
   "lang": "python",
   "kind": "cursor",
-  "task": "Move to the 2nd `:` on this line",
+  "task": "Move to the second `:` on this line",
   "start": {
     "lines": [
       "from datetime import datetime, timedelta",
@@ -51,7 +51,7 @@
   "par": {
     "keys": "2f:",
     "count": 3,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "f:;"
@@ -59,7 +59,7 @@
   "hints": [
     {
       "trigger": "l{4,}|w{3,}|e{3,}",
-      "text": "f: jumps to the next `:` on the line; 2f: to the 2nd."
+      "text": "f: jumps to the next `:` on the line; 2f: to the second."
     },
     {
       "trigger": "^f:;",
@@ -67,7 +67,7 @@
     },
     {
       "trigger": null,
-      "text": "2f:: find the 2nd `:` to the right."
+      "text": "2f:: find the second `:` to the right."
     }
   ],
   "tags": [

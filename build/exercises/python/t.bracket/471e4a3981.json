@@ -3,7 +3,7 @@
   "skill": "t.bracket",
   "lang": "python",
   "kind": "edit",
-  "task": "Delete everything inside this list comprehension `[idx for idx in preorder if idx in le...`, keeping the []",
+  "task": "Delete everything inside the list comprehension `[idx for idx in preorder if idx in le...`, keeping the brackets",
   "start": {
     "lines": [
       "def tree_from_traversals(preorder, inorder):",
@@ -61,7 +61,7 @@
   "par": {
     "keys": "di[",
     "count": 3,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "di]"

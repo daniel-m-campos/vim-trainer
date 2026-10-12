@@ -3,7 +3,7 @@
   "skill": "m.find",
   "lang": "python",
   "kind": "cursor",
-  "task": "Move to the 1st `(` on this line",
+  "task": "Move to the first `(` on this line",
   "start": {
     "lines": [
       "class Cell:",
@@ -40,7 +40,7 @@
   "par": {
     "keys": "f(",
     "count": 2,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [],
   "hints": [
@@ -50,7 +50,7 @@
     },
     {
       "trigger": null,
-      "text": "f(: find the 1st `(` to the right."
+      "text": "f(: find the first `(` to the right."
     }
   ],
   "tags": [

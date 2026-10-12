@@ -3,7 +3,7 @@
   "skill": "o.case",
   "lang": "python",
   "kind": "edit",
-  "task": "Lowercase the identifier `STATUS_LOSE` under the cursor",
+  "task": "Lowercase the constant name `STATUS_LOSE` to `status_lose`",
   "start": {
     "lines": [
       "def update_masked_word(self):",
@@ -73,7 +73,7 @@
   "par": {
     "keys": "guiw",
     "count": 4,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "viwu",

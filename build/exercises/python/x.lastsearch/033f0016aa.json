@@ -1,0 +1,181 @@
+{
+  "id": "py/x.lastsearch/033f0016aa",
+  "skill": "x.lastsearch",
+  "lang": "python",
+  "kind": "edit",
+  "task": "Rename every `char` to `message` (3 occurrences), one match at a time",
+  "start": {
+    "lines": [
+      "def parse_property_vals(sgf: str, idx: int) -> tuple[int, list[str]]:",
+      "    \"\"\"Parse property values, returning the next index and values.\"\"\"",
+      "    values = []",
+      "    while idx < len(sgf):",
+      "        if sgf[idx] != \"[\":",
+      "            break",
+      "",
+      "        # Start of the value.",
+      "        idx += 1",
+      "        prop_val = \"\"",
+      "        while sgf[idx] != \"]\":",
+      "            # \\ has special SGF handling.",
+      "            if sgf[idx] == \"\\\\\":",
+      "                if sgf[idx:idx + 2] == \"\\\\\\n\":",
+      "                    # Newlines are removed if they come immediately after a \\,",
+      "                    # otherwise they remain as newlines.",
+      "                    pass",
+      "                else:",
+      "                    # \\ is the escape character. Any non-whitespace character",
+      "                    # after \\ is inserted as-is",
+      "                    prop_val += sgf[idx + 1]",
+      "                idx += 2",
+      "            else:",
+      "                prop_val += sgf[idx]",
+      "                idx += 1",
+      "",
+      "        # All whitespace characters other than newline are converted to spaces.",
+      "        for char in string.whitespace:",
+      "            if char == \"\\n\":",
+      "                continue",
+      "            prop_val = prop_val.replace(char, \" \")",
+      "",
+      "        values.append(prop_val)",
+      "        idx += 1",
+      "",
+      "    return idx, values"
+    ],
+    "cursor": [
+      28,
+      13
+    ]
+  },
+  "expect": {
+    "lines": [
+      "def parse_property_vals(sgf: str, idx: int) -> tuple[int, list[str]]:",
+      "    \"\"\"Parse property values, returning the next index and values.\"\"\"",
+      "    values = []",
+      "    while idx < len(sgf):",
+      "        if sgf[idx] != \"[\":",
+      "            break",
+      "",
+      "        # Start of the value.",
+      "        idx += 1",
+      "        prop_val = \"\"",
+      "        while sgf[idx] != \"]\":",
+      "            # \\ has special SGF handling.",
+      "            if sgf[idx] == \"\\\\\":",
+      "                if sgf[idx:idx + 2] == \"\\\\\\n\":",
+      "                    # Newlines are removed if they come immediately after a \\,",
+      "                    # otherwise they remain as newlines.",
+      "                    pass",
+      "                else:",
+      "                    # \\ is the escape character. Any non-whitespace character",
+      "                    # after \\ is inserted as-is",
+      "                    prop_val += sgf[idx + 1]",
+      "                idx += 2",
+      "            else:",
+      "                prop_val += sgf[idx]",
+      "                idx += 1",
+      "",
+      "        # All whitespace characters other than newline are converted to spaces.",
+      "        for message in string.whitespace:",
+      "            if message == \"\\n\":",
+      "                continue",
+      "            prop_val = prop_val.replace(message, \" \")",
+      "",
+      "        values.append(prop_val)",
+      "        idx += 1",
+      "",
+      "    return idx, values"
+    ]
+  },
+  "par": {
+    "keys": "*cgnmessage<Esc>..",
+    "count": 14,
+    "verified": "nvim 0.12.5 2026-10-12"
+  },
+  "alternates": [
+    "#cgnmessage<Esc>..",
+    "*Ncgnmessage<Esc>..",
+    "*ciwmessage<Esc>n.n.",
+    "/\\<char\\><CR>cgnmessage<Esc>.."
+  ],
+  "hints": [
+    {
+      "trigger": "ciw|cw",
+      "text": "cgn changes the next match of the last search, so . alone repeats it on the next one."
+    },
+    {
+      "trigger": "n\\.",
+      "text": "With cgn the . finds the next match itself; no n needed between repeats."
+    },
+    {
+      "trigger": "^:",
+      "text": ":%s works too; this drill is about * + cgn + ."
+    },
+    {
+      "trigger": null,
+      "text": "* searches for the word under the cursor; cgnmessage<Esc> changes a match; . repeats on the next."
+    }
+  ],
+  "tags": [
+    "identifier",
+    "gn",
+    "dot"
+  ],
+  "target": [
+    {
+      "start": [
+        28,
+        12
+      ],
+      "end": [
+        28,
+        15
+      ]
+    },
+    {
+      "start": [
+        29,
+        15
+      ],
+      "end": [
+        29,
+        18
+      ]
+    },
+    {
+      "start": [
+        31,
+        40
+      ],
+      "end": [
+        31,
+        43
+      ]
+    }
+  ],
+  "template": "rename_all_dot",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/sgf-parsing/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      17,
+      52
+    ]
+  },
+  "emulator": {
+    "vscodevim": "unverified",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "old": "char",
+    "new": "message",
+    "n": 3
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 71,
+  "reviewed": false
+}

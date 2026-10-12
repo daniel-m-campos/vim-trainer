@@ -7,7 +7,7 @@
 #   make content  rebuild build/ (needs nvim) and replay every par in the browser
 #   make dev      run the app at http://localhost:5173/
 #   make test     unit tests: content, model (Python and TS mirror), app grading, typecheck
-#   make e2e      Playwright: the sample flow and a 15-exercise session on build/
+#   make e2e      Playwright: the sample flow, a 15-exercise session on build/, the stats demo
 #
 # Browsers live in app/node_modules (PLAYWRIGHT_BROWSERS_PATH=0), nothing global.
 
@@ -29,19 +29,23 @@ setup:
 	cd app && npm ci
 	cd app && npx playwright install $(BROWSERS)
 
-# Python build (fetches the pinned exercism/python into content/.cache on first run),
+# Python + C++ build (fetches the pinned exercism/python and exercism/cpp into content/.cache on first run),
 # then the browser oracle: emulator.web on every exercise, mismatches dropped from the index.
 content:
 	cd content && uv run vimtrainer-content build
 	cd app && node e2e/emulator.mjs --write
 
-# CI: rebuild into a scratch directory and require it to equal the committed build/
-# (date stamps aside). Fails when someone changes the pipeline without `make content`.
+# CI: rebuild into a scratch directory and require it to be byte-identical to the committed
+# build/. Fails when someone changes the pipeline without `make content`, or builds with an
+# nvim other than the pinned one (par.verified names the version). The build date is the
+# only input that changes from day to day, so it is pinned to the committed one:
+# SOURCE_DATE_EPOCH = UTC midnight of build/index.json "generated" (see build.py).
 content-check:
 	rm -rf $(CHECK_DIR)
-	cd content && uv run vimtrainer-content build --out .cache/build-check
+	cd content && SOURCE_DATE_EPOCH=$$(node -e 'process.stdout.write(String(Date.parse(require("../build/index.json").generated) / 1000))') \
+		uv run vimtrainer-content build --out .cache/build-check
 	cd app && node e2e/emulator.mjs --write --build ../$(CHECK_DIR)
-	diff -r -I '"generated":' -I '"verified":' build $(CHECK_DIR)
+	diff -r build $(CHECK_DIR)
 
 dev:
 	cd app && npm run dev
@@ -62,6 +66,7 @@ test-app:
 e2e:
 	cd app && npm run e2e
 	cd app && npm run e2e:session
+	cd app && npm run e2e:stats
 
 # All three engines (run `make setup BROWSERS="chromium firefox webkit"` first).
 e2e-all:

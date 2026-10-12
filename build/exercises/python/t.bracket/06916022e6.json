@@ -3,7 +3,7 @@
   "skill": "t.bracket",
   "lang": "python",
   "kind": "edit",
-  "task": "Delete everything inside this list `[number & SEVEN_BIT_MASK]`, keeping the []",
+  "task": "Delete everything inside the list `[number & SEVEN_BIT_MASK]`, keeping the brackets",
   "start": {
     "lines": [
       "EIGHT_BIT_MASK = 0x80",
@@ -53,7 +53,7 @@
   "par": {
     "keys": "di[",
     "count": 3,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "di]"

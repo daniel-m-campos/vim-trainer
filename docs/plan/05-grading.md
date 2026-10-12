@@ -12,8 +12,8 @@ The editor wrapper records, from the moment the exercise renders:
   command-done hook; see 06 and the To research note);
 - undo count (`u` presses and `:undo`).
 
-The attempt ends when the pass condition is met, or the user skips (`Esc Esc` from
-normal mode with an unchanged buffer), or the user retries (`r` on the result strip,
+The attempt ends when the pass condition is met, or the user skips or gives up (`Esc Esc` from
+normal mode, see Fail and skip), or the user retries (`r` on the result strip,
 which only exists after a pass or an explicit give-up).
 
 There is no timeout. A quiet tool doesn't fail you for thinking.
@@ -107,11 +107,51 @@ stance is to let them.
 - Clipboard: `"+` and `"*` in the browser map to the emulator's internal register;
   system clipboard is out of scope.
 
+## Resolved
+
+From the M1 key-logger spike and the M3 build (2026-10-11).
+
+- **Command-done hook.** `vim-command-done` fires on every insert-mode keystroke and
+  when `ci"` enters insert mode, so it only means the input state was reset.
+  `vim-keypress` misses insert-mode and command-line keys. `vim-mode-change` fires
+  `normal` twice when leaving visual mode. The app does not trust any of them alone.
+  It schedules one microtask check from the signals, CM6 updates and command-line blur,
+  and emits command-done only when the mode is not insert or replace, no command is
+  pending (`vim.inputState`), the command line is closed and the buffer or cursor
+  changed. The mode is read from state (`vim.insertMode`, `vim.visualMode` and
+  related), not from the event payload. Issue #251 was not read.
+- **Key capture.** A capture-phase `keydown` listener on a wrapper around `view.dom`
+  runs before CodeMirror, and uses `Vim.vimKeyFromEvent` for angle-bracket notation.
+  It also sees keys typed in the `:` and `/` line. IME composition is skipped.
+- **`<Esc>` and blur.** In headless Chromium, Firefox and WebKit, `<Esc>` keeps focus
+  once a bubble-phase guard calls `preventDefault` on an `<Esc>` Vim left unhandled.
+  A real keyboard in real Safari or Firefox is untested. In fullscreen the browser
+  takes `<Esc>` and a page cannot stop that.
+- **Tab blur.** `Tab` is the real blur risk: without the guard it moves focus out of
+  the editor in Chromium and WebKit. The guard stops it, and in insert mode inserts 4
+  spaces to match the oracle's `expandtab` and `shiftwidth=4`.
+- **Clock.** `performance.now()` minus the time `document.visibilityState` was hidden.
+  Tab-switch pauses are excluded.
+- **Hint key.** `?` is Vim's backward search, so the mid-exercise hint is `F1`, which
+  the recorder consumes and does not pass to Vim. On the result strip `?` shows all
+  hints and alternates.
+- **Give-up.** Two `<Esc>` (or `<C-[>`, `<C-c>`) presses in normal mode within 800 ms.
+  There is no buffer condition, because the diff shown after a give-up needs an edit
+  to have happened. The Esc that leaves insert mode does not count.
+- **`jk` escape.** Implemented as `Vim.map('jk', '<Esc>', 'insert')`. It counts as one
+  key and shows as `jk`.
+- **Ex tasks.** Every `ex` task ends with "using an Ex : command". If the buffer
+  matches without one, a note says only a `:` command counts, and does not mark the
+  attempt as hinted.
+
 ## To research
 
-- The exact codemirror-vim hooks: a reliable "command completed" event, access to the
-  key buffer, mode-change event robustness (issue #251).
-- Whether `<Esc>` in the browser can be captured without blurring the editor on every
-  platform (Firefox/Safari differences).
-- Timing precision: `performance.now()` is fine; check that tab-switching pauses are
-  excluded (pause the clock on `visibilitychange`).
+- Give-up by accident: `<Esc>` to cancel a pending `d`, then a second `<Esc>` within
+  800 ms, ends the attempt. The recorder could ignore an Esc that cancelled a pending
+  command.
+- IME and dead keys in normal mode are skipped by the key logger.
+- Tab in insert mode always inserts 4 spaces instead of moving to the next shiftwidth
+  stop.
+- Visiting stats or settings mid-exercise (mouse only) does not pause the clock.
+- Long or recursive macro replay (issue #177) is untested. Only a one-key macro was
+  tested.

@@ -1,0 +1,166 @@
+{
+  "id": "cpp/t.paren/0520cf5ffe",
+  "skill": "t.paren",
+  "lang": "cpp",
+  "kind": "edit",
+  "task": "Change the contents of this parameter list `(ElectionResult& result, int votes)` to `char c`",
+  "start": {
+    "lines": [
+      "namespace election {",
+      "",
+      "// The election result struct is already created for you:",
+      "",
+      "struct ElectionResult {",
+      "    // Name of the candidate",
+      "    std::string name{};",
+      "    // Number of votes the candidate has",
+      "    int votes{};",
+      "};",
+      "",
+      "// vote_count takes a reference to an `ElectionResult` as an argument and will",
+      "// return the number of votes in the `ElectionResult.",
+      "int vote_count(ElectionResult& result) { return result.votes; }",
+      "",
+      "// increment_vote_count takes a reference to an `ElectionResult` as an argument",
+      "// and a number of votes (int), and will increment the `ElectionResult` by that",
+      "// number of votes.",
+      "void increment_vote_count(ElectionResult& result, int votes) {",
+      "    result.votes += votes;",
+      "}",
+      "",
+      "// determine_result receives the reference to a final_count and returns a",
+      "// reference to the `ElectionResult` of the new president. It also changes the",
+      "// name of the winner by prefixing it with \"President\". The final count is given",
+      "// in the form of a `reference` to `std::vector<ElectionResult>`, a vector with",
+      "// `ElectionResults` of all the participating candidates.",
+      "ElectionResult& determine_result(std::vector<ElectionResult>& count) {",
+      "    int winner_idx = 0;",
+      "    for (int i{}; i < count.size(); ++i) {",
+      "        if (count.at(i).votes > count.at(winner_idx).votes) {",
+      "            winner_idx = i;",
+      "        }",
+      "    }",
+      "    ElectionResult& winner = count.at(winner_idx);",
+      "    winner.name = \"President \" + winner.name;",
+      "    return winner;",
+      "}",
+      "",
+      "}  // namespace election"
+    ],
+    "cursor": [
+      19,
+      26
+    ]
+  },
+  "expect": {
+    "lines": [
+      "namespace election {",
+      "",
+      "// The election result struct is already created for you:",
+      "",
+      "struct ElectionResult {",
+      "    // Name of the candidate",
+      "    std::string name{};",
+      "    // Number of votes the candidate has",
+      "    int votes{};",
+      "};",
+      "",
+      "// vote_count takes a reference to an `ElectionResult` as an argument and will",
+      "// return the number of votes in the `ElectionResult.",
+      "int vote_count(ElectionResult& result) { return result.votes; }",
+      "",
+      "// increment_vote_count takes a reference to an `ElectionResult` as an argument",
+      "// and a number of votes (int), and will increment the `ElectionResult` by that",
+      "// number of votes.",
+      "void increment_vote_count(char c) {",
+      "    result.votes += votes;",
+      "}",
+      "",
+      "// determine_result receives the reference to a final_count and returns a",
+      "// reference to the `ElectionResult` of the new president. It also changes the",
+      "// name of the winner by prefixing it with \"President\". The final count is given",
+      "// in the form of a `reference` to `std::vector<ElectionResult>`, a vector with",
+      "// `ElectionResults` of all the participating candidates.",
+      "ElectionResult& determine_result(std::vector<ElectionResult>& count) {",
+      "    int winner_idx = 0;",
+      "    for (int i{}; i < count.size(); ++i) {",
+      "        if (count.at(i).votes > count.at(winner_idx).votes) {",
+      "            winner_idx = i;",
+      "        }",
+      "    }",
+      "    ElectionResult& winner = count.at(winner_idx);",
+      "    winner.name = \"President \" + winner.name;",
+      "    return winner;",
+      "}",
+      "",
+      "}  // namespace election"
+    ]
+  },
+  "par": {
+    "keys": "ci(char c<Esc>",
+    "count": 10,
+    "verified": "nvim 0.12.5 2026-10-12"
+  },
+  "alternates": [
+    "ci)char c<Esc>",
+    "cibchar c<Esc>"
+  ],
+  "hints": [
+    {
+      "trigger": "^[0-9]*[hlwbeWBE]",
+      "text": "ci( works from anywhere inside the parameter list; no need to move first."
+    },
+    {
+      "trigger": "^[0-9]*[fFtT]",
+      "text": "ci( finds the enclosing () by itself; the jump is not needed."
+    },
+    {
+      "trigger": "x{2,}|<Del>|(<BS>){2,}",
+      "text": "ci( deletes the whole contents in one command."
+    },
+    {
+      "trigger": null,
+      "text": "ci(: change inside the () pair around the cursor."
+    }
+  ],
+  "tags": [
+    "parameter_list",
+    "change"
+  ],
+  "target": [
+    {
+      "start": [
+        19,
+        25
+      ],
+      "end": [
+        19,
+        59
+      ]
+    }
+  ],
+  "template": "change_inner",
+  "source": {
+    "repo": "github.com/exercism/cpp",
+    "path": "exercises/concept/election-day/.meta/exemplar.cpp",
+    "commit": "e6e47e11fb47e561d0eca71c6197163695b44caf",
+    "license": "MIT",
+    "lines": [
+      4,
+      43
+    ]
+  },
+  "emulator": {
+    "vscodevim": "full",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "text": "char c",
+    "open": "(",
+    "close": ")"
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 37,
+  "reviewed": false
+}

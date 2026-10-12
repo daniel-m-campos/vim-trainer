@@ -20,7 +20,7 @@ def _toml(tmp_path, license_name="MIT", **extra):
 
 
 def test_repo_sources_toml_pins_exercism_mit():
-    (src,) = sources.load_sources()
+    (src,) = [s for s in sources.load_sources() if s.lang == "python"]
     assert src.repo == "github.com/exercism/python"
     assert src.license == "MIT"
     assert len(src.commit) == 40

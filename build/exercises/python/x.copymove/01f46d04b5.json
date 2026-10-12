@@ -94,7 +94,7 @@
   "par": {
     "keys": ":t.<CR>",
     "count": 4,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     ":t12<CR>",

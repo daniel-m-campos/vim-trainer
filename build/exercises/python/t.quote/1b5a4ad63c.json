@@ -3,7 +3,7 @@
   "skill": "t.quote",
   "lang": "python",
   "kind": "edit",
-  "task": "Delete everything inside this string `'(.*)(<li>)(.*)(</li>)(.*)'`, keeping the ''",
+  "task": "Delete everything inside the string `'(.*)(<li>)(.*)(</li>)(.*)'`, keeping the quotes",
   "start": {
     "lines": [
       "def parse_line(line, in_list, in_list_append):",
@@ -93,7 +93,7 @@
   "par": {
     "keys": "di'",
     "count": 3,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [],
   "hints": [

@@ -16,3 +16,17 @@ include = [
   "exercises/practice/*/.meta/example.py",
   "exercises/concept/*/.meta/exemplar.py",
 ]
+
+[[source]]
+name = "exercism-cpp"
+lang = "cpp"
+repo = "github.com/exercism/cpp"
+url = "https://github.com/exercism/cpp"
+commit = "e6e47e11fb47e561d0eca71c6197163695b44caf"
+license = "MIT"
+license_file = "LICENSE"
+include = [
+  "exercises/practice/*/.meta/example.cpp",
+  "exercises/practice/*/.meta/example.h",
+  "exercises/concept/*/.meta/exemplar.cpp",
+]

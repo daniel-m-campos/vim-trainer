@@ -12,6 +12,8 @@ export interface KeyEvent {
   mode: Mode;
   cmdline: boolean; // typed into the : or / command line
   active: number; // active-clock ms since the exercise rendered
+  /** A count, operator, register or partial command was pending when the key arrived. */
+  pending?: boolean;
 }
 
 /** A counted keystroke. A `jk` escape collapses two events into one token. */
@@ -113,17 +115,94 @@ export function band(keys: number, par: number): Band {
 
 export const BAND_LABEL: Record<Band, string> = { par: "at par", close: "close", pass: "passed", over: "over par" };
 
+export const GIVE_UP_MS = 800;
+
+/**
+ * An escape that can start the give-up gesture: pressed in normal mode, outside the
+ * command line, with nothing pending. An <Esc> that cancels a pending operator,
+ * count or register (`d<Esc>`, `3<Esc>`, `"a<Esc>`) is Vim's cancel, not a give-up.
+ */
+export function armsGiveUp(e: KeyEvent | undefined): boolean {
+  return !!e && ESCAPES.has(e.key) && e.mode === "normal" && !e.cmdline && !e.pending;
+}
+
 /**
  * Give-up gesture: <Esc><Esc> where both escapes were pressed in normal mode
  * (so leaving insert mode with one <Esc> and pressing another does not count),
- * outside the command line, within 800 ms.
+ * outside the command line, within 800 ms, and the first one did not cancel a
+ * pending command.
  */
 export function isGiveUp(events: KeyEvent[]): boolean {
   const n = events.length;
   if (n < 2) return false;
   const a = events[n - 2], b = events[n - 1];
-  const esc = (e: KeyEvent) => ESCAPES.has(e.key) && e.mode === "normal" && !e.cmdline;
-  return esc(a) && esc(b) && b.active - a.active <= 800;
+  return armsGiveUp(a) && armsGiveUp(b) && b.active - a.active <= GIVE_UP_MS;
+}
+
+// --- clock --------------------------------------------------------------------
+
+/**
+ * Attempt clock (05 "Time"): milliseconds since start minus every paused stretch.
+ * Pauses are keyed by reason ("hidden" for visibilitychange, "away" while stats or
+ * settings cover the exercise) and overlap freely; the clock runs only when no
+ * reason holds. `now` is injectable for tests.
+ */
+export class PausableClock {
+  private readonly startedAt: number;
+  private pausedTotal = 0;
+  private pausedAt: number | null = null;
+  private readonly reasons = new Set<string>();
+  private readonly now: () => number;
+
+  constructor(now: () => number = () => performance.now()) {
+    this.now = now;
+    this.startedAt = now();
+  }
+
+  setPaused(reason: string, on: boolean): void {
+    const was = this.reasons.size > 0;
+    if (on) this.reasons.add(reason);
+    else this.reasons.delete(reason);
+    const is = this.reasons.size > 0;
+    const t = this.now();
+    if (!was && is) this.pausedAt = t;
+    else if (was && !is && this.pausedAt !== null) {
+      this.pausedTotal += t - this.pausedAt;
+      this.pausedAt = null;
+    }
+  }
+
+  paused(): boolean {
+    return this.reasons.size > 0;
+  }
+
+  /** Active milliseconds since construction. */
+  active(at = this.now()): number {
+    const pausedNow = this.pausedAt === null ? 0 : at - this.pausedAt;
+    return at - this.startedAt - this.pausedTotal - pausedNow;
+  }
+}
+
+// --- insert-mode <Tab> ------------------------------------------------------------
+
+/** The oracle's tab options (content/src/vimtrainer_content/oracle.lua M.OPTIONS). */
+export const TAB_OPTIONS = { expandtab: true, shiftwidth: 4, tabstop: 4, softtabstop: 0 } as const;
+
+/**
+ * Spaces one insert-mode <Tab> adds after `before` (the line text left of the
+ * cursor) under the oracle's options: expandtab, ts=sw=4, sts=0 and Neovim's
+ * default smarttab. sts=0 means the tab stop is 'tabstop' and smarttab uses
+ * 'shiftwidth' in leading whitespace; both are 4, so the result is "fill to the
+ * next multiple of 4 virtual columns", with existing tab characters counted at
+ * their display width. Checked against nvim 0.12: "ab" -> 2, "abcd" -> 4,
+ * "a<Tab>b" -> 3.
+ */
+export function tabSpaces(before: string): number {
+  const ts = TAB_OPTIONS.tabstop;
+  const stop = /^[ \t]*$/.test(before) ? TAB_OPTIONS.shiftwidth : ts;
+  let col = 0;
+  for (const ch of before) col = ch === "\t" ? col + ts - (col % ts) : col + 1;
+  return stop - (col % stop);
 }
 
 // --- hints ------------------------------------------------------------------

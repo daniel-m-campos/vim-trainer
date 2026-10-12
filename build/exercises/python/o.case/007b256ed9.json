@@ -3,7 +3,7 @@
   "skill": "o.case",
   "lang": "python",
   "kind": "edit",
-  "task": "Uppercase the identifier `sizes` under the cursor",
+  "task": "Make `sizes` a constant name: uppercase it to `SIZES`",
   "start": {
     "lines": [
       "'''This solution implements a breadth-first search of the graph'''",
@@ -61,7 +61,7 @@
   "par": {
     "keys": "gUiw",
     "count": 4,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "viwU",

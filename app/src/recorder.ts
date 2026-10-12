@@ -8,19 +8,20 @@
 //                 check that fires only when no insert/replace mode, no pending
 //                 command, no open command line, and buffer or cursor changed;
 //   undo          CM6 transactions with userEvent "undo" (covers u, :undo, 3u);
-//   clock         performance.now(), paused while the tab is hidden.
+//   clock         performance.now(), paused while the tab is hidden and while the
+//                 trainer covers the exercise (stats, settings): setAway().
 
 import { EditorView, type ViewUpdate } from "@codemirror/view";
-import type { Extension, Text } from "@codemirror/state";
+import { EditorSelection, type Extension, type Text } from "@codemirror/state";
 import { Vim, getCM } from "@replit/codemirror-vim";
-import type { KeyEvent, Mode, Snapshot } from "./grading.ts";
+import { PausableClock, tabSpaces, type KeyEvent, type Mode, type Snapshot } from "./grading.ts";
 
 interface VimState {
   insertMode: boolean;
   visualMode: boolean;
   visualLine: boolean;
   visualBlock: boolean;
-  inputState: { keyBuffer: string[]; operator?: string | null; prefixRepeat: string[]; motionRepeat: string[] };
+  inputState: { keyBuffer: string[]; operator?: string | null; prefixRepeat: string[]; motionRepeat: string[]; registerName?: string };
 }
 interface CMAdapter {
   state: { vim?: VimState | null; overwrite?: boolean };
@@ -29,34 +30,27 @@ interface CMAdapter {
   getCursor(which?: string): { line: number; ch: number };
 }
 
-/** Wall clock that stops while the tab is hidden. */
+/** Attempt clock: stops while the tab is hidden, and while setAway(true) holds. */
 export class ActiveClock {
-  private startedAt = performance.now();
-  private pausedTotal = 0;
-  private pausedAt: number | null = document.visibilityState === "hidden" ? this.startedAt : null;
-  private readonly onVis = () => this.sync();
+  private readonly clock = new PausableClock();
+  private readonly onVis = () => this.clock.setPaused("hidden", document.visibilityState === "hidden");
 
   constructor() {
+    this.onVis();
     document.addEventListener("visibilitychange", this.onVis);
   }
 
-  /** Milliseconds of visible time since construction. */
-  active(at = performance.now()): number {
-    const pausedNow = this.pausedAt === null ? 0 : at - this.pausedAt;
-    return at - this.startedAt - this.pausedTotal - pausedNow;
+  /** Milliseconds of active time since construction. */
+  active(): number {
+    return this.clock.active();
+  }
+
+  setAway(on: boolean): void {
+    this.clock.setPaused("away", on);
   }
 
   dispose(): void {
     document.removeEventListener("visibilitychange", this.onVis);
-  }
-
-  private sync(): void {
-    const now = performance.now();
-    if (document.visibilityState === "hidden" && this.pausedAt === null) this.pausedAt = now;
-    else if (document.visibilityState !== "hidden" && this.pausedAt !== null) {
-      this.pausedTotal += now - this.pausedAt;
-      this.pausedAt = null;
-    }
   }
 }
 
@@ -71,7 +65,7 @@ function modeFromState(cm: CMAdapter): Mode {
 function commandPending(cm: CMAdapter): boolean {
   const s = cm.state.vim?.inputState;
   if (!s) return false;
-  return s.keyBuffer.length > 0 || !!s.operator || s.prefixRepeat.length > 0 || s.motionRepeat.length > 0;
+  return s.keyBuffer.length > 0 || !!s.operator || s.prefixRepeat.length > 0 || s.motionRepeat.length > 0 || !!s.registerName;
 }
 
 const updateSinks = new WeakMap<EditorView, (u: ViewUpdate) => void>();
@@ -84,6 +78,8 @@ export interface Recorder {
   mode(): Mode;
   undoCount(): number;
   activeMs(): number;
+  /** Pause the clock while the trainer covers the exercise (stats, settings). */
+  setAway(on: boolean): void;
   snapshot(): Snapshot;
   onCommandDone(fn: (s: Snapshot) => void): void;
   onKey(fn: (e: KeyEvent) => void): void;
@@ -157,20 +153,36 @@ export function attachRecorder(view: EditorView, wrapper: HTMLElement): Recorder
     if (e.isComposing || e.keyCode === 229 || e.key === "Process" || e.key === "Unidentified") return;
     const key = Vim.vimKeyFromEvent(e, (cm.state.vim ?? undefined) as any);
     if (!key) return;
-    const ev: KeyEvent = { key, mode, cmdline: cmdlineOpen(), active: clock.active() };
+    // Read before Vim handles the key: an <Esc> that cancels a pending command is not
+    // the first half of the Esc Esc give-up (grading.armsGiveUp).
+    const ev: KeyEvent = { key, mode, cmdline: cmdlineOpen(), active: clock.active(), pending: commandPending(cm) };
     events.push(ev);
     for (const fn of keyFns) fn(ev);
   };
 
   // Keys Vim leaves unhandled must not reach browser defaults (blur on Tab, etc.).
-  // Tab in insert mode indents with the oracle's settings (expandtab, sw=4).
+  // Tab in insert mode follows the oracle's options (grading.tabSpaces: expandtab,
+  // ts=sw=4, sts=0, smarttab): spaces to the next 4-column stop. In Replace mode
+  // nvim replaces one character per <Tab> with those spaces.
   const onKeyBubble = (e: KeyboardEvent) => {
     if (e.defaultPrevented) return;
     if (e.key === "Escape") e.preventDefault();
     if (e.key === "Tab" && !e.ctrlKey && !e.altKey && !e.metaKey) {
       e.preventDefault();
-      // TODO(mvp): align to the next shiftwidth stop like nvim; this inserts 4 spaces.
-      if (mode === "insert" || mode === "replace") view.dispatch(view.state.replaceSelection("    "));
+      if (cmdlineOpen() || (mode !== "insert" && mode !== "replace")) return;
+      const replace = mode === "replace";
+      const st = view.state;
+      view.dispatch(
+        st.update(
+          st.changeByRange((r) => {
+            const line = st.doc.lineAt(r.head);
+            const n = tabSpaces(line.text.slice(0, r.from - line.from));
+            const to = replace && r.empty && r.to < line.to ? r.to + 1 : r.to;
+            return { changes: { from: r.from, to, insert: " ".repeat(n) }, range: EditorSelection.cursor(r.from + n) };
+          }),
+          { scrollIntoView: true, userEvent: "input.type" },
+        ),
+      );
     }
   };
 
@@ -194,6 +206,7 @@ export function attachRecorder(view: EditorView, wrapper: HTMLElement): Recorder
     mode: () => mode,
     undoCount: () => undo,
     activeMs: () => clock.active(),
+    setAway: (on) => clock.setAway(on),
     snapshot,
     onCommandDone: (fn) => doneFns.push(fn),
     onKey: (fn) => keyFns.push(fn),

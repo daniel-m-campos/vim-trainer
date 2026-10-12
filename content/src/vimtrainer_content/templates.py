@@ -14,6 +14,7 @@ All choices that look random (cursor offset, replacement text, direction) are a
 
 from __future__ import annotations
 
+import builtins
 import re
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
@@ -26,18 +27,42 @@ from vimtrainer_content.snippets import Window, pick, stable_hash
 
 MAX_PER_WINDOW: Final = 2  # drafts kept per (window, template, skill), spreads exercises across code
 
-STRING_TEXTS: Final = ("retrying", "not found", "done", "invalid input", "unknown", "skipped", "empty", "error: %s")
-ARG_TEXTS: Final = ("value", "self.items", "None", "key, value", "data", "x + 1", "*args", "0")
-LIST_TEXTS: Final = ("1, 2, 3", "None", "'a', 'b'", "x for x in items", "0", "key")
-SUBSCRIPT_TEXTS: Final = ("0", "-1", "1:", "key", "i + 1", "index")
-BRACE_TEXTS: Final = ("'key': value", "**defaults", "'name': name", "1, 2")
-INTERP_TEXTS: Final = ("name", "value!r", "count:>3", "len(items)", "self.name")
-KW_VALUES: Final = ("None", "True", "10", "'utf-8'", "1.5", "[]", "key")
-RHS_VALUES: Final = ("None", "0", "[]", "{}", "''", "False", "set()", "len(items)")
-NAMES: Final = (
-    "value", "item", "result", "total", "entry", "current", "number", "text", "letters", "words",
-    "size", "index", "record", "amount", "label", "buffer", "target", "source",
-)
+# Replacement text is chosen to fit the node it replaces (see _fit_value and _new_name):
+# a string gets a string, a number a number, an identifier a name in the same case style
+# and of the same role. Never "value" or "X": a task should read like a real edit.
+WORD_STRINGS: Final = ("unknown", "pending", "default", "missing", "skipped", "empty")
+MESSAGE_STRINGS: Final = ("not found", "invalid input", "out of range", "already exists", "try again", "no match")
+INT_TEXTS: Final = ("0", "1", "10", "100", "-1", "3")
+FLOAT_TEXTS: Final = ("0.0", "0.5", "1.5", "2.0")
+SLICE_TEXTS: Final = ("1:", ":-1", "::2", "2:")
+BRACE_TEXTS: Final = ("**defaults", "'id': 0", "'name': name")
+RHS_BY_TYPE: Final = {
+    "list": "[]", "list_comprehension": "[]", "dictionary": "{}", "dictionary_comprehension": "{}",
+    "set": "set()", "set_comprehension": "set()", "tuple": "()", "call": "None", "binary_operator": "0",
+    "true": "False", "false": "True", "none": "0", "conditional_expression": "None",
+}
+# Role -> names, in snake_case; _styled converts them to the old name's case style.
+ROLE_NAMES: Final = {
+    "many": ("items", "entries", "records", "rows", "parts", "names"),
+    "count": ("total", "count", "size", "limit", "offset", "amount"),
+    "index": ("pos", "position", "idx", "start", "cursor"),
+    "text": ("text", "label", "message", "title", "word"),
+    "call": ("process", "handle", "compute", "convert", "build", "parse_input", "load"),
+    "class": ("record", "entry", "handler", "builder", "parser", "node"),
+    "any": ("item", "result", "entry", "current", "record", "target", "source", "data"),
+}
+_ROLE_WORDS: Final = {
+    "many": {"list", "items", "values", "keys", "rows", "cols", "lines", "words", "names", "dict", "set", "map",
+             "nums", "numbers", "chars", "letters", "data", "elements", "entries", "results", "parts"},
+    "count": {"count", "num", "number", "total", "size", "len", "length", "n", "max", "min", "limit", "sum",
+              "amount", "width", "height", "score", "age", "year", "month", "day", "rate"},
+    "index": {"idx", "index", "i", "j", "k", "pos", "position", "start", "end", "offset", "row", "col"},
+    "text": {"name", "text", "str", "string", "word", "line", "msg", "message", "label", "title", "char",
+             "letter", "sentence", "phrase", "prefix", "suffix"},
+}
+ORDINAL_WORDS: Final = ("", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth")
+_DELIM_NAMES: Final = {"(": "parentheses", "[": "brackets", "{": "braces", '"': "quotes", "'": "quotes"}
+_BUILTINS: Final = frozenset(dir(builtins))
 CURSOR_IDIOMS: Final = (
     "w", "b", "e", "W", "B", "E", "ge", "2w", "3w", "4w", "2W", "3W", "2e", "2E", "$", "0", "^", "g_",
     "%", "])", "]}", "[(", "[{", "}", "{", "G", "gg", "H", "M", "L", "+", "-", "j", "k", "2j", "2k",
@@ -52,14 +77,8 @@ _NOUNS: Final = {
 }
 _PAIR: Final = {"(": ")", "[": "]", "{": "}", '"': '"', "'": "'"}
 _ALIASES: Final = {"(": (")", "b"), "[": ("]",), "{": ("}", "B"), '"': (), "'": ()}
-_TEXTS: Final = {
-    "string": STRING_TEXTS, "argument_list": ARG_TEXTS, "parameters": ("self", "*args, **kwargs", "value"),
-    "parenthesized_expression": ARG_TEXTS, "tuple": ARG_TEXTS, "list": LIST_TEXTS,
-    "list_comprehension": LIST_TEXTS, "subscript": SUBSCRIPT_TEXTS, "dictionary": BRACE_TEXTS,
-    "set": BRACE_TEXTS, "dictionary_comprehension": BRACE_TEXTS, "set_comprehension": BRACE_TEXTS,
-    "interpolation": INTERP_TEXTS,
-}
-_ORDINALS: Final = ("", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th")
+_ONE_LINE_DOC: Final = re.compile(r"\s*(\"\"\"|\'\'\').*\1")
+_REGEXISH: Final = re.compile(r"[\^$|\\]|\(\?|\[\^|[.)\]][*+?]")
 
 
 @dataclass
@@ -118,8 +137,8 @@ def generate(win: Window, lang: Language) -> list[Draft]:
 
 
 def ordinal(n: int) -> str:
-    """1 -> '1st'."""
-    return _ORDINALS[n] if n < len(_ORDINALS) else f"{n}th"
+    """1 -> 'first'."""
+    return ORDINAL_WORDS[n] if 0 < n < len(ORDINAL_WORDS) else f"{n}th"
 
 
 # Node templates ===================================================================================
@@ -131,15 +150,17 @@ def change_inner(win: Window, node: tree_sitter.Node, skill: str, lang: Language
     if span is None:
         return
     row, oc, cc, o = span
-    line, inner = win.lines[row], win.lines[row][oc + 1:cc]
+    inner = win.lines[row][oc + 1:cc]
     col = _cursor_inside(win, node, row, oc, cc, o)
     if col is None:
         return
-    text = _pick_other(_TEXTS[node.type], inner, win.key, node.start_point, "ci")
+    text = _inner_text(win, node, inner)
+    if text is None or text == inner:
+        return
     c, noun = _PAIR[o], _NOUNS[node.type]
     yield Draft(
         template="change_inner", skill=skill, kind="edit",
-        task=f"Change the contents of this {noun} {_excerpt(win, node)} to `{text}`",
+        task=f"Change the contents of {_the(win, node, noun)} to `{text}`",
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, oc + 1, cc, text)},
         variants=[f"ci{o}{text}<Esc>"], alternates=[f"ci{a}{text}<Esc>" for a in _ALIASES[o]],
         idioms=[f"{m}{text}<Esc>" for m in ("ciw", "ciW", "cw", "cW", "ce", "cE", f"ct{c}", f"cT{o}", "bcw",
@@ -167,7 +188,7 @@ def delete_inner(win: Window, node: tree_sitter.Node, skill: str, lang: Language
     c, noun = _PAIR[o], _NOUNS[node.type]
     yield Draft(
         template="delete_inner", skill=skill, kind="edit",
-        task=f"Delete everything inside this {noun} {_excerpt(win, node)}, keeping the {o}{c}",
+        task=f"Delete everything inside {_the(win, node, noun)}, keeping the {_DELIM_NAMES[o]}",
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, oc + 1, cc, "")},
         variants=[f"di{o}"], alternates=[f"di{a}" for a in _ALIASES[o]],
         idioms=["diw", "diW", "dw", "dW", "de", "dE", f"dt{c}", f"dT{o}", "bdt" + c, f"F{o}ldt{c}", f"T{o}dt{c}", "D"],
@@ -194,6 +215,8 @@ def delete_around(win: Window, node: tree_sitter.Node, skill: str, lang: Languag
     if head is None or head.end_point.row != row:
         return
     name = _text(head)
+    if node.type == "argument_list" and name in _BUILTINS:
+        return  # `len(x)` -> `len` is not an edit anyone makes; user functions passed as callbacks are
     task = (f"Turn `{name}{win.lines[row][oc:cc + 1]}` into `{name}` by deleting the subscript" if node.type == "subscript"
             else f"Turn the call `{name}(...)` into the bare name `{name}`")
     yield Draft(
@@ -231,7 +254,9 @@ def change_nth_arg(win: Window, node: tree_sitter.Node, skill: str, lang: Langua
     k = line[cursor:a0].count(",")
     if k < 1:
         return
-    text = _pick_other(ARG_TEXTS, value, win.key, node.start_point, "arg")
+    text = _fit_value(win, arg, "arg")
+    if text is None or text == value:
+        return
     fk = f"{k}f," if k > 1 else "f,"
     kd = line[cursor + 1:a1 + 1].count(d)
     fd = f"{kd}f{d}" if kd > 1 else f"f{d}"
@@ -264,14 +289,18 @@ def change_kwarg_value(win: Window, node: tree_sitter.Node, skill: str, lang: La
     old = line[v0:v1]
     if len(old) < 2 or not re.fullmatch(r"[\w.'\"+-]+", old):
         return
-    text = _pick_other(KW_VALUES, old, win.key, node.start_point, "kw")
+    text = _fit_value(win, value, "kw")
+    if text is None or text == old:
+        return
     d = line[v1] if v1 < len(line) else ""
     if d and d in old:
         return
-    variants = [f"ct{d}{text}<Esc>"] if d in (",", ")") else []
-    variants += [f"{m}{text}<Esc>" for m in ("cw", "ce", "cE", "cW")]
-    if v1 == len(line):
-        variants.append(f"C{text}<Esc>")
+    motions = [f"ct{d}"] if d in (",", ")") else []
+    motions += ["cw", "ce", "cE", "cW"] + (["C"] if v1 == len(line) else [])
+    variants = [f"{m}{text}<Esc>" for m in motions]
+    if skill == "m.find":
+        yield from _kwarg_find(win, name, value, old, text, motions, skill)
+        return
     yield Draft(
         template="change_kwarg_value", skill=skill, kind="edit",
         task=f"Change the value of `{_text(name)}=` from `{old}` to `{text}`",
@@ -284,6 +313,35 @@ def change_kwarg_value(win: Window, node: tree_sitter.Node, skill: str, lang: La
             {"trigger": "^(x|d)", "text": "c{motion} deletes and enters insert mode in one step."},
             {"trigger": "^v", "text": "An operator plus a motion (ct, cw) needs no visual selection."},
             {"trigger": None, "text": "ct, changes up to the comma; cw is enough when the value is one word."},
+        ],
+    )
+
+
+def _kwarg_find(win: Window, name, value, old: str, text: str, motions: list[str], skill: str) -> Iterator[Draft]:
+    """m.find form of change_kwarg_value: cursor on the line's first non-blank, ``{k}f=l`` first."""
+    row, v0, v1 = value.start_point.row, value.start_point.column, value.end_point.column
+    line = win.lines[row]
+    start, eq = _indent(line), v0 - 1
+    if eq <= start or line[eq] != "=" or row in _prose_rows(win):
+        return
+    k = line[start:eq + 1].count("=")
+    fk = f"{k}f=" if k > 1 else "f="
+    d = line[v1] if v1 < len(line) else ""
+    yield Draft(
+        template="change_kwarg_value", skill=skill, kind="edit",
+        task=f"Change the value of `{_text(name)}=` from `{old}` to `{text}`",
+        lines=win.lines, cursor=[row + 1, start], expect={"lines": _replace(win.lines, row, v0, v1, text)},
+        variants=[f"{fk}l{m}{text}<Esc>" for m in motions],
+        alternates=[f"f={';' * (k - 1)}l{motions[0]}{text}<Esc>"] if k > 1 else [],
+        idioms=[f"{j}{m}{text}<Esc>" for j in ("W", "2W", "3W", "4W", "5W", "w", "2w", "3w", "4w", "5w", "6w",
+                                               f"f{old[0]}", f"2f{old[0]}", f"F{old[0]}", f"{fk}") for m in motions[:1]],
+        typed=len(text), params={"text": text, "char": "=", "n": k},
+        target=[_range(row, v0, row, v1 - 1)], window=win, tags=["keyword-argument", "find", "change"],
+        hints=[
+            {"trigger": "^[0-9]*[wWeEl]{2,}", "text": f"{fk} jumps to the `=` of `{_text(name)}=`; l steps onto the value."},
+            *([{"trigger": "^f=;", "text": f"A count on f ({fk}) replaces the ; presses."}] if k > 1 else []),
+            {"trigger": "x{2,}|d[wWeEt]", "text": "c{motion} deletes and enters insert mode in one step."},
+            {"trigger": None, "text": f"{fk}l puts you on the value; {motions[0]} changes it."},
         ],
     )
 
@@ -301,7 +359,9 @@ def change_to_end(win: Window, node: tree_sitter.Node, skill: str, lang: Languag
     old = line[r0:r1]
     if r1 != len(line) or len(old) < 6:
         return
-    text = _pick_other(RHS_VALUES, old, win.key, node.start_point, "rhs")
+    text = _fit_value(win, right, "rhs")
+    if text is None or text == old:
+        return
     yield Draft(
         template="change_to_end", skill=skill, kind="edit",
         task=f"Replace the value assigned to `{_text(left)}` with `{text}`",
@@ -460,14 +520,21 @@ def upper_word(win: Window, node: tree_sitter.Node, skill: str, lang: Language) 
     name = _text(node)
     upper = bool(re.fullmatch(r"[a-z][a-z0-9_]{4,}", name))
     lower = bool(re.fullmatch(r"[A-Z][A-Z0-9_]{3,}", name)) and any(ch.isalpha() for ch in name)
-    if not (upper or lower) or name in lang.keywords or _seen(win, "case", name):
+    if not (upper or lower) or name in lang.keywords or name in _BUILTINS or _seen(win, "case", name):
         return
+    parent = node.parent
+    module = parent is not None and (parent.type in ("dotted_name", "aliased_import") or (
+        parent.type == "attribute" and parent.child_by_field_name("object") == node))
+    if upper and (_role(node, name) in ("call", "class") or _is_member(node) or module):
+        return  # an uppercased function, attribute or module name reads as a mistake, not an edit
     row, c0 = node.start_point.row, node.start_point.column
     col = c0 + pick(range(1, len(name)), win.key, node.start_point, "case")
     new = name.upper() if upper else name.lower()
     op, verb = ("gU", "Uppercase") if upper else ("gu", "Lowercase")
     yield Draft(
-        template="upper_word", skill=skill, kind="edit", task=f"{verb} the identifier `{name}` under the cursor",
+        template="upper_word", skill=skill, kind="edit",
+        task=(f"Make `{name}` a constant name: uppercase it to `{new}`" if upper
+              else f"Lowercase the constant name `{name}` to `{new}`"),
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, c0, c0 + len(name), new)},
         variants=[f"{op}iw", f"viw{op[1]}"], alternates=["g~iw", f"{op}aw"],
         idioms=[f"b{op}e", f"b{op}w", f"{op}e", f"{op}E", f"b{op}E", f"ciw{new}<Esc>"],
@@ -513,13 +580,14 @@ def rename_here(win: Window, node: tree_sitter.Node, skill: str, lang: Language)
     name = _text(node)
     if len(name) < 4 or name in lang.keywords or not re.fullmatch(r"\w+", name) or _is_member(node):
         return
-    if _seen(win, "word", name):
+    if name in _BUILTINS or _is_dunder(name) or _seen(win, "word", name):
         return
     row, c0 = node.start_point.row, node.start_point.column
     col = c0 + pick(range(1, len(name)), win.key, node.start_point, "word")
-    new = _new_name(win, name, node.start_point)
+    new = _new_name(win, name, node, node.start_point)
     yield Draft(
-        template="rename_here", skill=skill, kind="edit", task=f"Rename this `{name}` to `{new}` (only this one)",
+        template="rename_here", skill=skill, kind="edit",
+        task=f"Rename the `{name}` under the cursor to `{new}` (only this one)",
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, c0, c0 + len(name), new)},
         variants=[f"ciw{new}<Esc>"], alternates=[f"bcw{new}<Esc>", f"viwc{new}<Esc>", f"bce{new}<Esc>"],
         idioms=[f"cw{new}<Esc>", f"ce{new}<Esc>", f"caw{new}<Esc>", f"ciW{new}<Esc>", f"cb{new}<Esc>", f"bcE{new}<Esc>"],
@@ -539,11 +607,13 @@ def rename_all_subst(win: Window, node: tree_sitter.Node, skill: str, lang: Lang
     old = _text(node)
     if len(old) < 3 or old in lang.keywords or not re.fullmatch(r"[A-Za-z_]\w*", old) or _seen(win, "subst", old):
         return
+    if old in _BUILTINS or _is_dunder(old):
+        return
     rx = re.compile(rf"\b{old}\b")
     hits = [(r, m.start()) for r, ln in enumerate(win.lines) for m in rx.finditer(ln)]
     if len(hits) < 3 or len({r for r, _ in hits}) < 2:
         return
-    new = _new_name(win, old, node.start_point)
+    new = _new_name(win, old, node, node.start_point)
     cursor = _away_from(win.lines, hits, len(old))
     if cursor is None:
         return
@@ -625,6 +695,532 @@ def copy_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
     )
 
 
+# Tier 5-8 templates ===============================================================================
+
+
+def append_each_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
+    """``<C-v>{n}j$A,<Esc>``: restore the trailing commas of a one-item-per-line collection (v.blockedit).
+
+    The start buffer is the source with the commas stripped from the item lines; the
+    expect is the source. ``:.,+{n}norm A,`` and ``A,<Esc>j.`` are alternates; with
+    four or more lines the block edit is the shortest.
+    """
+    item_rows = _item_rows(win, node)
+    if item_rows is None or not 4 <= len(item_rows) <= 12 or item_rows != list(range(item_rows[0], item_rows[-1] + 1)):
+        return
+    first, last = item_rows[0], item_rows[-1]
+    if _seen(win, f"append:{skill}", first):
+        return
+    lines = [ln[:-1] if r in item_rows else ln for r, ln in enumerate(win.lines)]
+    k = len(item_rows) - 1
+    down = f"{k}j" if k > 1 else "j"
+    noun = {"argument_list": "argument", "parameters": "parameter", "dictionary": "entry"}.get(node.type, "item")
+    yield Draft(
+        template="append_each_line", skill=skill, kind="edit",
+        task=f"Add the missing `,` at the end of each of these {k + 1} {noun} lines",
+        lines=lines, cursor=[first + 1, _indent(lines[first])], expect={"lines": win.lines},
+        variants=[f"<C-v>{down}$A,<Esc>"],
+        alternates=[f"V{down}:norm A,<CR>", f":.,+{k}norm A,<CR>", f":.,+{k}normal A,<CR>"],
+        idioms=["A,<Esc>" + "j." * k, "A,<Esc>" + "+." * k, f":.,+{k}s/$/,<CR>", f"<C-v>{down}A,<Esc>",
+                f"<C-v>{k + 1}j$A,<Esc>"],
+        typed=1, params={"text": ",", "n": k + 1},
+        target=[_range(r, 0, r, max(len(lines[r]) - 1, 0)) for r in item_rows], window=win,
+        tags=[node.type, "block-edit", "append"],
+        hints=[
+            {"trigger": "^A,<Esc>[j+]", "text": f"<C-v>{down}$ selects to the end of all {k + 1} lines; A, appends to each."},
+            {"trigger": "^<C-v>[0-9]*jA", "text": "Without $ the block ends at the cursor column; $ extends it to every line's end."},
+            {"trigger": "^:|^V", "text": ":norm works too; the block edit is shorter here."},
+            {"trigger": None, "text": f"<C-v>{down}$A,<Esc>: block-select to each line's end, append, Esc applies it to all."},
+        ],
+    )
+
+
+def prefix_each_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
+    """``<C-v>{n}jIself.<Esc>`` (v.blockedit) or ``V{n}j:norm Iself.<CR>`` (x.normal): put back the
+    ``self.`` that a run of 3+ attribute assignments lost (start = source with ``self.`` removed).
+    With three lines the block insert (10 keys) still beats ``Iself.<Esc>j.j.`` (11)."""
+    for run in _assignment_runs(win, node, 3):
+        run = run[:8]
+        rows = [a.start_point.row for a in run]
+        lefts = [a.child_by_field_name("left") for a in run]
+        col = _indent(win.lines[rows[0]])
+        if any(_text(left)[:5] != "self." or left.start_point.column != col for left in lefts):
+            continue
+        if _seen(win, f"prefix:{skill}", str(rows[0])):
+            continue
+        lines = [ln[:col] + ln[col + 5:] if r in rows else ln for r, ln in enumerate(win.lines)]
+        k = len(rows) - 1
+        down = f"{k}j" if k > 1 else "j"
+        target = [_range(r, col, r, col + 4) for r in rows]
+        task = f"Put `self.` back at the start of each of these {k + 1} assignments"
+        if skill == "v.blockedit":
+            yield Draft(
+                template="prefix_each_line", skill=skill, kind="edit", task=task,
+                lines=lines, cursor=[rows[0] + 1, col], expect={"lines": win.lines},
+                variants=[f"<C-v>{down}Iself.<Esc>"], alternates=[f"V{down}:norm Iself.<CR>"],
+                idioms=["Iself.<Esc>" + "j." * k, "Iself.<Esc>" + "+." * k, f":.,+{k}s/\\S/self.&<CR>"],
+                typed=5, params={"text": "self.", "n": k + 1}, target=target, window=win,
+                tags=["assignment", "block-edit", "insert"],
+                hints=[
+                    {"trigger": "^Iself", "text": f"<C-v>{down} selects a column on all {k + 1} lines; I inserts on every one."},
+                    {"trigger": "^:|^V", "text": ":norm works too; the block insert is shorter here."},
+                    {"trigger": None, "text": f"<C-v>{down}Iself.<Esc>: block-select the column, insert, Esc copies it to every line."},
+                ],
+            )
+        else:
+            yield Draft(
+                template="prefix_each_line", skill=skill, kind="ex", task=task,
+                lines=lines, cursor=[rows[0] + 1, col], expect={"lines": win.lines},
+                variants=[f"V{down}:norm Iself.<CR>", f":.,+{k}norm Iself.<CR>",
+                          f":{rows[0] + 1},{rows[-1] + 1}norm Iself.<CR>"],
+                alternates=[f":.,+{k}normal Iself.<CR>"],
+                idioms=[f"V{down}:s/\\S/self.&<CR>", f":.,+{k}s/\\S/self.&<CR>"],
+                typed=5, params={"text": "self.", "n": k + 1}, target=target, window=win,
+                tags=["assignment", "normal", "insert"],
+                hints=[
+                    {"trigger": "^Iself|j\\.", "text": f":norm Iself. runs I on every line of the range; V{down} selects the {k + 1} lines."},
+                    {"trigger": ":[^n]*s/", "text": "A substitute works too, but this drill is about :normal."},
+                    {"trigger": None, "text": f"V{down}:norm Iself.<CR>: select the lines, then run Iself. on each."},
+                ],
+            )
+        return
+
+
+def upper_constants(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
+    """``V{n}j:norm gUiw<CR>``: uppercase the names of consecutive module- or class-level assignments (x.normal)."""
+    if node.type == "block" and (node.parent is None or node.parent.type != "class_definition"):
+        return
+    for run in _assignment_runs(win, node, 3):
+        names = [_text(a.child_by_field_name("left")) for a in run]
+        if not all(re.fullmatch(r"[a-z][a-z0-9_]*[a-z0-9]", n) for n in names):
+            continue
+        rows = [a.start_point.row for a in run]
+        if _seen(win, "constants", rows[0]):
+            continue
+        k = len(rows) - 1
+        down = f"{k}j" if k > 1 else "j"
+        go = "^" if _indent(win.lines[rows[0]]) else ""  # :norm starts each line in column 0
+        expect = list(win.lines)
+        for r, name in zip(rows, names):
+            i = _indent(expect[r])
+            expect[r] = expect[r][:i] + name.upper() + expect[r][i + len(name):]
+        yield Draft(
+            template="upper_constants", skill=skill, kind="ex",
+            task=f"Turn these {k + 1} assignments into constants: uppercase each name",
+            lines=win.lines, cursor=[rows[0] + 1, _indent(win.lines[rows[0]])], expect={"lines": expect},
+            variants=[f"V{down}:norm {go}gUiw<CR>", f"V{down}:norm {go}gUe<CR>", f":.,+{k}norm {go}gUiw<CR>",
+                      f":{rows[0] + 1},{rows[-1] + 1}norm {go}gUiw<CR>"],
+            alternates=[f":.,+{k}normal {go}gUiw<CR>", f"V{down}:normal {go}gUiw<CR>"],
+            idioms=[f":.,+{k}s/\\w\\+/\\U&/<CR>", f":.,+{k}s/\\w\\+/\\U&<CR>", "gUiwj." + "j." * (k - 1)],
+            params={"n": k + 1},
+            target=[_range(r, _indent(win.lines[r]), r, _indent(win.lines[r]) + len(names[i]) - 1)
+                    for i, r in enumerate(rows)],
+            window=win, tags=["assignment", "normal", "case"],
+            hints=[
+                {"trigger": "^gU|j\\.", "text": f":norm runs gUiw on every line of the range; V{down} selects the {k + 1} lines."},
+                {"trigger": ":[^n]*s/", "text": "A substitute works too, but this drill is about :normal."},
+                {"trigger": None, "text": f"V{down}:norm {go}gUiw<CR>: select the lines, then run {go}gUiw on each."},
+            ],
+        )
+        return
+
+
+def delete_matching_lines(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
+    """``:g/pat/d<CR>``: delete every line that calls one function or is a comment (x.global, ex kind)."""
+    made = 0
+    for label, patterns, rows in _line_groups(win):
+        if not 3 <= len(rows) <= len(win.lines) - 4:
+            continue
+        valid = [p for p in patterns if _matching_rows(win.lines, p) == rows]
+        if not valid:
+            continue
+        variants = sorted((f":g/{p}/d<CR>" for p in valid), key=len)
+        pattern, shortest = patterns[-1], min(map(len, valid))
+        yield Draft(
+            template="delete_matching_lines", skill=skill, kind="ex",
+            task=f"Delete every {label} ({len(rows)} lines)",
+            lines=win.lines, cursor=[1, _indent(win.lines[0])],
+            expect={"lines": [ln for r, ln in enumerate(win.lines) if r not in rows]},
+            variants=variants, alternates=[v.replace(":g/", ":global/", 1) for v in variants[:1]],
+            typed=shortest, params={"pattern": pattern, "n": len(rows)},
+            target=[_range(r, 0, r, max(len(win.lines[r]) - 1, 0)) for r in rows], window=win,
+            tags=["global", "delete", "lines"],
+            hints=[
+                {"trigger": "dd|^[0-9]*[jk]", "text": f":g/pattern/d deletes all {len(rows)} lines in one command."},
+                {"trigger": "^:%?s/", "text": ":s edits text inside lines; :g/pattern/d removes the matching lines."},
+                {"trigger": None, "text": f"{variants[0][:-4]}: run :d on every line that matches the pattern."},
+            ],
+        )
+        made += 1
+        if made >= MAX_PER_WINDOW:
+            return
+
+
+def keep_matching_lines(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
+    """``:v/pat/d<CR>``: keep only the lines that match, e.g. an outline of ``def`` lines (x.global)."""
+    made = 0
+    for label, pattern in _keep_patterns(win):
+        rows = _matching_rows(win.lines, pattern)
+        drop = [r for r in range(len(win.lines)) if r not in rows]
+        if len(rows) < 2 or len(drop) < 4:
+            continue
+        valid = [pattern[:i] for i in range(1, len(pattern) + 1) if _matching_rows(win.lines, pattern[:i]) == rows]
+        variants = sorted((f":v/{p}/d<CR>" for p in valid), key=len)
+        shortest = min(map(len, valid))
+        yield Draft(
+            template="keep_matching_lines", skill=skill, kind="ex",
+            task=f"Delete every line except the {len(rows)} {label}",
+            lines=win.lines, cursor=[1, _indent(win.lines[0])],
+            expect={"lines": [win.lines[r] for r in rows]},
+            variants=variants, alternates=[v.replace(":v/", ":g!/", 1) for v in variants[:1]],
+            typed=shortest, params={"pattern": pattern, "n": len(rows)},
+            target=[_range(r, 0, r, max(len(win.lines[r]) - 1, 0)) for r in drop], window=win,
+            tags=["global", "invert", "lines"],
+            hints=[
+                {"trigger": "dd|^[0-9]*[jk]", "text": ":v/pattern/d deletes every line that does not match, in one command."},
+                {"trigger": "^:g/", "text": ":g runs on matching lines; :v (or :g!) runs on the lines that do not match."},
+                {"trigger": None, "text": f"{variants[0][:-4]}: delete every line that does not contain the pattern."},
+            ],
+        )
+        made += 1
+        if made >= MAX_PER_WINDOW:
+            return
+
+
+def rename_all_dot(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
+    """``*cgnNEW<Esc>`` then ``.`` per remaining match: rename every occurrence (x.lastsearch, a.dot)."""
+    old = _text(node)
+    if len(old) < 3 or old in lang.keywords or old in _BUILTINS or _is_dunder(old) or not re.fullmatch(r"[A-Za-z_]\w*", old):
+        return
+    if _seen(win, f"dot:{skill}", old):
+        return
+    rx = re.compile(rf"\b{old}\b")
+    hits = [(r, m.start()) for r, ln in enumerate(win.lines) for m in rx.finditer(ln)]
+    if not 3 <= len(hits) <= 8 or len({r for r, _ in hits}) < 2 or (node.start_point.row, node.start_point.column) != hits[0]:
+        return
+    new = _new_name(win, old, node, node.start_point, "dot")
+    row, c0 = hits[0]
+    col = c0 + pick(range(len(old)), win.key, node.start_point, "dotcur")
+    dots = "." * (len(hits) - 1)
+    yield Draft(
+        template="rename_all_dot", skill=skill, kind="edit",
+        task=f"Rename every `{old}` to `{new}` ({len(hits)} occurrences), one match at a time",
+        lines=win.lines, cursor=[row + 1, col], expect={"lines": [rx.sub(new, ln) for ln in win.lines]},
+        variants=[f"*cgn{new}<Esc>{dots}", f"#cgn{new}<Esc>{dots}", f"*Ncgn{new}<Esc>{dots}"],
+        alternates=[f"*ciw{new}<Esc>" + "n." * (len(hits) - 1), f"/\\<{old}\\><CR>cgn{new}<Esc>{dots}"],
+        idioms=[f":%s/{old}/{new}/g<CR>", f":%s/\\<{old}\\>/{new}/g<CR>", f"ciw{new}<Esc>" + "n." * (len(hits) - 1),
+                f"*Nciw{new}<Esc>" + "n." * (len(hits) - 1)],
+        typed=len(new), params={"old": old, "new": new, "n": len(hits)},
+        target=[_range(r, c, r, c + len(old) - 1) for r, c in hits], window=win, tags=["identifier", "gn", "dot"],
+        hints=[
+            {"trigger": "ciw|cw", "text": "cgn changes the next match of the last search, so . alone repeats it on the next one."},
+            {"trigger": "n\\.", "text": "With cgn the . finds the next match itself; no n needed between repeats."},
+            {"trigger": "^:", "text": ":%s works too; this drill is about * + cgn + ."},
+            {"trigger": None, "text": f"* searches for the word under the cursor; cgn{new}<Esc> changes a match; . repeats on the next."},
+        ],
+    )
+
+
+def join_lines(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
+    """``{n}J``: join a hanging-indent continuation (``foo(a,`` / ``    b)``) into one line (o.join)."""
+    r0, r1 = node.start_point.row, node.end_point.row
+    if r0 == r1:
+        yield from _join_split(win, node, skill)
+        return
+    n = r1 - r0 + 1
+    if not 2 <= n <= 6 or _seen(win, "join", str(r0)):
+        return
+    lines = win.lines
+    prose = _prose_rows(win)
+    if any(r in prose or "#" in lines[r] for r in range(r0, r1 + 1)):
+        return
+    if any(lines[r].rstrip().endswith(("(", "[", "{", "\\")) for r in range(r0, r1)):
+        return
+    if any(not lines[r].strip() or lines[r].lstrip()[0] in "]}" for r in range(r0 + 1, r1 + 1)):
+        return
+    joined = lines[r0]
+    for r in range(r0 + 1, r1 + 1):
+        nxt = lines[r].lstrip()
+        joined += nxt if nxt.startswith(")") or joined.endswith(" ") else " " + nxt
+    if len(joined) > 88:
+        return
+    keys = "J" if n == 2 else f"{n}J"
+    yield Draft(
+        template="join_lines", skill=skill, kind="edit",
+        task=f"Join these {n} lines into one",
+        lines=lines, cursor=[r0 + 1, _indent(lines[r0])], expect={"lines": lines[:r0] + [joined] + lines[r1 + 1:]},
+        variants=[keys], alternates=[*(["J" * (n - 1)] if n > 2 else ["2J"]), f"V{n - 1 if n > 2 else ''}jJ",
+                                     f":.,+{n - 1}j<CR>"],
+        idioms=["gJ", f"{n}gJ", "A<Del><Esc>", "$x"],
+        params={"n": n}, target=[_range(r, 0, r, max(len(lines[r]) - 1, 0)) for r in range(r0, r1 + 1)],
+        window=win, tags=[node.type, "join"],
+        hints=[
+            {"trigger": "^J+$", "text": f"A count joins them all at once: {n}J joins {n} lines."},
+            {"trigger": "<Del>|x|<BS>", "text": "J removes the line break and the indent and puts one space in between."},
+            {"trigger": None, "text": f"{keys}: join {n} lines, starting at the cursor line."},
+        ],
+    )
+
+
+def _join_split(win: Window, node: tree_sitter.Node, skill: str) -> Iterator[Draft]:
+    """join_lines on a one-line call or collection: the start buffer wraps it after commas
+    (hanging indent under the opening bracket); the expect is the source line."""
+    pair = _bracket_pair(node)
+    items = [c for c in node.named_children if c.type != "comment"]
+    row = node.start_point.row
+    line = win.lines[row]
+    if pair is None or len(items) < 2 or len(line) > 88 or "#" in line or row in _prose_rows(win):
+        return
+    if any(line[a.end_point.column:b.start_point.column] != ", " for a, b in zip(items, items[1:])):
+        return
+    if _seen(win, "join", str(row)):
+        return
+    oc = pair[0][1]
+    n = min(len(items), pick((2, 3, 3, 4), win.key, node.start_point, "joinn"))
+    cuts = [items[i].start_point.column for i in range(len(items) - n + 1, len(items))]
+    pad = " " * (oc + 1)
+    parts = [line[:cuts[0]].rstrip()] + [pad + line[a:b].rstrip() for a, b in zip(cuts, cuts[1:])] + [pad + line[cuts[-1]:]]
+    joined = parts[0]
+    for part in parts[1:]:
+        joined += " " + part.lstrip()
+    if joined != line or max(map(len, parts)) > 100:
+        return
+    lines = win.lines[:row] + parts + win.lines[row + 1:]
+    keys = "J" if n == 2 else f"{n}J"
+    yield Draft(
+        template="join_lines", skill=skill, kind="edit",
+        task=f"Join these {n} lines back into one",
+        lines=lines, cursor=[row + 1, _indent(line)], expect={"lines": win.lines},
+        variants=[keys], alternates=[*(["J" * (n - 1)] if n > 2 else ["2J"]), f"V{n - 1 if n > 2 else ''}jJ",
+                                     f":.,+{n - 1}j<CR>"],
+        idioms=["gJ", f"{n}gJ", "A<Del><Esc>", "$x"],
+        params={"n": n}, target=[_range(r, 0, r, max(len(lines[r]) - 1, 0)) for r in range(row, row + n)],
+        window=win, tags=[node.type, "join"],
+        hints=[
+            {"trigger": "^J+$", "text": f"A count joins them all at once: {n}J joins {n} lines."},
+            {"trigger": "<Del>|x|<BS>", "text": "J removes the line break and the indent and puts one space in between."},
+            {"trigger": None, "text": f"{keys}: join {n} lines, starting at the cursor line."},
+        ],
+    )
+
+
+def increment(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
+    """``{n}<C-a>`` / ``{n}<C-x>``: change a number by a count, cursor before it on the line (o.number)."""
+    text = _text(node)
+    if not re.fullmatch(r"[1-9]\d{0,3}|0", text):
+        return
+    row, c0, c1 = node.start_point.row, node.start_point.column, node.end_point.column
+    line = win.lines[row]
+    if row in _prose_rows(win) or (c0 and (line[c0 - 1].isalnum() or line[c0 - 1] in "_-.")):
+        return
+    if c1 < len(line) and (line[c1].isalnum() or line[c1] in "_."):
+        return
+    digits_before = [i for i in range(c0) if line[i].isdigit()]
+    col = max(_indent(line), digits_before[-1] + 1 if digits_before else 0)
+    if c0 - col < 3 or _seen(win, "number", f"{row}:{c0}"):
+        return
+    value, delta = int(text), pick(range(2, 10), win.key, node.start_point, "delta")
+    up = pick((True, True, False), win.key, node.start_point, "up") or value - delta < 0
+    new = str(value + delta if up else value - delta)
+    key = "<C-a>" if up else "<C-x>"
+    parent = node.parent
+    context = _text(parent) if parent is not None else ""
+    if parent is not None and parent.start_point.row == parent.end_point.row and len(context) <= 32 and context.count(text) == 1 and "`" not in context:
+        rel = c0 - parent.start_point.column
+        task = f"Change `{context}` to `{context[:rel]}{new}{context[rel + len(text):]}`"
+    elif len(re.findall(rf"(?<![\w.]){text}(?![\w.])", line)) == 1:
+        task = f"Change the `{text}` on this line to `{new}`"
+    else:
+        return
+    yield Draft(
+        template="increment", skill=skill, kind="edit", task=task,
+        lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, c0, c1, new)},
+        variants=[f"{delta}{key}"], alternates=[key * delta],
+        idioms=[f"f{text[0]}r{new}" if len(new) == len(text) == 1 else f"f{text[0]}ciw{new}<Esc>",
+                f"f{text[0]}cw{new}<Esc>", f"f{text[0]}s{new}<Esc>", f"t{text[0]}lr{new}" if len(new) == 1 else "w"],
+        params={"n": delta, "old": text, "new": new},
+        target=[_range(row, c0, row, c1 - 1)], window=win, tags=["number", "increment"],
+        hints=[
+            {"trigger": "^[0-9]*[fFtTwbe]", "text": f"{key} finds the next number on the line by itself; no need to move first."},
+            {"trigger": "r[0-9]|c[iw]|s[0-9]", "text": f"{delta}{key} does the arithmetic: no retyping, works for any number of digits."},
+            {"trigger": f"^({_js_escape(key)}){{2,}}", "text": f"A count does it in one go: {delta}{key}."},
+            {"trigger": None, "text": f"{delta}{key}: {'add' if up else 'subtract'} {delta} to the number at or after the cursor."},
+        ],
+    )
+
+
+def duplicate_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
+    """``yy{k}jp`` (o.yank) / ``yy{k}kP`` (o.put): copy a one-line statement near its siblings."""
+    options = _line_options(win, node)
+    if options is None:
+        return
+    if skill == "o.put":
+        options = [o for o in options if not o[2]]
+    else:
+        options = [o for o in options if o[2]]
+        if node.start_point.row + 1 < len(win.lines):  # a copy below the last line has nothing to highlight
+            options.append((node.start_point.row, 0, True))
+    if not options:
+        return
+    row, k, down = pick(options, win.key, node.start_point, f"yank:{skill}")
+    lines = win.lines
+    other = row + k if down else row - k
+    dest = other + 1 if down else other
+    expect = lines[:dest] + [lines[row]] + lines[dest:]
+    quote = _clip(lines[other].strip())
+    if k == 0:
+        variants, task = ["yyp"], "Duplicate this line (the copy goes right below it)"
+        alternates = [":t.<CR>", "yyjP"]
+    elif down:
+        move = f"{k}j" if k > 1 else "j"
+        variants, task = [f"yy{move}p", f"yy{k}+p"], f"Copy this line to just below `{quote}`"
+        alternates = [f":t+{k}<CR>", f"yy{k + 1}jP"]
+    else:
+        move = f"{k}k" if k > 1 else "k"
+        variants, task = [f"yy{move}P", f"yy{k}-P"], f"Copy this line to just above `{quote}`"
+        alternates = [f":t-{k + 1}<CR>", f"yy{k + 1}kp"]
+    yield Draft(
+        template="duplicate_line", skill=skill, kind="edit", task=task,
+        lines=lines, cursor=[row + 1, _indent(lines[row])], expect={"lines": expect},
+        variants=variants, alternates=alternates, idioms=["Yp", "YP", "ddpP", "ddPp"],
+        target=[_range(r, 0, r, max(len(lines[r]) - 1, 0)) for r in sorted({row, other, min(dest, len(lines) - 1)})],
+        window=win, tags=["line", "yank", "put"],
+        hints=[
+            {"trigger": "^Y", "text": "In Neovim Y yanks to the end of the line (y$), not the whole line; yy yanks the line."},
+            {"trigger": "^dd", "text": "yy copies without deleting the original."},
+            {"trigger": "^o|^O", "text": "yy then p copies the line exactly; no retyping."},
+            {"trigger": None, "text": "yy yanks the line; p puts it below the cursor line, P above."},
+        ],
+    )
+
+
+def record_macro(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
+    """``qa f=Wi{w}(<Esc>A)<Esc>+ q {n-1}@a``: wrap the value of 4+ sibling assignments in a call (a.macro)."""
+    for run in _assignment_runs(win, node, 4):
+        run = run[:8]
+        rows = [a.start_point.row for a in run]
+        rights = [a.child_by_field_name("right") for a in run]
+        ok = True
+        for a, right, r in zip(run, rights, rows):
+            line = win.lines[r]
+            eq = line.find("=", _indent(line))
+            if (right is None or right.end_point.column != len(line) or right.start_point.column != eq + 2
+                    or line[eq + 1] != " " or line[eq - 1] != " "):
+                ok = False
+        if not ok or _seen(win, "macro", rows[0]):
+            continue
+        kinds = {r.type for r in rights}
+        wrapper = "float" if kinds <= {"integer"} else "_" if kinds <= {"string"} else "str"
+        if any(_text(r).startswith(f"{wrapper}(") for r in rights):
+            continue
+        n = len(rows)
+        expect = list(win.lines)
+        for right, r in zip(rights, rows):
+            c0 = right.start_point.column
+            expect[r] = expect[r][:c0] + f"{wrapper}({expect[r][c0:]})"
+        body = f"f=Wi{wrapper}(<Esc>A)<Esc>+"
+        what = "string" if wrapper == "_" else "value"
+        yield Draft(
+            template="record_macro", skill=skill, kind="edit",
+            task=f"Wrap the {what} of each of these {n} assignments in `{wrapper}(...)`",
+            lines=win.lines, cursor=[rows[0] + 1, _indent(win.lines[rows[0]])], expect={"lines": expect},
+            variants=[f"qa{body}q{n - 1}@a", f"qq{body}q{n - 1}@q"],
+            alternates=[f"qa{body}q@a" + "@@" * (n - 2), f"qa{body}q:.,+{n - 2}norm @a<CR>"],
+            idioms=[f":.,+{n - 1}s/= \\zs.*/{wrapper}(&)/<CR>", f":.,+{n - 1}s/= \\(.*\\)/= {wrapper}(\\1)/<CR>"],
+            typed=len(wrapper) + 2, params={"n": n, "text": wrapper},
+            target=[_range(r, right.start_point.column, r, len(win.lines[r]) - 1) for right, r in zip(rights, rows)],
+            window=win, tags=["assignment", "macro"],
+            hints=[
+                {"trigger": "^f=W?i.*<Esc>A.*<Esc>[+j]f", "text": f"Record the edit once (qa ... q) and replay it: {n - 1}@a does the other {n - 1} lines."},
+                {"trigger": "^qa[^+j]*q", "text": "End the recording on the next line (+) so each replay starts where it should."},
+                {"trigger": "^:", "text": "A substitute works too; this drill is about recording a macro."},
+                {"trigger": None, "text": f"qa{body}q records one line's edit; {n - 1}@a replays it on the rest."},
+            ],
+        )
+        return
+
+
+def delete_block(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
+    """``dap`` on a paragraph-shaped statement (t.para), or ``di{`` / ``di[`` / ``di(`` on a multi-line
+    collection whose brackets sit on their own lines (t.brace, t.bracket, t.paren)."""
+    if skill == "t.para":
+        yield from _delete_paragraph(win, node, skill)
+        return
+    pair = _bracket_pair(node)
+    if pair is None:
+        return
+    (orow, ocol, o), (crow, ccol, c) = pair
+    lines = win.lines
+    if crow - orow < 3 or lines[orow].rstrip()[-1:] != o or _indent(lines[crow]) != ccol or orow in _prose_rows(win):
+        return
+    strings = _string_cells(win)
+    cols = [(r, cc) for r, cc in _depth0_positions(win, (orow, ocol), (crow, ccol), o, c)
+            if orow < r < crow and (r, cc) not in strings]
+    if not cols:
+        return
+    row, col = pick(cols, win.key, node.start_point, "blk")
+    n = crow - orow - 1
+    noun = {"(": "argument", "[": "item", "{": "entry"}[o]
+    yield Draft(
+        template="delete_block", skill=skill, kind="edit",
+        task=f"Delete the {_plural(n, noun + ' line')} of this {_NOUNS.get(node.type, 'block')}, keeping the `{o}` and `{c}` lines",
+        lines=lines, cursor=[row + 1, col], expect={"lines": lines[:orow + 1] + lines[crow:]},
+        variants=[f"di{o}"], alternates=[f"di{a}" for a in _ALIASES[o]],
+        idioms=["dap", "dip", "d}", "d{", f"{n}dd", "dd", f"[{o}jd]{c}" if o in "({" else "dd", f"d{n - 1}j", f"d{n - 1}k"],
+        params={"open": o, "close": c, "n": n}, target=[_range(orow + 1, 0, crow - 1, max(len(lines[crow - 1]) - 1, 0))],
+        window=win, tags=[node.type, "delete", "block"],
+        hints=[
+            {"trigger": "^[0-9]*dd|^d[0-9]*[jk]|^V", "text": f"di{o} deletes every line between the brackets from anywhere inside."},
+            {"trigger": "^\\[|^[0-9]*[jk]", "text": f"No need to move: di{o} finds the enclosing {o}{c} itself."},
+            {"trigger": None, "text": f"di{o}: when the {o} ends its line and the {c} starts its own, the inner lines are deleted whole."},
+        ],
+    )
+
+
+def _delete_paragraph(win: Window, node: tree_sitter.Node, skill: str) -> Iterator[Draft]:
+    if node.parent is not None and node.parent.type == "decorated_definition":
+        node = node.parent
+    lines = win.lines
+    r0, r1 = node.start_point.row, node.end_point.row
+    n = r1 - r0 + 1
+    blank = [not ln.strip() for ln in lines]
+    if not 3 <= n <= 20 or len(lines) - n < 4 or any(blank[r0:r1 + 1]):
+        return
+    if (r0 > 0 and not blank[r0 - 1]) or (r1 + 1 < len(lines) and not blank[r1 + 1]) or r1 + 1 >= len(lines):
+        return
+    if _seen(win, "para", str(r0)):
+        return
+    end = r1 + 1
+    while end < len(lines) and blank[end]:
+        end += 1
+    row = pick(range(r0 + 1, r1 + 1), win.key, node.start_point, "para")
+    blanks = "blank line" if end - r1 == 2 else f"{end - r1 - 1} blank lines"
+    first = r0  # the highlight takes in the blank lines above too: a diff may show those as deleted
+    while first > 0 and blank[first - 1]:
+        first -= 1
+    inner = node.child_by_field_name("definition") or node
+    name = inner.child_by_field_name("name")
+    what = {"function_definition": f"the function `{_text(name)}`" if name else "this function",
+            "class_definition": f"the class `{_text(name)}`" if name else "this class",
+            "if_statement": "this `if` statement", "for_statement": "this `for` loop",
+            "while_statement": "this `while` loop", "with_statement": "this `with` block"}.get(inner.type, "this block")
+    yield Draft(
+        template="delete_block", skill=skill, kind="edit",
+        task=f"Delete {what} ({n} lines) and the {blanks} after it, from where the cursor is",
+        lines=lines, cursor=[row + 1, _indent(lines[row])], expect={"lines": lines[:r0] + lines[end:]},
+        variants=["dap"], alternates=["Vapd"],
+        idioms=["{d}", "d}", "{dap", "dip", f"{n}dd", "dd", f"d{n}j", f"d{row - r0}k", "d{"],
+        params={"n": n}, target=[_range(first, 0, end - 1, max(len(lines[end - 1]) - 1, 0))], window=win,
+        tags=[inner.type, "paragraph", "delete"],
+        hints=[
+            {"trigger": "^[0-9]*[jk{]|^gg", "text": "ap works from any line of the paragraph; no need to move to its start."},
+            {"trigger": "^[0-9]*dd|^d[0-9]*[jk]", "text": "dap deletes the whole paragraph plus the blank line after it, without counting lines."},
+            {"trigger": "^dip", "text": "ip leaves the blank line behind; ap takes it too."},
+            {"trigger": None, "text": "dap: delete a paragraph (the lines between blank lines) and the blank line after it."},
+        ],
+    )
+
+
 # Line templates ===================================================================================
 
 
@@ -645,7 +1241,8 @@ def goto_line_rel(win: Window, skill: str, lang: Language) -> Iterator[Draft]:
         dup = sum(ln.strip() == lines[t].strip() for ln in lines) > 1
         yield Draft(
             template="goto_line_rel", skill=skill, kind="cursor",
-            task=f"Move the cursor to the highlighted line `{_clip(lines[t].strip())}`" + (" (the highlighted one)" if dup else ""),
+            task=("Move the cursor to the highlighted line" if dup or "`" in lines[t]
+                  else f"Move the cursor to the highlighted line `{_clip(lines[t].strip())}`"),
             lines=lines, cursor=[s + 1, col], expect={"cursor": [t + 1, col]},
             variants=[motion], alternates=[alt], idioms=list(CURSOR_IDIOMS),
             target=[_range(t, 0, t, len(lines[t]) - 1)], window=win, tags=["relative-line"],
@@ -700,6 +1297,10 @@ NODE_TEMPLATES: Final[dict[str, NodeTemplate]] = {
     "jump_match": jump_match, "jump_block_end": jump_block_end, "delete_trailing_comment": delete_trailing_comment,
     "delete_lines": delete_lines, "indent_block": indent_block, "upper_word": upper_word, "upper_inner": upper_inner,
     "rename_here": rename_here, "rename_all_subst": rename_all_subst, "move_line": move_line, "copy_line": copy_line,
+    "append_each_line": append_each_line, "prefix_each_line": prefix_each_line, "upper_constants": upper_constants,
+    "delete_matching_lines": delete_matching_lines, "keep_matching_lines": keep_matching_lines,
+    "rename_all_dot": rename_all_dot, "join_lines": join_lines, "increment": increment,
+    "duplicate_line": duplicate_line, "record_macro": record_macro, "delete_block": delete_block,
 }
 LINE_TEMPLATES: Final[dict[str, LineTemplate]] = {"goto_line_rel": goto_line_rel, "find_char": find_char}
 
@@ -813,11 +1414,143 @@ def _seen(win: Window, kind: str, name: str) -> bool:
     return False
 
 
-def _new_name(win: Window, old: str, *key: object) -> str:
+def _new_name(win: Window, old: str, node: tree_sitter.Node | None, *key: object) -> str:
+    """A fresh name for ``old``: same role (callable, collection, count, ...) and case style."""
     words = win.cache.get("words")
     if words is None:
         words = win.cache["words"] = set(re.findall(r"\w+", "\n".join(win.lines)))
-    return pick([n for n in NAMES if n not in words and n != old], win.key, old, *key)
+    role = _role(node, old)
+    for pool in (ROLE_NAMES[role], ROLE_NAMES["any"]):
+        choices = [n for n in (_styled(w, old) for w in pool) if n not in words and n != old and n not in _BUILTINS]
+        if choices:
+            return pick(choices, win.key, old, *key)
+    return _styled("new_" + old.lower().strip("_"), old)
+
+
+def _role(node: tree_sitter.Node | None, name: str) -> str:
+    """What an identifier names, for picking a replacement that reads like a real rename."""
+    parent = node.parent if node is not None else None
+    if parent is not None:
+        if parent.type in ("function_definition", "class_definition") and parent.child_by_field_name("name") == node:
+            return "call" if parent.type == "function_definition" else "class"
+        if parent.type == "call" and parent.child_by_field_name("function") == node:
+            return "class" if name[:1].isupper() and not name.isupper() else "call"
+    if name[:1].isupper() and not name.isupper():
+        return "class"
+    parts = [p.lower() for p in re.findall(r"[A-Z]+(?![a-z])|[A-Z]?[a-z0-9]+", name)]
+    last = parts[-1] if parts else ""
+    for role, vocabulary in _ROLE_WORDS.items():
+        if last in vocabulary:
+            return role
+    if len(last) > 3 and last.endswith("s") and not last.endswith("ss"):
+        return "many"
+    return "any"
+
+
+def _styled(snake: str, old: str) -> str:
+    """``snake`` in the case style of ``old`` (UPPER_CASE, CamelCase, camelCase, snake_case)."""
+    lead = old[:len(old) - len(old.lstrip("_"))]
+    core = old.lstrip("_")
+    parts = snake.split("_")
+    if core.isupper():
+        out = snake.upper()
+    elif core[:1].isupper():
+        out = "".join(p.capitalize() for p in parts)
+    elif "_" not in core and any(ch.isupper() for ch in core):
+        out = parts[0] + "".join(p.capitalize() for p in parts[1:])
+    else:
+        out = snake
+    return lead + out
+
+
+def _plural(n: int, noun: str) -> str:
+    return f"{n} {noun}" if n == 1 else f"{n} {noun}s"
+
+
+def _is_dunder(name: str) -> bool:
+    return len(name) > 4 and name.startswith("__") and name.endswith("__")
+
+
+def _the(win: Window, node: tree_sitter.Node, noun: str) -> str:
+    """'the string `'abc'`' when the node can be quoted, else 'this string' (the highlight shows it)."""
+    excerpt = _excerpt(win, node)
+    return f"the {noun} {excerpt}" if excerpt else f"this {noun}"
+
+
+def _fit_string(inner: str, *key: object) -> str:
+    if "%s" in inner or "{}" in inner:
+        pool = ("missing %s", "unknown %s", "bad value: %s") if "%s" in inner else ("missing {}", "unknown {}")
+    elif " " in inner.strip():
+        pool = MESSAGE_STRINGS
+    else:
+        pool = WORD_STRINGS
+    return _pick_other(pool, inner, *key)
+
+
+def _fit_value(win: Window, node: tree_sitter.Node, salt: str) -> str | None:
+    """Replacement source text of the same kind as ``node``: a string for a string, a name for a name."""
+    t, text, key = node.type, _text(node), (win.key, node.start_point, salt)
+    if "\n" in text:
+        return None
+    if t == "string":
+        kids = node.children
+        if not kids or kids[0].type != "string_start" or any(k.type == "interpolation" for k in kids):
+            return None
+        start = _text(kids[0])
+        q = start[-1:]
+        if q not in "'\"" or start.endswith(q * 3) or "\\" in text:
+            return None
+        return f"{start}{_fit_string(text[len(start):-1], *key)}{q}"
+    if t == "integer" or (t == "unary_operator" and re.fullmatch(r"-\d+", text)):
+        return _pick_other(INT_TEXTS, text, *key)
+    if t == "float":
+        return _pick_other(FLOAT_TEXTS, text, *key)
+    if t == "identifier":
+        return None if text in _BUILTINS or _is_dunder(text) else _new_name(win, text, node, *key)
+    if t == "attribute":
+        obj, attr = node.child_by_field_name("object"), node.child_by_field_name("attribute")
+        if obj is None or attr is None or obj.type != "identifier":
+            return None
+        return f"{_text(obj)}.{_new_name(win, _text(attr), attr, *key)}"
+    return RHS_BY_TYPE.get(t)
+
+
+def _inner_text(win: Window, node: tree_sitter.Node, inner: str) -> str | None:
+    """New contents for change_inner that fit the node, or None when nothing reads naturally."""
+    t, key = node.type, (win.key, node.start_point, "ci")
+    items = [c for c in node.named_children if c.type != "comment"]
+    if t == "string":
+        return None if _REGEXISH.search(inner) else _fit_string(inner, *key)
+    if t in ("interpolation", "parenthesized_expression"):
+        if len(items) != 1 or (t == "interpolation" and items[0].type not in ("identifier", "attribute")):
+            return None  # an f-string field holding a call reads oddly as "change it to None"
+        if items[0].type == "attribute":  # `{self.numer}` -> `{total}`: `self.x` -> `self.y` is a partial edit
+            attr = items[0].child_by_field_name("attribute")
+            return _new_name(win, _text(attr), attr, *key) if attr is not None else None
+        return _fit_value(win, items[0], "ci")
+    if t == "subscript":
+        index = node.child_by_field_name("subscript")
+        if index is None or len(items) != 2:
+            return None
+        return _pick_other(SLICE_TEXTS, inner, *key) if index.type == "slice" else _fit_value(win, index, "ci")
+    if t == "parameters":
+        names = [_text(i) for i in items]
+        if len(items) < 2 or any(i.type != "identifier" for i in items) or names[0] in ("self", "cls"):
+            return None
+        return ", ".join(reversed(names))
+    if t in ("argument_list", "tuple", "list", "set", "dictionary"):
+        kinds = {i.type == "keyword_argument" for i in items}
+        if any(i.type in ("list_splat", "dictionary_splat", "parenthesized_list_splat") for i in items) or len(kinds) > 1:
+            return None
+        texts = [_text(i) for i in items]
+        if len(items) >= 2 and len(set(texts)) == len(texts):
+            return ", ".join(reversed(texts))
+        if len(items) == 1 and t != "dictionary":
+            return _fit_value(win, items[0], "ci")
+        return _pick_other(BRACE_TEXTS, inner, *key) if t == "dictionary" else None
+    if t in ("dictionary_comprehension", "set_comprehension"):
+        return _pick_other(BRACE_TEXTS, inner, *key)
+    return None
 
 
 def _inner_span(win: Window, node: tree_sitter.Node) -> tuple[int, int, int, str] | None:
@@ -929,6 +1662,13 @@ def _away_from(lines: list[str], hits: list[tuple[int, int]], width: int) -> tup
 
 def _line_move(win: Window, node: tree_sitter.Node, salt: str) -> tuple[int, int, bool] | None:
     """(row, distance, down) for moving/copying a one-line statement among one-line siblings."""
+    options = _line_options(win, node)
+    return pick(options, win.key, node.start_point, salt) if options else None
+
+
+def _line_options(win: Window, node: tree_sitter.Node) -> list[tuple[int, int, bool]] | None:
+    """Every (row, distance 1-3, down) move of a one-line statement past one-line siblings;
+    None when the node is not a one-line statement in a block."""
     parent = node.parent
     if parent is None or parent.type not in ("block", "module", "decorated_definition"):
         return None
@@ -943,5 +1683,118 @@ def _line_move(win: Window, node: tree_sitter.Node, salt: str) -> tuple[int, int
             options.append((row, k, True))
         if all(row - i in rows for i in range(1, k + 1)):
             options.append((row, k, False))
-    options = [o for o in options if win.lines[o[0] + (o[1] if o[2] else -o[1])].strip() != win.lines[row].strip()]
-    return pick(options, win.key, node.start_point, salt) if options else None
+    return [o for o in options if win.lines[o[0] + (o[1] if o[2] else -o[1])].strip() != win.lines[row].strip()
+            and "`" not in win.lines[o[0] + (o[1] if o[2] else -o[1])]]
+
+
+def _item_rows(win: Window, node: tree_sitter.Node) -> list[int] | None:
+    """Rows of a collection written one item per line, each line ``item,``, brackets on their own lines."""
+    pair = _bracket_pair(node)
+    if pair is None:
+        return None
+    (orow, _, o), (crow, ccol, _) = pair
+    lines = win.lines
+    if crow - orow < 2 or lines[orow].rstrip()[-1:] != o or _indent(lines[crow]) != ccol:
+        return None
+    items = node.named_children
+    rows = []
+    for i, item in enumerate(items):
+        r = item.start_point.row
+        if item.type == "comment" or item.end_point.row != r or item.start_point.column != _indent(lines[r]):
+            return None
+        rest = lines[r][item.end_point.column:]
+        if rest == ",":
+            rows.append(r)
+        elif i < len(items) - 1 or rest:
+            return None
+    item_rows = [it.start_point.row for it in items]
+    return rows if item_rows == list(range(orow + 1, crow)) else None
+
+
+def _assignment_runs(win: Window, node: tree_sitter.Node, min_len: int) -> Iterator[list[tree_sitter.Node]]:
+    """Runs of >= min_len one-line ``name = value`` statements on consecutive rows, as assignment nodes."""
+    run: list[tree_sitter.Node] = []
+    for kid in [*node.named_children, None]:
+        assign = None
+        if kid is not None and kid.type == "expression_statement" and kid.named_child_count == 1:
+            a = kid.named_children[0]
+            left = a.child_by_field_name("left")
+            if (a.type == "assignment" and left is not None and left.type in ("identifier", "attribute")
+                    and a.child_by_field_name("right") is not None and kid.start_point.row == kid.end_point.row
+                    and "#" not in win.lines[kid.start_point.row]):
+                assign = a
+        if assign is not None and (not run or assign.start_point.row == run[-1].start_point.row + 1):
+            run.append(assign)
+            continue
+        if len(run) >= min_len:
+            yield run
+        run = [assign] if assign is not None else []
+
+
+def _vim_regex(pattern: str) -> re.Pattern:
+    """Python equivalent of a small magic-mode Vim pattern: literals, ``.``, ``*``, ``^``, ``\\s``."""
+    out, i = [], 0
+    while i < len(pattern):
+        ch = pattern[i]
+        if ch == "\\" and i + 1 < len(pattern):
+            out.append({"s": r"\s", "<": r"\b", ">": r"\b"}.get(pattern[i + 1], re.escape(pattern[i + 1])))
+            i += 2
+            continue
+        if ch == "$" and i == len(pattern) - 1:
+            out.append("$")
+        else:
+            out.append("." if ch == "." else "*" if ch == "*" else "^" if ch == "^" and i == 0 else re.escape(ch))
+        i += 1
+    return re.compile("".join(out))
+
+
+def _matching_rows(lines: list[str], pattern: str) -> list[int]:
+    rx = _vim_regex(pattern)
+    return [r for r, ln in enumerate(lines) if rx.search(ln)]
+
+
+def _line_groups(win: Window) -> list[tuple[str, list[str], list[int]]]:
+    """(label, candidate patterns with the full one last, rows) for :g drills: lines that are one
+    call statement of the same function, and comment-only lines."""
+    groups: dict[str, list[int]] = {}
+    stack = [win.root]
+    while stack:
+        n = stack.pop()
+        stack.extend(n.named_children)
+        if n.type != "expression_statement" or n.named_child_count != 1 or n.start_point.row != n.end_point.row:
+            continue
+        call = n.named_children[0]
+        fn = call.child_by_field_name("function") if call.type == "call" else None
+        row = n.start_point.row
+        if fn is None or not re.fullmatch(r"[A-Za-z_][\w.]*", _text(fn)) or n.end_point.column != len(win.lines[row]):
+            continue
+        groups.setdefault(_text(fn), []).append(row)
+    out = [(f"line that calls `{fn}(...)`", [fn[:i] for i in range(1, len(fn) + 1)], sorted(rows))
+           for fn, rows in sorted(groups.items())]
+    lines = win.lines
+    comments = [r for r, ln in enumerate(lines) if ln.lstrip().startswith("#")]
+    if comments:
+        out.append(("comment-only line", ["#", "^#", "^ *#", "^\\s*#"], comments))
+    blank = [r for r, ln in enumerate(lines) if not ln]
+    if blank and all(ln == ln.rstrip() for ln in lines):
+        out.append(("blank line", ["^$"], blank))
+    prose = _prose_rows(win)
+    docs = [r for r, ln in enumerate(lines) if _ONE_LINE_DOC.fullmatch(ln) and r not in prose]
+    if docs:
+        q = lines[docs[0]].strip()[:3]
+        out.append(("one-line docstring", [q[:i] for i in range(1, 4)], docs))
+    for word in ("assert", "import"):
+        rows = [r for r, ln in enumerate(lines) if ln.lstrip().startswith(word + " ")]
+        if rows:
+            out.append((f"`{word}` line", [word[:i] for i in range(1, len(word) + 1)], rows))
+    return out
+
+
+def _keep_patterns(win: Window) -> list[tuple[str, str]]:
+    """(label, pattern) for :v drills: keep an outline of definitions, returns or one call."""
+    out = [("`def` lines", "def "), ("`return` lines", "return "), ("`import` lines", "import "),
+           ("`class` lines", "class ")]
+    out += [(label.replace("line that calls", "lines that call"), patterns[-1])
+            for label, patterns, rows in _line_groups(win) if label.startswith("line that calls") and len(rows) >= 2]
+    return out
+

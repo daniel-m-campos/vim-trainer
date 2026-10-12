@@ -3,7 +3,7 @@
   "skill": "t.quote",
   "lang": "python",
   "kind": "edit",
-  "task": "Delete everything inside this string `'The list is empty.'`, keeping the ''",
+  "task": "Delete everything inside the string `'The list is empty.'`, keeping the quotes",
   "start": {
     "lines": [
       "class LinkedList:",
@@ -89,7 +89,7 @@
   "par": {
     "keys": "di'",
     "count": 3,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [],
   "hints": [

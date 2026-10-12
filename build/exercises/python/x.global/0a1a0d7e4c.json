@@ -1,0 +1,215 @@
+{
+  "id": "py/x.global/0a1a0d7e4c",
+  "skill": "x.global",
+  "lang": "python",
+  "kind": "ex",
+  "task": "Delete every blank line (8 lines)",
+  "start": {
+    "lines": [
+      "# validate path of rectangle",
+      "def validate_rect(rectangle, item):",
+      "    # validate connection at every corner",
+      "    # with neighbours on the same line and col",
+      "    for idx, _ in enumerate(rectangle):",
+      "        line = same_line(rectangle[idx].idx, rectangle[0:idx] + rectangle[idx + 1:])",
+      "        column = same_col(rectangle[idx].jdx, rectangle[0:idx] + rectangle[idx + 1:])",
+      "",
+      "        if not path(rectangle[idx], line, item) or not path(rectangle[idx], column, item):",
+      "            return False",
+      "",
+      "    return True",
+      "",
+      "",
+      "# count number of rectangles inside ASCII in input lines",
+      "def rectangles(strings=''):",
+      "    rectangle_total = 0",
+      "    # test empty str",
+      "    if not strings:",
+      "        return rectangle_total",
+      "",
+      "    corners = search_corners(strings)",
+      "",
+      "    # no corners in str",
+      "    if not corners:",
+      "        return rectangle_total",
+      "",
+      "    # all combinations of 4 corners",
+      "    quartets = list(itertools.combinations(corners, r=4))",
+      "    paths = (quartet for quartet in quartets if possible_rect(quartet))",
+      "",
+      "    # validate paths",
+      "    for idx in paths:",
+      "        if validate_rect(idx, strings):",
+      "            rectangle_total += 1",
+      "    return rectangle_total"
+    ],
+    "cursor": [
+      1,
+      0
+    ]
+  },
+  "expect": {
+    "lines": [
+      "# validate path of rectangle",
+      "def validate_rect(rectangle, item):",
+      "    # validate connection at every corner",
+      "    # with neighbours on the same line and col",
+      "    for idx, _ in enumerate(rectangle):",
+      "        line = same_line(rectangle[idx].idx, rectangle[0:idx] + rectangle[idx + 1:])",
+      "        column = same_col(rectangle[idx].jdx, rectangle[0:idx] + rectangle[idx + 1:])",
+      "        if not path(rectangle[idx], line, item) or not path(rectangle[idx], column, item):",
+      "            return False",
+      "    return True",
+      "# count number of rectangles inside ASCII in input lines",
+      "def rectangles(strings=''):",
+      "    rectangle_total = 0",
+      "    # test empty str",
+      "    if not strings:",
+      "        return rectangle_total",
+      "    corners = search_corners(strings)",
+      "    # no corners in str",
+      "    if not corners:",
+      "        return rectangle_total",
+      "    # all combinations of 4 corners",
+      "    quartets = list(itertools.combinations(corners, r=4))",
+      "    paths = (quartet for quartet in quartets if possible_rect(quartet))",
+      "    # validate paths",
+      "    for idx in paths:",
+      "        if validate_rect(idx, strings):",
+      "            rectangle_total += 1",
+      "    return rectangle_total"
+    ]
+  },
+  "par": {
+    "keys": ":g/^$/d<CR>",
+    "count": 8,
+    "verified": "nvim 0.12.5 2026-10-12"
+  },
+  "alternates": [
+    ":global/^$/d<CR>"
+  ],
+  "hints": [
+    {
+      "trigger": "dd|^[0-9]*[jk]",
+      "text": ":g/pattern/d deletes all 8 lines in one command."
+    },
+    {
+      "trigger": "^:%?s/",
+      "text": ":s edits text inside lines; :g/pattern/d removes the matching lines."
+    },
+    {
+      "trigger": null,
+      "text": ":g/^$/d: run :d on every line that matches the pattern."
+    }
+  ],
+  "tags": [
+    "global",
+    "delete",
+    "lines"
+  ],
+  "target": [
+    {
+      "start": [
+        8,
+        0
+      ],
+      "end": [
+        8,
+        0
+      ]
+    },
+    {
+      "start": [
+        11,
+        0
+      ],
+      "end": [
+        11,
+        0
+      ]
+    },
+    {
+      "start": [
+        13,
+        0
+      ],
+      "end": [
+        13,
+        0
+      ]
+    },
+    {
+      "start": [
+        14,
+        0
+      ],
+      "end": [
+        14,
+        0
+      ]
+    },
+    {
+      "start": [
+        21,
+        0
+      ],
+      "end": [
+        21,
+        0
+      ]
+    },
+    {
+      "start": [
+        23,
+        0
+      ],
+      "end": [
+        23,
+        0
+      ]
+    },
+    {
+      "start": [
+        27,
+        0
+      ],
+      "end": [
+        27,
+        0
+      ]
+    },
+    {
+      "start": [
+        31,
+        0
+      ],
+      "end": [
+        31,
+        0
+      ]
+    }
+  ],
+  "template": "delete_matching_lines",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/rectangles/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      76,
+      111
+    ]
+  },
+  "emulator": {
+    "vscodevim": "partial",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "pattern": "^$",
+    "n": 8
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 46,
+  "reviewed": false
+}

@@ -3,7 +3,7 @@
   "skill": "o.case",
   "lang": "python",
   "kind": "edit",
-  "task": "Uppercase the identifier `player` under the cursor",
+  "task": "Make `player` a constant name: uppercase it to `PLAYER`",
   "start": {
     "lines": [
       "def check_player_is_winner(self, player):",
@@ -53,7 +53,7 @@
   "par": {
     "keys": "gUiw",
     "count": 4,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "viwU",

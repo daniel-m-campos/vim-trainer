@@ -3,7 +3,7 @@
   "skill": "t.paren",
   "lang": "python",
   "kind": "edit",
-  "task": "Delete everything inside this tuple `(current_node.value, current_node.suc...`, keeping the ()",
+  "task": "Delete everything inside the tuple `(current_node.value, current_node.suc...`, keeping the parentheses",
   "start": {
     "lines": [
       "def __init__(self):",
@@ -93,7 +93,7 @@
   "par": {
     "keys": "di(",
     "count": 3,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "di)",

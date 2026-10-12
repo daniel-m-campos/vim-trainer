@@ -3,7 +3,7 @@
   "skill": "o.case",
   "lang": "python",
   "kind": "edit",
-  "task": "Uppercase the identifier `start_date` under the cursor",
+  "task": "Make `start_date` a constant name: uppercase it to `START_DATE`",
   "start": {
     "lines": [
       "from datetime import datetime, timedelta",
@@ -79,7 +79,7 @@
   "par": {
     "keys": "gUiw",
     "count": 4,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "viwU",

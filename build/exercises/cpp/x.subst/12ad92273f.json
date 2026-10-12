@@ -1,0 +1,232 @@
+{
+  "id": "cpp/x.subst/12ad92273f",
+  "skill": "x.subst",
+  "lang": "cpp",
+  "kind": "ex",
+  "task": "Rename every `number` to `limit` (9 occurrences)",
+  "start": {
+    "lines": [
+      "const number_t one_trillion{one_thousand * one_billion};",
+      "",
+      "struct {",
+      "    number_t threshold;",
+      "    string name;",
+      "} const units[] = {{one_billion, \"billion\"},",
+      "                   {one_million, \"million\"},",
+      "                   {one_thousand, \"thousand\"},",
+      "                   {one_hundred, \"hundred\"}};",
+      "",
+      "void in_english(ostream& english, number_t number) {",
+      "    for (auto unit : units) {",
+      "        if (number >= unit.threshold) {",
+      "            in_english(english, number / unit.threshold);",
+      "            english << ' ' << unit.name;",
+      "            number %= unit.threshold;",
+      "",
+      "            if (!number) {",
+      "                return;",
+      "            }",
+      "            english << ' ';",
+      "        }",
+      "    }",
+      "",
+      "    if (number >= twenty) {",
+      "        const number_t tens{number / 10ULL - 2ULL};",
+      "        english << tens_names[tens];",
+      "",
+      "        if (const number_t single{number % 10ULL}) {",
+      "            english << '-' << singles_and_teens_names[single];",
+      "        }",
+      "    } else {",
+      "        english << singles_and_teens_names[number];",
+      "    }",
+      "}"
+    ],
+    "cursor": [
+      1,
+      0
+    ]
+  },
+  "expect": {
+    "lines": [
+      "const number_t one_trillion{one_thousand * one_billion};",
+      "",
+      "struct {",
+      "    number_t threshold;",
+      "    string name;",
+      "} const units[] = {{one_billion, \"billion\"},",
+      "                   {one_million, \"million\"},",
+      "                   {one_thousand, \"thousand\"},",
+      "                   {one_hundred, \"hundred\"}};",
+      "",
+      "void in_english(ostream& english, number_t limit) {",
+      "    for (auto unit : units) {",
+      "        if (limit >= unit.threshold) {",
+      "            in_english(english, limit / unit.threshold);",
+      "            english << ' ' << unit.name;",
+      "            limit %= unit.threshold;",
+      "",
+      "            if (!limit) {",
+      "                return;",
+      "            }",
+      "            english << ' ';",
+      "        }",
+      "    }",
+      "",
+      "    if (limit >= twenty) {",
+      "        const number_t tens{limit / 10ULL - 2ULL};",
+      "        english << tens_names[tens];",
+      "",
+      "        if (const number_t single{limit % 10ULL}) {",
+      "            english << '-' << singles_and_teens_names[single];",
+      "        }",
+      "    } else {",
+      "        english << singles_and_teens_names[limit];",
+      "    }",
+      "}"
+    ]
+  },
+  "par": {
+    "keys": ":%s/number\\>/limit<CR>",
+    "count": 19,
+    "verified": "nvim 0.12.5 2026-10-12"
+  },
+  "alternates": [
+    ":%s/\\<number\\>/limit<CR>",
+    ":%s/number\\>/limit/g<CR>",
+    ":%s/\\<number\\>/limit/g<CR>"
+  ],
+  "hints": [
+    {
+      "trigger": "^[*#]|cgn|ciw|cw|\\.",
+      "text": ":%s/old/new/g renames every occurrence in one command."
+    },
+    {
+      "trigger": "^:s/",
+      "text": "Without % only the cursor line is substituted; :%s covers the whole buffer."
+    },
+    {
+      "trigger": null,
+      "text": ":%s/number/limit/g: substitute in every line; add /g for several per line."
+    }
+  ],
+  "tags": [
+    "identifier",
+    "substitute"
+  ],
+  "target": [
+    {
+      "start": [
+        11,
+        43
+      ],
+      "end": [
+        11,
+        48
+      ]
+    },
+    {
+      "start": [
+        13,
+        12
+      ],
+      "end": [
+        13,
+        17
+      ]
+    },
+    {
+      "start": [
+        14,
+        32
+      ],
+      "end": [
+        14,
+        37
+      ]
+    },
+    {
+      "start": [
+        16,
+        12
+      ],
+      "end": [
+        16,
+        17
+      ]
+    },
+    {
+      "start": [
+        18,
+        17
+      ],
+      "end": [
+        18,
+        22
+      ]
+    },
+    {
+      "start": [
+        25,
+        8
+      ],
+      "end": [
+        25,
+        13
+      ]
+    },
+    {
+      "start": [
+        26,
+        28
+      ],
+      "end": [
+        26,
+        33
+      ]
+    },
+    {
+      "start": [
+        29,
+        34
+      ],
+      "end": [
+        29,
+        39
+      ]
+    },
+    {
+      "start": [
+        33,
+        43
+      ],
+      "end": [
+        33,
+        48
+      ]
+    }
+  ],
+  "template": "rename_all_subst",
+  "source": {
+    "repo": "github.com/exercism/cpp",
+    "path": "exercises/practice/say/.meta/example.cpp",
+    "commit": "e6e47e11fb47e561d0eca71c6197163695b44caf",
+    "license": "MIT",
+    "lines": [
+      27,
+      61
+    ]
+  },
+  "emulator": {
+    "vscodevim": "full",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "old": "number",
+    "new": "limit"
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 287,
+  "reviewed": false
+}

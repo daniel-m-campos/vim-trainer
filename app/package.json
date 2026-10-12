@@ -12,10 +12,12 @@
     "e2e": "node e2e/run.mjs",
     "spike:test": "node src/spike/verify.mjs",
     "e2e:session": "node e2e/session.mjs",
+    "e2e:stats": "node e2e/stats-demo.mjs",
     "emulator": "node e2e/emulator.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "6.11.1",
+    "@codemirror/lang-cpp": "6.0.3",
     "@codemirror/lang-python": "6.2.1",
     "@codemirror/language": "6.13.1",
     "@codemirror/state": "6.7.6",

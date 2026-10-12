@@ -6,21 +6,24 @@
 // (after an exercise ends the editor is locked and the strip takes focus), on
 // the header, and on the full-screen pages. The single exception is F1, the
 // mid-exercise hint, which the recorder stops before Vim sees it (an unmapped key
-// would clear a pending command); `Esc Esc` in normal mode gives up.
+// would clear a pending command); `Esc Esc` in normal mode gives up (an <Esc> that
+// cancels a pending operator or count does not start it; the first qualifying <Esc>
+// shows "Esc again to give up" in the footer).
 
 import "./style.css";
 import * as M from "./modelApi.ts";
 import type { AttemptRecord, ModelState, SkillGraph, SkillState } from "./modelApi.ts";
-import { loadIndex, loadExercise, skillsWithContent } from "./content.ts";
+import { loadIndex, loadExercise, skillsWithContent, contentBase } from "./content.ts";
 import { baseGraph, drillGraph, graphNodes } from "./graph.ts";
 import { mountEditor, type EditorHandle } from "./editor.ts";
 import {
-  tokenize, displayKeys, checkPass, isGiveUp, band, BAND_LABEL, chooseHint, diffLines, linesEqual, exerciseHints,
+  tokenize, displayKeys, checkPass, isGiveUp, armsGiveUp, GIVE_UP_MS, band, BAND_LABEL, chooseHint, diffLines, linesEqual, exerciseHints,
   type Band, type DiffLine, type Mode, type Snapshot, type Token,
 } from "./grading.ts";
 import { load, save, clear, exportJson, parseImport, type Saved } from "./storage.ts";
 import { skillInfo, EDITOR_TIPS } from "./skills.ts";
 import { $, esc, code, taskHtml, confidenceBar, fmtSeconds } from "./dom.ts";
+import { renderStatsView, type StatsTab, type StatsViewHandle } from "./stats/statsView.ts";
 import type { ContentIndex, EditorProfile, EscapePref, Exercise, Settings } from "./types.ts";
 
 // --- constants ------------------------------------------------------------------
@@ -59,6 +62,8 @@ interface Result {
   hint: string | null;
   diff: DiffLine[] | null;
   cursorAt: [number, number];
+  /** Why a give-up shows no diff: the ex-kind buffer already matched. */
+  note: string | null;
 }
 
 interface Current {
@@ -84,13 +89,16 @@ let session = { startMs: Date.now(), sinceT: nowSec(), count: 0, warmupsLeft: WA
 let placement: { queue: { skill: string; id: string }[]; i: number; records: AttemptRecord[] } | null = null;
 let forced: string | null = null;
 let afterPlacement = false;
-let statsTab: "skills" | "sessions" = "skills";
+let statsTab: StatsTab = "skills";
 let statsSel = 0;
+let statsView: StatsViewHandle | null = null;
 let onboard = { step: 0, sel: 0 };
 let settingsMsg = "";
 let resetArmed = false;
 let summaryData: { minutes: number; exercises: number; improved: { skill: string; delta: number }[]; mastered: string[]; unlocked: string[]; tip: string | null } | null = null;
 let loadSeq = 0;
+let advancing = false; // space/enter on the strip: ignore the strip until the next exercise renders
+let escCueTimer: ReturnType<typeof setTimeout> | null = null;
 
 const S = () => saved.settings;
 function persist(): void {
@@ -208,7 +216,13 @@ function placementQueue(): { skill: string; id: string }[] {
 // --- views ---------------------------------------------------------------------
 
 function show(v: View): void {
+  if (v !== "stats" && statsView) {
+    statsView.destroy();
+    statsView = null;
+  }
   view = v;
+  // The attempt clock does not run while stats or settings cover the exercise.
+  if (cur?.phase === "solving") cur.editor.recorder.setAway(v !== "practice");
   $("#practice").hidden = v !== "practice";
   $("#page").hidden = v === "practice";
   renderHeader();
@@ -239,7 +253,10 @@ function renderModeline(): void {
   $("#pos").textContent = `${snap.cursor[0]}:${snap.cursor[1] + 1}`;
   let progress = "";
   if (cur.role === "placement" && placement) {
-    const n = cur.phase === "result" && !cur.retry ? placement.i : placement.i + 1; // finish() already advanced i
+    // Position of this exercise in the queue; placement.i has already moved on once
+    // the first attempt finished, so it is wrong for the strip and for retries.
+    const at = placement.queue.findIndex((q) => q.id === cur!.ex.id);
+    const n = at >= 0 ? at + 1 : cur.phase === "result" || cur.retry ? placement.i : placement.i + 1;
     progress = `placement ${Math.min(n, placement.queue.length)} of ${placement.queue.length}`;
   }
   else if (cur.role === "warmup") progress = `warm-up ${WARMUPS - session.warmupsLeft} of ${WARMUPS}`;
@@ -259,9 +276,40 @@ function renderSolvingFooter(): void {
       <span>confidence ${c.toFixed(2)}</span>
       <span>${st?.n ?? 0} reps</span>
       <span>trend ${trend(cur.skill)}</span>
-      <span class="keys"><span><kbd>F1</kbd> hint</span><span><kbd>Esc</kbd><kbd>Esc</kbd> skip</span></span>
+      <span class="keys"><span><kbd>F1</kbd> hint</span><span class="giveup" id="giveup">${GIVEUP_IDLE}</span></span>
     </div>
     <div class="hint midhint" id="midhint" hidden></div>`;
+}
+
+const GIVEUP_IDLE = `<kbd>Esc</kbd><kbd>Esc</kbd> skip`;
+const GIVEUP_ARMED = `<kbd>Esc</kbd> again to give up`;
+
+/** The footer's give-up label: armed for GIVE_UP_MS after a qualifying first <Esc>. */
+function setEscCue(armed: boolean): void {
+  if (escCueTimer) clearTimeout(escCueTimer);
+  escCueTimer = armed ? setTimeout(() => setEscCue(false), GIVE_UP_MS) : null;
+  const el = document.getElementById("giveup");
+  if (!el || el.classList.contains("armed") === armed) return;
+  el.classList.toggle("armed", armed);
+  el.innerHTML = armed ? GIVEUP_ARMED : GIVEUP_IDLE;
+}
+
+/** Muted one-line provenance of the snippet: "from exercism/python &middot; MIT". */
+function sourceLine(ex: Exercise): { html: string; title: string } {
+  const s = ex.source;
+  if (!s?.repo) return { html: "&nbsp;", title: "" };
+  if (s.repo === "author") return { html: "written for vim-trainer", title: "" }; // hand-written sample content
+  const repo = s.repo.replace(/^(?:https?:\/\/)?(?:www\.)?github\.com\//, "").replace(/\.git$/, "");
+  const lines = s.lines ? ` lines ${s.lines[0]}-${s.lines[1]}` : "";
+  return { html: `from ${esc(repo)}${s.license ? ` &middot; ${esc(s.license)}` : ""}`, title: `${s.path ?? ""}${lines}` };
+}
+
+/** The target line with a caret under the target column, for a cursor give-up. */
+function targetLineHtml(ex: Exercise, at: [number, number]): string {
+  const text = ex.start.lines[at[0] - 1];
+  if (text === undefined) return "";
+  const pad = text.slice(0, at[1]).replace(/[^\t]/g, " ");
+  return `<pre class="diff targetline" aria-label="target position"><span class="dim">${String(at[0]).padStart(3)}</span>  ${esc(text)}\n     ${pad}<span class="add">^</span></pre>`;
 }
 
 function revealMidHint(): void {
@@ -298,8 +346,11 @@ function renderResult(): void {
       .filter((d, i, a) => d.op !== " " || a.slice(Math.max(0, i - 1), i + 2).some((x) => x.op !== " "))
       .map((d) => `<span class="${d.op === "-" ? "del" : d.op === "+" ? "add" : ""}">${d.op} ${esc(d.text)}</span>`)
       .join("\n")}</pre>`;
+  } else if (!r.ok && r.note) {
+    extra += `<div class="note">${esc(r.note)}</div>`;
   } else if (!r.ok && ex.kind === "cursor" && ex.expect.cursor) {
-    extra += `<div class="note">target: line ${ex.expect.cursor[0]}, column ${ex.expect.cursor[1] + 1}; you were at ${r.cursorAt[0]}:${r.cursorAt[1] + 1}</div>`;
+    extra += `<div class="note">target: line ${ex.expect.cursor[0]}, column ${ex.expect.cursor[1] + 1} (marked in the editor); you were at ${r.cursorAt[0]}:${r.cursorAt[1] + 1}</div>`;
+    extra += targetLineHtml(ex, ex.expect.cursor);
   }
   if (cur.showAllHints) {
     const all = [...exerciseHints(ex).map((h) => h.text), ...(ex.alternates ?? []).map((a) => `also accepted by the oracle: ${a}`)];
@@ -309,10 +360,12 @@ function renderResult(): void {
   if (cur.role !== "placement" && (Date.now() - session.startMs >= STOP_MS || session.count >= STOP_COUNT))
     extra += `<div class="stopline">good place to stop: ${session.count} exercises in ${Math.round((Date.now() - session.startMs) / 60000)} min. <kbd>q</kbd> ends the session.</div>`;
   const nextLabel = cur.role === "placement" && placement && placement.i >= placement.queue.length ? "finish placement" : "next";
+  const src = sourceLine(ex);
   $("#foot").innerHTML = `
     <div class="result" id="result">
       <div class="row1">${status}${you}${par}</div>
       ${extra}
+      <div class="src" id="src"${src.title ? ` title="${esc(src.title)}"` : ""}>${src.html}</div>
       <div class="keys"><span><kbd>space</kbd> ${nextLabel}</span><span><kbd>r</kbd> retry</span><span><kbd>?</kbd> hint</span><span class="off"><kbd>p</kbd> replay par <span class="dim">(pro)</span></span><span><kbd>q</kbd> end session</span></div>
     </div>`;
 }
@@ -321,6 +374,7 @@ function renderResult(): void {
 
 function mountExercise(ex: Exercise, skill: string, role: Role, retry: boolean): void {
   cur?.editor.destroy();
+  setEscCue(false);
   // kind=ex only passes through a ':' command (05), which the task text does not say.
   $("#task").innerHTML = taskHtml(ex.task) + (ex.kind === "ex" ? ` <span class="req">using an Ex <kbd>:</kbd> command</span>` : "");
   show("practice");
@@ -340,10 +394,13 @@ function mountExercise(ex: Exercise, skill: string, role: Role, retry: boolean):
       showMidNote("the buffer is right, but this drill counts only a : command. u undoes back to the start.");
   });
   editor.recorder.onHintKey(() => cur === me && revealMidHint());
-  editor.recorder.onKey(() => {
+  editor.recorder.onKey((ev) => {
     if (cur !== me || me.phase !== "solving") return;
     // Let Vim handle the second <Esc> first, then end the attempt.
-    if (isGiveUp(editor.recorder.events)) setTimeout(() => cur === me && me.phase === "solving" && finish(me, false, editor.recorder.snapshot()), 0);
+    if (isGiveUp(editor.recorder.events)) {
+      setEscCue(false);
+      setTimeout(() => cur === me && me.phase === "solving" && finish(me, false, editor.recorder.snapshot()), 0);
+    } else setEscCue(armsGiveUp(ev));
   });
 }
 
@@ -353,18 +410,22 @@ function finish(me: Current, ok: boolean, snap: Snapshot): void {
   const events = ok ? rec.events : rec.events.slice(0, -2); // drop the give-up <Esc><Esc>
   const tokens = tokenize(events, S().escape, snap.mode);
   const keys = tokens.length;
-  const lang = S().lang;
+  const lang = me.ex.lang || S().lang;
   const record: AttemptRecord = {
     t: nowSec(), ex: me.ex.id, skill: me.skill, lang, ok, ms, keys, par: me.ex.par.count,
     hint: me.hintUsed, retry: me.retry, undo: rec.undoCount(),
   };
   const wantLines = me.ex.expect.lines;
+  const matched = !!wantLines && linesEqual(snap.lines, wantLines);
   me.result = {
     ok, tokens, keys, ms,
     band: band(keys, me.ex.par.count),
     hint: chooseHint(me.ex, tokens, ok),
-    diff: !ok && wantLines && !linesEqual(snap.lines, wantLines) ? diffLines(snap.lines, wantLines) : null,
+    diff: !ok && wantLines && !matched ? diffLines(snap.lines, wantLines) : null,
     cursorAt: snap.cursor,
+    note: !ok && me.ex.kind === "ex" && matched
+      ? "a : command was required: the buffer already matched, but this drill counts only an Ex command (the par uses one)."
+      : null,
   };
   me.phase = "result";
 
@@ -386,7 +447,9 @@ function finish(me: Current, ok: boolean, snap: Snapshot): void {
   }
   persist();
 
+  setEscCue(false);
   me.editor.setLocked(true);
+  if (!ok && me.ex.kind === "cursor" && me.ex.expect.cursor) me.editor.revealTarget(me.ex.expect.cursor);
   renderResult();
   renderModeline();
   $("#foot").focus();
@@ -398,6 +461,13 @@ function recordSession(): void {
     saved.sessions.push(entry);
     session.recorded = true;
   } else saved.sessions[saved.sessions.length - 1] = entry;
+}
+
+/** Space / enter on the result strip: one advance per rendered exercise. */
+function advance(): void {
+  if (advancing) return;
+  advancing = true;
+  void nextExercise().finally(() => (advancing = false));
 }
 
 async function nextExercise(): Promise<void> {
@@ -541,65 +611,51 @@ function openStats(): void {
   renderStats();
 }
 
+/** The stats page: a header and lead line from main, the grid / progress / sessions from stats/statsView.ts. */
 function renderStats(): void {
   const lang = S().lang;
   const avail = available();
   const rows = statRows();
   const focus = saved.placementDone ? focusSkill() : "";
-  const sel = rows[statsSel]?.id;
-  const lead = afterPlacement && focus
-    ? `We'll start with ${code(skillInfo(focus).keys)}. Press enter.`
-    : sel
-      ? `<kbd>enter</kbd> drills ${code(skillInfo(sel).keys)} next${avail.has(sel) ? "" : ` <span class="dim">(no ${esc(langName(lang))} exercises yet)</span>`}.`
-      : "";
-  let body = "";
-  if (statsTab === "skills") {
-    let tier = -1;
-    body = `<table class="skills"><thead><tr><th>skill</th><th></th><th>confidence</th><th>n</th><th>status</th><th>trend</th><th>exercises</th></tr></thead><tbody>`;
-    rows.forEach((r, i) => {
-      if (r.tier !== tier) {
-        tier = r.tier;
-        body += `<tr class="tier"><td colspan="7">tier ${tier}</td></tr>`;
-      }
-      const info = skillInfo(r.id);
-      const st = skillState(r.id);
-      const status = skillStatus(r.id);
-      const c = st?.confidence ?? 0;
-      const cls = [status === "locked" ? "locked" : "", r.id === focus ? "focus" : "", i === statsSel ? "sel" : ""].join(" ");
-      body += `<tr class="${cls}" data-i="${i}"><td>${code(info.keys)}</td><td>${esc(info.name)}</td><td>${confidenceBar(c)} ${c.toFixed(2)}</td><td>${st?.n ?? 0}</td><td>${esc(status)}</td><td>${trend(r.id)}</td><td class="dim">${index.langs[lang]?.skills[r.id]?.count ?? 0}</td></tr>`;
-    });
-    body += `</tbody></table>`;
-    const hidden = graphNodes(graph).filter((n) => n.tier <= 12 && !avail.has(n.id)).length;
-    if (hidden) body += `<p class="note">${hidden} more skills in the plan have no ${esc(langName(lang))} exercises yet.</p>`;
-  } else {
-    const list = [...saved.sessions].reverse();
-    body = list.length
-      ? `<table class="sessions"><thead><tr><th>date</th><th>minutes</th><th>exercises</th><th>skills improved</th></tr></thead><tbody>${list
-          .map((s) => `<tr><td>${esc(new Date(s.start).toLocaleString())}</td><td>${Math.round((s.end - s.start) / 60000)}</td><td>${s.exercises}</td><td>${s.improved.map((x) => code(skillInfo(x).keys)).join(" ") || '<span class="dim">&ndash;</span>'}</td></tr>`)
-          .join("")}</tbody></table>`
-      : `<p class="dim">no sessions yet.</p>`;
-  }
+  const lead = afterPlacement && focus ? `We'll start with ${code(skillInfo(focus).keys)}. Press enter.` : "";
+  const hidden = graphNodes(graph).filter((n) => n.tier <= 12 && !avail.has(n.id)).length;
   $("#page").innerHTML = `
     <h1>Stats <span class="dim" style="font-size:14px;font-weight:400">${esc(langName(lang))}</span></h1>
-    <p class="lead">${lead}</p>
-    <div class="tabs"><span class="${statsTab === "skills" ? "on" : ""}">Skills</span><span class="${statsTab === "sessions" ? "on" : ""}">Sessions</span><span><kbd>tab</kbd> switch</span></div>
-    ${body}
-    <div class="keysline"><span><kbd>j</kbd><kbd>k</kbd> move</span><span><kbd>enter</kbd> drill this</span><span><kbd>tab</kbd> skills / sessions</span><span><kbd>,</kbd> settings</span><span><kbd>Esc</kbd> back</span></div>`;
-  $("#page").querySelectorAll<HTMLElement>("tr[data-i]").forEach((tr) =>
-    tr.addEventListener("click", () => {
-      statsSel = Number(tr.dataset.i);
-      renderStats();
-    }),
-  );
-  $("#page").querySelector("tr.sel")?.scrollIntoView({ block: "nearest" });
+    ${lead ? `<p class="lead">${lead}</p>` : ""}
+    <div id="stats-view"></div>
+    ${hidden ? `<p class="note">${hidden} more skills in the plan have no ${esc(langName(lang))} exercises yet.</p>` : ""}
+    <div class="keysline"><span><kbd>,</kbd> settings</span><span><kbd>Esc</kbd> back</span></div>`;
+  statsView?.destroy();
+  statsView = renderStatsView($("#stats-view"), saved.model, graph, lang, {
+    tab: statsTab,
+    selected: statsSel,
+    skills: rows.map((r) => r.id),
+    focus,
+    sessions: saved.sessions,
+    onSelect: (i) => {
+      statsSel = i;
+      afterPlacement = false;
+    },
+    onTab: (t) => (statsTab = t),
+    // "Drill this": the skill becomes the next exercise; the attempt goes through
+    // M.applyAttempt, which activates a locked skill (04, Unlocking).
+    onForce: (id) => {
+      afterPlacement = false;
+      forceSkill(id);
+    },
+  });
 }
 
+/** After placement: enter starts the session on the focus skill. */
 function drillSelected(): void {
-  const rows = statRows();
-  const id = afterPlacement ? focusSkill() : rows[statsSel]?.id;
   afterPlacement = false;
+  forceSkill(focusSkill());
+}
+
+/** Make `id` the next exercise's skill and leave stats for practice. */
+function forceSkill(id: string): void {
   if (id && available().has(id)) forced = id;
-  if (cur && cur.phase === "solving") return show("practice");
+  if (cur && cur.phase === "solving") return show("practice"); // forced applies from the next exercise
   cur?.editor.destroy();
   cur = null;
   if (session.count === 0 && !session.recorded) startSession();
@@ -622,6 +678,8 @@ function renderSettings(): void {
       <fieldset><legend>Escape key (counted as one keystroke either way)</legend>${radio("escape", ESCAPES, s.escape)}</fieldset>
       <p class="note">Keyboard layout: pars count keystrokes, not physical keys, so they are the same on every layout.</p>
       <p class="note">Theme: dark (the only theme in v1).</p>
+      <p class="note">Exercise snippets are cut from open-source code under its licence; each result shows its source.
+        Full list: <a href="${esc(contentBase())}ATTRIBUTION.md" target="_blank" rel="noopener" id="attribution-link">ATTRIBUTION.md</a>.</p>
       <fieldset><legend>Your data (stored only in this browser)</legend>
         <button type="button" id="btn-export">export JSON</button>
         <button type="button" id="btn-import">import JSON</button>
@@ -636,7 +694,8 @@ function renderSettings(): void {
     const t = e.target as HTMLInputElement;
     if (t.name === "lang") s.lang = t.value;
     if (t.name === "profile") s.profile = t.value as EditorProfile;
-    if (t.name === "lang" || t.name === "profile") refreshGraph();
+    if (t.name === "lang") onLangChange();
+    else if (t.name === "profile") refreshGraph();
     if (t.name === "rel") s.relativeNumbers = t.value === "yes";
     if (t.name === "escape") s.escape = t.value as EscapePref;
     persist();
@@ -670,6 +729,21 @@ function renderSettings(): void {
   });
 }
 
+/**
+ * The language changed in settings. Model state is per (skill, language), so nothing is
+ * lost; the open exercise is in the old language and is dropped unrecorded, and a
+ * placement in progress continues with exercises in the new language.
+ */
+function onLangChange(): void {
+  refreshGraph();
+  if (cur && cur.ex.lang !== S().lang) {
+    cur.editor.destroy();
+    cur = null;
+  }
+  if (placement) placement = { ...placement, queue: placement.queue.slice(0, placement.i).concat(placementQueue().slice(placement.i)) };
+  statsSel = 0;
+}
+
 function openSettings(): void {
   if (view !== "settings") backStack.push(view);
   show("settings");
@@ -686,7 +760,7 @@ function goBack(): void {
   if (to === "onboarding") return show("onboarding"), renderOnboarding();
   if (to === "placement-intro" || (!saved.placementDone && !placement && !cur)) return show("placement-intro"), renderPlacementIntro();
   if (cur) return show("practice");
-  if (to === "message") return void nextExercise();
+  if (to === "message" || (to === "practice" && session.recorded)) return void nextExercise();
   startSession();
 }
 
@@ -773,7 +847,10 @@ function onKey(e: KeyboardEvent): void {
     case "practice":
       if (!cur) return;
       if (cur.phase === "result") {
-        if (k === " " || k === "Enter") handled(), void nextExercise();
+        // A double press or key repeat must not skip an exercise: the strip is inert
+        // from the first advance until the next exercise has rendered.
+        if (advancing || e.repeat) return handled();
+        if (k === " " || k === "Enter") handled(), advance();
         else if (k === "r") handled(), mountExercise(cur.ex, cur.skill, cur.role, true);
         else if (k === "q") handled(), endSession();
         else if (k === "?") handled(), (cur.showAllHints = !cur.showAllHints), renderResult();
@@ -788,12 +865,10 @@ function onKey(e: KeyboardEvent): void {
       }
       return;
     case "stats": {
-      const rows = statRows();
+      // Straight after placement, enter starts the session (the lead line says so).
+      if (afterPlacement && k === "Enter") return handled(), drillSelected();
+      if (statsView?.handleKey(k, e.shiftKey)) return handled();
       if (k === "Escape") handled(), goBack();
-      else if (k === "Tab") handled(), (statsTab = statsTab === "skills" ? "sessions" : "skills"), renderStats();
-      else if (k === "j" || k === "ArrowDown") handled(), (statsSel = Math.min(rows.length - 1, statsSel + 1)), (afterPlacement = false), renderStats();
-      else if (k === "k" || k === "ArrowUp") handled(), (statsSel = Math.max(0, statsSel - 1)), (afterPlacement = false), renderStats();
-      else if (k === "Enter") handled(), drillSelected();
       else if (k === ",") handled(), openSettings();
       return;
     }

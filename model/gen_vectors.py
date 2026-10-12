@@ -60,7 +60,7 @@ def scenarios(graph: dict) -> dict[str, dict]:
         _introduced_pull_in, _placement_advanced, _placement_switcher, _composite_credit_and_choice,
         _exercise_recent_and_weights, _projection_fits, _cross_language, _profile_vscodevim,
         _simulated_fast_sloppy, _simulated_quitter, _forced_locked_skill, _placement_hinted,
-        _cross_language_after_placement,
+        _cross_language_after_placement, _share_cap, _starvation_guard,
     ]
     result = {}
     for position, build in enumerate(builders, start=1):
@@ -308,6 +308,28 @@ def _cross_language_after_placement(graph: dict) -> dict:
                            "carried-over active skills respect the 4-7 active target.", "ops": ops}
 
 
+def _share_cap(graph: dict) -> dict:
+    setup = []
+    for position, skill in enumerate(("f.modes", "f.hjkl", "f.undo", "f.save")):
+        setup += attempts(skill, 1, T0 + position * 30)
+    setup += attempts("f.xdd", 1, T0 + 150, ms=6000, keys=13, par=6)
+    ops = _driven(graph, setup, 30, T0 + 300, lambda skill, t: rec(t, skill, ms=6000, keys=13, par=6)
+                   if skill == "f.xdd" else rec(t, skill))
+    ops.append({"op": "digest"})
+    return {"description": "f.xdd stays far weaker than the rest, yet takes at most 4 of any 10 consecutive "
+                           "picks (share cap); the other picks spread over the next-weakest skills.",
+            "ops": ops}
+
+
+def _starvation_guard(graph: dict) -> dict:
+    mini = _mini_graph({"a0": (0, []), "b0": (0, []), "c0": (0, []), "d0": (0, [])}, {"d0": {PY: 0.2}})
+    ops = _driven(mini, [], 36, T0, lambda skill, t: rec(t, skill, ms=6000))
+    ops.append({"op": "digest"})
+    return {"description": "d0 has Python weight 0.2, so its weighted confidence is never among the 3 weakest; "
+                           "the starvation guard still picks it at least once in every 12 picks.",
+            "graph": mini, "ops": ops}
+
+
 def _profile_vscodevim(graph: dict) -> dict:
     ops = attempts("f.save", 8, T0, keys=4, par=4, ms=1500)
     ops.append({"op": "digest"})
@@ -332,12 +354,31 @@ def _has_output(op: dict) -> bool:
     return op["op"] not in ("applyAttempt", "applyPlacement")
 
 
-def _mini_graph(spec: dict[str, tuple[int, list[str]]]) -> dict:
+def _mini_graph(spec: dict[str, tuple[int, list[str]]], weights: dict[str, dict] | None = None) -> dict:
     skills = {}
     for order, (skill_id, (tier, prereqs)) in enumerate(spec.items()):
         skills[skill_id] = {"id": skill_id, "tier": tier, "prereqs": prereqs, "order": order, "targetBase": 1200,
-                            "perKey": 180, "enabled": True, "emulator": {}, "langWeights": {}}
+                            "perKey": 180, "enabled": True, "emulator": {},
+                            "langWeights": dict((weights or {}).get(skill_id, {}))}
     return {"version": 1, "skills": skills, "tips": {"b1": "Tip for b1."}}
+
+
+def _driven(graph: dict, setup: list[dict], picks: int, start: float, make) -> list[dict]:
+    """The setup ops, then ``picks`` rounds of chooseFocus (seed = round) and an attempt
+    ``make(focus, t)`` on each pick."""
+    state = new_state(graph)
+    for op in setup:
+        state = apply_attempt(state, op["record"], graph)
+    ops: list[dict] = list(setup)
+    t = start
+    for pick in range(picks):
+        focus = choose_focus(state, PY, graph, t, seed=pick)
+        ops.append({"op": "chooseFocus", "lang": PY, "now": t, "seed": pick})
+        record = make(focus, t)
+        state = apply_attempt(state, record, graph)
+        ops.append({"op": "applyAttempt", "record": record})
+        t += 30
+    return ops
 
 
 def _simulated(graph: dict, learner: simulate.Learner, days: int, per_session: int,

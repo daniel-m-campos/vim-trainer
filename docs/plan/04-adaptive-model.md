@@ -68,9 +68,30 @@ explainer on first appearance.
 
 ## Choosing the next exercise
 
-1. **Pick the focus skill**: the active skill with the lowest confidence, with two
-   exceptions. Don't pick the same skill more than 3 times in a row (interleave), and
-   with probability 0.2 pick a `review`-status skill that is due (below).
+1. **Pick the focus skill**: weakest first, but spread across the active skills. Each
+   skill's priority is `1 - (1 - confidence) * weight`, using the language weight from 02.
+   The steps run in order, and each filter is skipped when it would leave no candidate:
+   1. **Review slot.** With probability 0.2, pick the most overdue `review` skill (below).
+   2. **Starvation guard.** A skill with weight 0.3 or less that has not been picked in the
+      last 11 picks is picked now. Its low weight keeps its priority high, so without this
+      guard it would almost never be the focus.
+   3. **Interleave.** Don't pick the same skill more than 3 times in a row.
+   4. **Share cap.** Drop any skill that has 4 of the last 9 picks. No skill then takes
+      more than 4 of any 10 consecutive picks (40%), unless it is the only active skill.
+   5. **Weighted draw among the 3 weakest.** Keep the 3 skills with the lowest priority.
+      Draw one with weight `(highest priority of the three - priority) + 0.1`. For
+      priorities 0.2, 0.3 and 0.4 the weights are 0.3, 0.2 and 0.1, so the weakest is picked
+      half the time, the next a third, and the third a sixth.
+
+   The draws come from a seeded RNG, so the choice is deterministic given the log and the
+   clock.
+
+   Why: the first version picked the lowest-priority skill every time and only broke runs
+   of 3. In every e2e session, `m.find` and `m.rel` took 13 of the 15 picks, and in
+   simulation one plateaued skill (`o.dot`) took 20-23 of 30 attempts a day. Practice
+   time spent on one stuck skill teaches little, and the other active skills never got
+   the samples they needed to master. With the rules above, the simulated `o.dot` gets
+   8-11 of 30 and four other operators master alongside it.
 2. **Pick the exercise**: from the focus skill's pool for the current language, prefer
    exercises not seen in the last 50 attempts, then weight by the language's node
    weights (02), then random. Never repeat the same exercise twice in a session unless
@@ -80,8 +101,9 @@ explainer on first appearance.
    "change the second argument"). Composites credit every skill they tag, which is how
    `t.compose` and `a.dot` get data without their own drills.
 
-This is keybr's "every word contains the weakest key", with real code standing in for
-dictionary words.
+This follows keybr's "every word contains the weakest key", with real code standing in
+for dictionary words. keybr can put the weakest key in every word because each word also
+practises other letters; a Vim exercise drills one skill, so the focus has to rotate.
 
 ## Spaced review
 

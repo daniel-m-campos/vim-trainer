@@ -1,0 +1,175 @@
+{
+  "id": "py/o.put/04364c88f8",
+  "skill": "o.put",
+  "lang": "python",
+  "kind": "edit",
+  "task": "Copy this line to just above `idx, prop_vals = parse_property_vals(sgf, idx)`",
+  "start": {
+    "lines": [
+      "while idx < len(sgf):",
+      "    if sgf[idx] == \"[\":",
+      "        # Parse property values.",
+      "        if idx == prop_key_start:",
+      "            raise ValueError(\"propery key is empty\")",
+      "        prop_key = sgf[prop_key_start:idx]",
+      "        if not prop_key.isupper():",
+      "            raise ValueError('property must be in uppercase')",
+      "",
+      "        idx, prop_vals = parse_property_vals(sgf, idx)",
+      "        properties[prop_key].extend(prop_vals)",
+      "",
+      "        # New property.",
+      "        prop_key_start = idx",
+      "    elif sgf[idx] == \";\":",
+      "        # Single child.",
+      "        child = parse_node(sgf[idx:])",
+      "        children.append(child)",
+      "        break",
+      "    elif sgf[idx] == \"(\":",
+      "        # Multiple children.",
+      "        children = []",
+      "        while idx < len(sgf):",
+      "            if sgf[idx] != \"(\":",
+      "                break",
+      "            # Child start.",
+      "            idx += 1",
+      "            child_start = idx",
+      "            while sgf[idx] != \")\":",
+      "                idx += 1",
+      "            # Child end.",
+      "            child = parse_node(sgf[child_start:idx])",
+      "            children.append(child)",
+      "            idx += 1",
+      "    else:",
+      "        idx += 1",
+      "",
+      "if idx > prop_key_start and not properties:",
+      "    raise ValueError('properties without delimiter')",
+      "return SgfTree(children=children, properties=dict(properties))"
+    ],
+    "cursor": [
+      11,
+      8
+    ]
+  },
+  "expect": {
+    "lines": [
+      "while idx < len(sgf):",
+      "    if sgf[idx] == \"[\":",
+      "        # Parse property values.",
+      "        if idx == prop_key_start:",
+      "            raise ValueError(\"propery key is empty\")",
+      "        prop_key = sgf[prop_key_start:idx]",
+      "        if not prop_key.isupper():",
+      "            raise ValueError('property must be in uppercase')",
+      "",
+      "        properties[prop_key].extend(prop_vals)",
+      "        idx, prop_vals = parse_property_vals(sgf, idx)",
+      "        properties[prop_key].extend(prop_vals)",
+      "",
+      "        # New property.",
+      "        prop_key_start = idx",
+      "    elif sgf[idx] == \";\":",
+      "        # Single child.",
+      "        child = parse_node(sgf[idx:])",
+      "        children.append(child)",
+      "        break",
+      "    elif sgf[idx] == \"(\":",
+      "        # Multiple children.",
+      "        children = []",
+      "        while idx < len(sgf):",
+      "            if sgf[idx] != \"(\":",
+      "                break",
+      "            # Child start.",
+      "            idx += 1",
+      "            child_start = idx",
+      "            while sgf[idx] != \")\":",
+      "                idx += 1",
+      "            # Child end.",
+      "            child = parse_node(sgf[child_start:idx])",
+      "            children.append(child)",
+      "            idx += 1",
+      "    else:",
+      "        idx += 1",
+      "",
+      "if idx > prop_key_start and not properties:",
+      "    raise ValueError('properties without delimiter')",
+      "return SgfTree(children=children, properties=dict(properties))"
+    ]
+  },
+  "par": {
+    "keys": "yykP",
+    "count": 4,
+    "verified": "nvim 0.12.5 2026-10-12"
+  },
+  "alternates": [
+    "yy1-P",
+    ":t-2<CR>",
+    "yy2kp"
+  ],
+  "hints": [
+    {
+      "trigger": "^Y",
+      "text": "In Neovim Y yanks to the end of the line (y$), not the whole line; yy yanks the line."
+    },
+    {
+      "trigger": "^dd",
+      "text": "yy copies without deleting the original."
+    },
+    {
+      "trigger": "^o|^O",
+      "text": "yy then p copies the line exactly; no retyping."
+    },
+    {
+      "trigger": null,
+      "text": "yy yanks the line; p puts it below the cursor line, P above."
+    }
+  ],
+  "tags": [
+    "line",
+    "yank",
+    "put"
+  ],
+  "target": [
+    {
+      "start": [
+        10,
+        0
+      ],
+      "end": [
+        10,
+        53
+      ]
+    },
+    {
+      "start": [
+        11,
+        0
+      ],
+      "end": [
+        11,
+        45
+      ]
+    }
+  ],
+  "template": "duplicate_line",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/sgf-parsing/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      66,
+      105
+    ]
+  },
+  "emulator": {
+    "vscodevim": "full",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {},
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 41,
+  "reviewed": false
+}

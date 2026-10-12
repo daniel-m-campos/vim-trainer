@@ -3,7 +3,7 @@
   "skill": "o.case",
   "lang": "python",
   "kind": "edit",
-  "task": "Uppercase the identifier `four_of_a_kind` under the cursor",
+  "task": "Make `four_of_a_kind` a constant name: uppercase it to `FOUR_OF_A_KIND`",
   "start": {
     "lines": [
       "def yacht(dice):",
@@ -69,7 +69,7 @@
   "par": {
     "keys": "gUiw",
     "count": 4,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "viwU",

@@ -100,3 +100,13 @@ def test_hint_triggers_compile_in_python_and_javascript(built):
         pytest.skip("node not installed")
     script = "const ts = JSON.parse(require('fs').readFileSync(0, 'utf8')); for (const t of ts) new RegExp(t, 'u');"
     subprocess.run([node, "-e", script], input=json.dumps(triggers), text=True, check=True)
+
+
+def test_cpp_is_wired_into_the_build():
+    from vimtrainer_content.lang import cpp
+
+    spec = build.LANGS["cpp"]
+    assert spec.lang is cpp.LANG
+    assert (spec.windows, spec.frequency, spec.generate) == (cpp.windows, cpp.node_frequency, cpp.generate)
+    assert spec.skills == cpp.TARGET_SKILLS
+    assert "t.angle" not in build.LANGS["python"].skills

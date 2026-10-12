@@ -1,7 +1,11 @@
 """Choosing the focus skill, the warm-up skill and the next exercise.
 
-Focus: the in-rotation skill with the lowest language-weighted confidence, never the same
-skill more than 3 times in a row, and with probability 0.2 a due review skill instead.
+Focus: with probability 0.2 a due review skill. Otherwise a low-weight skill (language
+weight <= 0.3) absent from the last 11 picks is picked outright (starvation guard). Otherwise
+the in-rotation skills are filtered (no 4th pick in a row; no skill with 4 of the last 9
+picks, so none exceeds 4 of any 10) and one of the 3 weakest by language-weighted confidence
+is drawn with weight ``(max priority of the three - priority) + 0.1``, so the weakest is the
+most likely pick but not a certain one. Each filter is skipped when it would leave nothing.
 Exercise: from the focus skill's pool, 1 in 5 draws is a composite (an exercise tagging the
 focus skill plus other unlocked skills) when 2+ unlocked skills are above 0.8 confidence;
 other draws use single-skill exercises. Exercises among the last 50 are avoided, and the
@@ -29,9 +33,15 @@ from __future__ import annotations
 from vimtrainer_model.constants import (
     COMPOSITE_CONF,
     COMPOSITE_P,
+    FOCUS_CANDIDATES,
+    FOCUS_FLOOR,
     IN_ROTATION,
+    LOW_WEIGHT,
     MAX_STREAK,
     REVIEW_P,
+    SHARE_MAX,
+    SHARE_WINDOW,
+    STARVE_WINDOW,
     Status,
 )
 from vimtrainer_model.graph import lang_weight, order_of, skill_ids
@@ -55,7 +65,8 @@ def choose_focus(state: dict, lang: str, graph: dict, now: float, seed: int | No
     now : float
         Current time in seconds.
     seed : int | None
-        RNG seed for the review roll; defaults to ``derive_seed(len(log), now)``.
+        RNG seed (first draw: review roll; second draw: the weighted pick among the
+        weakest); defaults to ``derive_seed(len(log), now)``.
 
     Returns
     -------
@@ -71,11 +82,8 @@ def choose_focus(state: dict, lang: str, graph: dict, now: float, seed: int | No
     if due and roll < REVIEW_P:
         return due[0]
     rotation = [sid for sid in eligible if view["skills"][sid][lang]["status"] in IN_ROTATION]
-    blocked = _streak_skill(view["focusHistory"])
-    if blocked is not None and any(sid != blocked for sid in rotation):
-        rotation = [sid for sid in rotation if sid != blocked]
     if rotation:
-        return min(rotation, key=lambda sid: (_priority(view, graph, sid, lang), order_of(graph, sid)))
+        return _pick_rotation(view, graph, lang, rotation, rng.next())
     if due:
         return due[0]
     mastered = [sid for sid in eligible if view["skills"][sid][lang]["status"] == Status.MASTERED]
@@ -170,6 +178,51 @@ def exercise_pool(index: dict, lang: str, skill_id: str) -> list[dict]:
 
 
 # Private Functions ================================================================================
+
+def _pick_rotation(state: dict, graph: dict, lang: str, rotation: list[str], draw: float) -> str:
+    """Starvation guard, then streak and share-cap filters, then a weighted draw among the weakest."""
+    history = state["focusHistory"]
+    starved = _starved(graph, lang, rotation, history)
+    if starved:
+        return min(starved, key=lambda sid: order_of(graph, sid))
+    candidates = _without(rotation, {_streak_skill(history)})
+    candidates = _without(candidates, _capped(history))
+    ranked = sorted(candidates, key=lambda sid: (_priority(state, graph, sid, lang), order_of(graph, sid)))
+    ranked = ranked[:FOCUS_CANDIDATES]
+    priorities = [_priority(state, graph, sid, lang) for sid in ranked]
+    top = max(priorities)
+    weights = [top - p + FOCUS_FLOOR for p in priorities]
+    total = 0.0
+    for weight in weights:
+        total += weight
+    target = draw * total
+    running = 0.0
+    for sid, weight in zip(ranked, weights):
+        running += weight
+        if target < running:
+            return sid
+    return ranked[-1]
+
+
+def _starved(graph: dict, lang: str, rotation: list[str], history: list[str]) -> list[str]:
+    """Low-weight rotation skills not picked in the last ``STARVE_WINDOW - 1`` picks."""
+    if len(history) < STARVE_WINDOW - 1:
+        return []
+    recent = set(history[-(STARVE_WINDOW - 1):])
+    return [sid for sid in rotation if lang_weight(graph, sid, lang) <= LOW_WEIGHT and sid not in recent]
+
+
+def _capped(history: list[str]) -> set[str]:
+    """Skills that would exceed ``SHARE_MAX`` of the last ``SHARE_WINDOW`` picks if picked again."""
+    tail = history[-(SHARE_WINDOW - 1):]
+    return {sid for sid in set(tail) if tail.count(sid) >= SHARE_MAX}
+
+
+def _without(items: list[str], drop: set) -> list[str]:
+    """Items not in ``drop``, or all items when that would leave none."""
+    kept = [sid for sid in items if sid not in drop]
+    return kept or items
+
 
 def _priority(state: dict, graph: dict, skill_id: str, lang: str) -> float:
     """Confidence deficit scaled by language weight: ``1 - (1 - confidence) * weight``."""

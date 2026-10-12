@@ -20,7 +20,7 @@ export function baseGraph(): SkillGraph {
  * The graph the model runs on: the editor profile applied (skills the editor does not
  * support are disabled), then every skill with no exercises in `withContent` disabled.
  *
- * TODO(mvp): content exists for 15 skills (tiers 1-9) only. Disabling the rest makes the
+ * TODO(mvp): content exists for 26 Python and 16 C++ skills (tiers 1-8) only. Disabling the rest makes the
  * model treat them as satisfied prerequisites (04: disabled prereqs count as met), so the
  * drillable skills unlock and focus never lands on a skill with nothing to practise.
  * Drop the second step once tier 0 and the other skills have content.

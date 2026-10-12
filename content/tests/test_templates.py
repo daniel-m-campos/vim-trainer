@@ -26,7 +26,11 @@ def _replay(draft, keys, runner):
 
 def test_every_mapped_template_fires_on_fixture(drafts):
     fired = {d.template for d in drafts}
-    missing = set(ALL_TEMPLATES) - fired - {"upper_inner"}  # fixture strings are not all lower-case words
+    # fixture strings are not all lower-case words; the tier 5-8 templates that need repeated
+    # structure (4+ sibling assignments, one-item-per-line collections) are covered by
+    # test_templates_tiers.py with their own snippets.
+    missing = set(ALL_TEMPLATES) - fired - {"upper_inner", "append_each_line", "prefix_each_line", "record_macro",
+                                            "upper_constants"}
     assert not missing
 
 

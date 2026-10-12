@@ -3,7 +3,7 @@
   "skill": "m.rel",
   "lang": "python",
   "kind": "cursor",
-  "task": "Move the cursor to the highlighted line `if len(list) == 0:` (the highlighted one)",
+  "task": "Move the cursor to the highlighted line",
   "start": {
     "lines": [
       "def foldl(function, list, initial):",
@@ -37,7 +37,7 @@
   "par": {
     "keys": "9k",
     "count": 2,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "9-"

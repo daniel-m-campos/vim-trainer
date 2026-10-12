@@ -1,0 +1,196 @@
+{
+  "id": "py/a.macro/8adaa10735",
+  "skill": "a.macro",
+  "lang": "python",
+  "kind": "edit",
+  "task": "Wrap the value of each of these 4 assignments in `str(...)`",
+  "start": {
+    "lines": [
+      "if url == '/add':",
+      "    if payload is not None:",
+      "        name = payload['user']",
+      "        users = self.database['users']",
+      "        user = None",
+      "        for idx in users:",
+      "            if idx['name'] == name:",
+      "                user = idx",
+      "                break",
+      "        if user is None:",
+      "            new_user = {",
+      "                'name': name,",
+      "                'owes': {},",
+      "                'owed_by': {},",
+      "                'balance': 0",
+      "            }",
+      "            users.append(new_user)",
+      "            self.update()",
+      "            result = json.dumps(new_user)",
+      "elif url == '/iou':",
+      "    if payload is not None:",
+      "        lender_name = payload['lender']",
+      "        borrower_name = payload['borrower']",
+      "        amount = payload['amount']",
+      "        lender = borrower = None",
+      "        for user in self.database['users']:",
+      "            if user['name'] == lender_name:",
+      "                lender = user",
+      "            elif user['name'] == borrower_name:",
+      "                borrower = user",
+      "        if lender is not None and borrower is not None:",
+      "            lender['owed_by'].setdefault(borrower_name, 0)",
+      "            lender['owed_by'][borrower_name] += amount",
+      "            borrower['owes'].setdefault(lender_name, 0)",
+      "            borrower['owes'][lender_name] += amount",
+      "            self.update()",
+      "            result = self.get(",
+      "                '/users',",
+      "                json.dumps({'users': [lender_name, borrower_name]})",
+      "            )"
+    ],
+    "cursor": [
+      22,
+      8
+    ]
+  },
+  "expect": {
+    "lines": [
+      "if url == '/add':",
+      "    if payload is not None:",
+      "        name = payload['user']",
+      "        users = self.database['users']",
+      "        user = None",
+      "        for idx in users:",
+      "            if idx['name'] == name:",
+      "                user = idx",
+      "                break",
+      "        if user is None:",
+      "            new_user = {",
+      "                'name': name,",
+      "                'owes': {},",
+      "                'owed_by': {},",
+      "                'balance': 0",
+      "            }",
+      "            users.append(new_user)",
+      "            self.update()",
+      "            result = json.dumps(new_user)",
+      "elif url == '/iou':",
+      "    if payload is not None:",
+      "        lender_name = str(payload['lender'])",
+      "        borrower_name = str(payload['borrower'])",
+      "        amount = str(payload['amount'])",
+      "        lender = str(borrower = None)",
+      "        for user in self.database['users']:",
+      "            if user['name'] == lender_name:",
+      "                lender = user",
+      "            elif user['name'] == borrower_name:",
+      "                borrower = user",
+      "        if lender is not None and borrower is not None:",
+      "            lender['owed_by'].setdefault(borrower_name, 0)",
+      "            lender['owed_by'][borrower_name] += amount",
+      "            borrower['owes'].setdefault(lender_name, 0)",
+      "            borrower['owes'][lender_name] += amount",
+      "            self.update()",
+      "            result = self.get(",
+      "                '/users',",
+      "                json.dumps({'users': [lender_name, borrower_name]})",
+      "            )"
+    ]
+  },
+  "par": {
+    "keys": "qaf=Wistr(<Esc>A)<Esc>+q3@a",
+    "count": 19,
+    "verified": "nvim 0.12.5 2026-10-12"
+  },
+  "alternates": [
+    "qqf=Wistr(<Esc>A)<Esc>+q3@q",
+    "qaf=Wistr(<Esc>A)<Esc>+q@a@@@@",
+    "qaf=Wistr(<Esc>A)<Esc>+q:.,+2norm @a<CR>"
+  ],
+  "hints": [
+    {
+      "trigger": "^f=W?i.*<Esc>A.*<Esc>[+j]f",
+      "text": "Record the edit once (qa ... q) and replay it: 3@a does the other 3 lines."
+    },
+    {
+      "trigger": "^qa[^+j]*q",
+      "text": "End the recording on the next line (+) so each replay starts where it should."
+    },
+    {
+      "trigger": "^:",
+      "text": "A substitute works too; this drill is about recording a macro."
+    },
+    {
+      "trigger": null,
+      "text": "qaf=Wistr(<Esc>A)<Esc>+q records one line's edit; 3@a replays it on the rest."
+    }
+  ],
+  "tags": [
+    "assignment",
+    "macro"
+  ],
+  "target": [
+    {
+      "start": [
+        22,
+        22
+      ],
+      "end": [
+        22,
+        38
+      ]
+    },
+    {
+      "start": [
+        23,
+        24
+      ],
+      "end": [
+        23,
+        42
+      ]
+    },
+    {
+      "start": [
+        24,
+        17
+      ],
+      "end": [
+        24,
+        33
+      ]
+    },
+    {
+      "start": [
+        25,
+        17
+      ],
+      "end": [
+        25,
+        31
+      ]
+    }
+  ],
+  "template": "record_macro",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/rest-api/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      46,
+      85
+    ]
+  },
+  "emulator": {
+    "vscodevim": "full",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "n": 4,
+    "text": "str"
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 147,
+  "reviewed": false
+}

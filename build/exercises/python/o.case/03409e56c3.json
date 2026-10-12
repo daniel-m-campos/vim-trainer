@@ -1,0 +1,165 @@
+{
+  "id": "py/o.case/03409e56c3",
+  "skill": "o.case",
+  "lang": "python",
+  "kind": "edit",
+  "task": "Make `amount` a constant name: uppercase it to `AMOUNT`",
+  "start": {
+    "lines": [
+      "if url == '/add':",
+      "    if payload is not None:",
+      "        name = payload['user']",
+      "        users = self.database['users']",
+      "        user = None",
+      "        for idx in users:",
+      "            if idx['name'] == name:",
+      "                user = idx",
+      "                break",
+      "        if user is None:",
+      "            new_user = {",
+      "                'name': name,",
+      "                'owes': {},",
+      "                'owed_by': {},",
+      "                'balance': 0",
+      "            }",
+      "            users.append(new_user)",
+      "            self.update()",
+      "            result = json.dumps(new_user)",
+      "elif url == '/iou':",
+      "    if payload is not None:",
+      "        lender_name = payload['lender']",
+      "        borrower_name = payload['borrower']",
+      "        amount = payload['amount']",
+      "        lender = borrower = None",
+      "        for user in self.database['users']:",
+      "            if user['name'] == lender_name:",
+      "                lender = user",
+      "            elif user['name'] == borrower_name:",
+      "                borrower = user",
+      "        if lender is not None and borrower is not None:",
+      "            lender['owed_by'].setdefault(borrower_name, 0)",
+      "            lender['owed_by'][borrower_name] += amount",
+      "            borrower['owes'].setdefault(lender_name, 0)",
+      "            borrower['owes'][lender_name] += amount",
+      "            self.update()",
+      "            result = self.get(",
+      "                '/users',",
+      "                json.dumps({'users': [lender_name, borrower_name]})",
+      "            )"
+    ],
+    "cursor": [
+      24,
+      9
+    ]
+  },
+  "expect": {
+    "lines": [
+      "if url == '/add':",
+      "    if payload is not None:",
+      "        name = payload['user']",
+      "        users = self.database['users']",
+      "        user = None",
+      "        for idx in users:",
+      "            if idx['name'] == name:",
+      "                user = idx",
+      "                break",
+      "        if user is None:",
+      "            new_user = {",
+      "                'name': name,",
+      "                'owes': {},",
+      "                'owed_by': {},",
+      "                'balance': 0",
+      "            }",
+      "            users.append(new_user)",
+      "            self.update()",
+      "            result = json.dumps(new_user)",
+      "elif url == '/iou':",
+      "    if payload is not None:",
+      "        lender_name = payload['lender']",
+      "        borrower_name = payload['borrower']",
+      "        AMOUNT = payload['amount']",
+      "        lender = borrower = None",
+      "        for user in self.database['users']:",
+      "            if user['name'] == lender_name:",
+      "                lender = user",
+      "            elif user['name'] == borrower_name:",
+      "                borrower = user",
+      "        if lender is not None and borrower is not None:",
+      "            lender['owed_by'].setdefault(borrower_name, 0)",
+      "            lender['owed_by'][borrower_name] += amount",
+      "            borrower['owes'].setdefault(lender_name, 0)",
+      "            borrower['owes'][lender_name] += amount",
+      "            self.update()",
+      "            result = self.get(",
+      "                '/users',",
+      "                json.dumps({'users': [lender_name, borrower_name]})",
+      "            )"
+    ]
+  },
+  "par": {
+    "keys": "gUiw",
+    "count": 4,
+    "verified": "nvim 0.12.5 2026-10-12"
+  },
+  "alternates": [
+    "viwU",
+    "g~iw",
+    "gUaw"
+  ],
+  "hints": [
+    {
+      "trigger": "^~|~~",
+      "text": "gUiw changes the whole word in one command; ~ flips one character."
+    },
+    {
+      "trigger": "^(b|0|\\^)",
+      "text": "iw works from anywhere in the word; no need to move to its start."
+    },
+    {
+      "trigger": "^c|^s|^x",
+      "text": "gU changes case without retyping the word."
+    },
+    {
+      "trigger": null,
+      "text": "gUiw: uppercase inner word."
+    }
+  ],
+  "tags": [
+    "identifier",
+    "case"
+  ],
+  "target": [
+    {
+      "start": [
+        24,
+        8
+      ],
+      "end": [
+        24,
+        13
+      ]
+    }
+  ],
+  "template": "upper_word",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/rest-api/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      46,
+      85
+    ]
+  },
+  "emulator": {
+    "vscodevim": "full",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "word": "amount"
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 15,
+  "reviewed": false
+}

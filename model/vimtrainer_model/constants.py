@@ -14,6 +14,14 @@ RECENT_MAX: Final = 50
 FOCUS_HISTORY_MAX: Final = 20
 MAX_STREAK: Final = 3
 
+# Focus spreading (README "Choosing the next exercise" decision; 04-adaptive-model.md).
+FOCUS_CANDIDATES: Final = 3
+FOCUS_FLOOR: Final = 0.1
+SHARE_WINDOW: Final = 10
+SHARE_MAX: Final = 4
+LOW_WEIGHT: Final = 0.3
+STARVE_WINDOW: Final = 12
+
 MASTER_N: Final = 8
 MASTER_ACC: Final = 0.9
 MASTER_EFF: Final = 1.25

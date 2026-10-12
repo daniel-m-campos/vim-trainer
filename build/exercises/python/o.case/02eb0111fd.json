@@ -3,7 +3,7 @@
   "skill": "o.case",
   "lang": "python",
   "kind": "edit",
-  "task": "Uppercase the identifier `files` under the cursor",
+  "task": "Make `files` a constant name: uppercase it to `FILES`",
   "start": {
     "lines": [
       "def grep(pattern, flags, files):",
@@ -45,7 +45,7 @@
   "par": {
     "keys": "gUiw",
     "count": 4,
-    "verified": "nvim 0.12.5 2026-10-11"
+    "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
     "viwU",

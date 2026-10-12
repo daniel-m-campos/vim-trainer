@@ -27,11 +27,13 @@ in the current language, so the model only rotates through drillable skills (TOD
 
 Emulator: `src/vimfixes.ts` patches the places where codemirror-vim differs from `nvim --clean` on
 shipped pars (`d}` exclusive-linewise, `dG` at the end of the buffer, `:m` / `:t` / `:copy`,
-case-sensitive search). `e2e/emulator.mjs` + `emulator-check.html` replay every par in the browser;
+case-sensitive search, Vim's linewise `i{` / `i[` / `i(` on multi-line blocks after an operator). `e2e/emulator.mjs` + `emulator-check.html` replay every par in the browser;
 `make content` runs it with `--write`, which sets `emulator.web` and drops browser mismatches from the index.
 
 Keys: in the editor every key goes to Vim, except `F1` (hint). `Esc Esc` in normal mode gives up.
 On the result strip: `space` next, `r` retry, `?` hints, `p` replay (pro, disabled), `q` end session,
-`s` stats, `,` settings. Stats: `j`/`k`, `enter` drill this, `tab` skills/sessions, `Esc` back.
+`s` stats, `,` settings. Stats (`src/stats/`): `tab` / `1` `2` `3` skills grid / progress / sessions,
+`h` `j` `k` `l` move, `enter` history chart, `f` drill this next, `Esc` back. Straight after placement
+`enter` starts the session. `stats-demo.html` renders the view on a simulated learner (`npm run e2e:stats`).
 
 State lives in `localStorage["vim-trainer.v1"]`; export/import JSON in settings.

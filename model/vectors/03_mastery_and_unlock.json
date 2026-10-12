@@ -423,7 +423,7 @@
    "lang": "python",
    "now": 1760200400,
    "seed": 5,
-   "expect": "f.modes"
+   "expect": "f.xdd"
   },
   {
    "op": "chooseWarmup",

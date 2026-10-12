@@ -1,0 +1,369 @@
+{
+  "id": "py/x.global/081337e253",
+  "skill": "x.global",
+  "lang": "python",
+  "kind": "ex",
+  "task": "Delete every line except the 4 `return` lines",
+  "start": {
+    "lines": [
+      "from calendar import Calendar",
+      "",
+      "",
+      "def meetup(year, month, week, day_of_week):",
+      "    candidates = [date",
+      "                  for date in Calendar().itermonthdates(year, month)",
+      "                  if date.month == month",
+      "                  if date.strftime('%A') == day_of_week]",
+      "    return _choice(week)(candidates)",
+      "",
+      "",
+      "def _choice(week):",
+      "    if week == 'teenth':",
+      "        return lambda dates: next(date for date in dates if",
+      "                                  13 <= date.day <= 19)",
+      "",
+      "    ordinals = ('first', 'second', 'third', 'fourth', 'fifth', 'sixth')",
+      "    day = -1 if (week == 'last') else (ordinals.index(week))",
+      "",
+      "    def _func(dates):",
+      "        if day < len(dates):",
+      "            return dates[day]",
+      "        raise MeetupDayException('That day does not exist.')",
+      "    return _func",
+      "",
+      "",
+      "class MeetupDayException(ValueError):",
+      "    \"\"\"Exception raised when the Meetup weekday and count do not result in a valid date.\"\"\"",
+      "    def __init__(self, message):",
+      "        self.message = message"
+    ],
+    "cursor": [
+      1,
+      0
+    ]
+  },
+  "expect": {
+    "lines": [
+      "    return _choice(week)(candidates)",
+      "        return lambda dates: next(date for date in dates if",
+      "            return dates[day]",
+      "    return _func"
+    ]
+  },
+  "par": {
+    "keys": ":v/ret/d<CR>",
+    "count": 9,
+    "verified": "nvim 0.12.5 2026-10-12"
+  },
+  "alternates": [
+    ":v/retu/d<CR>",
+    ":v/retur/d<CR>",
+    ":v/return/d<CR>",
+    ":v/return /d<CR>",
+    ":g!/ret/d<CR>"
+  ],
+  "hints": [
+    {
+      "trigger": "dd|^[0-9]*[jk]",
+      "text": ":v/pattern/d deletes every line that does not match, in one command."
+    },
+    {
+      "trigger": "^:g/",
+      "text": ":g runs on matching lines; :v (or :g!) runs on the lines that do not match."
+    },
+    {
+      "trigger": null,
+      "text": ":v/ret/d: delete every line that does not contain the pattern."
+    }
+  ],
+  "tags": [
+    "global",
+    "invert",
+    "lines"
+  ],
+  "target": [
+    {
+      "start": [
+        1,
+        0
+      ],
+      "end": [
+        1,
+        28
+      ]
+    },
+    {
+      "start": [
+        2,
+        0
+      ],
+      "end": [
+        2,
+        0
+      ]
+    },
+    {
+      "start": [
+        3,
+        0
+      ],
+      "end": [
+        3,
+        0
+      ]
+    },
+    {
+      "start": [
+        4,
+        0
+      ],
+      "end": [
+        4,
+        42
+      ]
+    },
+    {
+      "start": [
+        5,
+        0
+      ],
+      "end": [
+        5,
+        21
+      ]
+    },
+    {
+      "start": [
+        6,
+        0
+      ],
+      "end": [
+        6,
+        67
+      ]
+    },
+    {
+      "start": [
+        7,
+        0
+      ],
+      "end": [
+        7,
+        39
+      ]
+    },
+    {
+      "start": [
+        8,
+        0
+      ],
+      "end": [
+        8,
+        55
+      ]
+    },
+    {
+      "start": [
+        10,
+        0
+      ],
+      "end": [
+        10,
+        0
+      ]
+    },
+    {
+      "start": [
+        11,
+        0
+      ],
+      "end": [
+        11,
+        0
+      ]
+    },
+    {
+      "start": [
+        12,
+        0
+      ],
+      "end": [
+        12,
+        17
+      ]
+    },
+    {
+      "start": [
+        13,
+        0
+      ],
+      "end": [
+        13,
+        23
+      ]
+    },
+    {
+      "start": [
+        15,
+        0
+      ],
+      "end": [
+        15,
+        54
+      ]
+    },
+    {
+      "start": [
+        16,
+        0
+      ],
+      "end": [
+        16,
+        0
+      ]
+    },
+    {
+      "start": [
+        17,
+        0
+      ],
+      "end": [
+        17,
+        70
+      ]
+    },
+    {
+      "start": [
+        18,
+        0
+      ],
+      "end": [
+        18,
+        59
+      ]
+    },
+    {
+      "start": [
+        19,
+        0
+      ],
+      "end": [
+        19,
+        0
+      ]
+    },
+    {
+      "start": [
+        20,
+        0
+      ],
+      "end": [
+        20,
+        20
+      ]
+    },
+    {
+      "start": [
+        21,
+        0
+      ],
+      "end": [
+        21,
+        27
+      ]
+    },
+    {
+      "start": [
+        23,
+        0
+      ],
+      "end": [
+        23,
+        59
+      ]
+    },
+    {
+      "start": [
+        25,
+        0
+      ],
+      "end": [
+        25,
+        0
+      ]
+    },
+    {
+      "start": [
+        26,
+        0
+      ],
+      "end": [
+        26,
+        0
+      ]
+    },
+    {
+      "start": [
+        27,
+        0
+      ],
+      "end": [
+        27,
+        36
+      ]
+    },
+    {
+      "start": [
+        28,
+        0
+      ],
+      "end": [
+        28,
+        90
+      ]
+    },
+    {
+      "start": [
+        29,
+        0
+      ],
+      "end": [
+        29,
+        31
+      ]
+    },
+    {
+      "start": [
+        30,
+        0
+      ],
+      "end": [
+        30,
+        29
+      ]
+    }
+  ],
+  "template": "keep_matching_lines",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/meetup/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      1,
+      34
+    ]
+  },
+  "emulator": {
+    "vscodevim": "partial",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "pattern": "return ",
+    "n": 4
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 76,
+  "reviewed": false
+}

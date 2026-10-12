@@ -1,0 +1,181 @@
+{
+  "id": "py/v.blockedit/afe30d4c54",
+  "skill": "v.blockedit",
+  "lang": "python",
+  "kind": "edit",
+  "task": "Put `self.` back at the start of each of these 3 assignments",
+  "start": {
+    "lines": [
+      "class BankAccount:",
+      "    def __init__(self):",
+      "        is_open = False",
+      "        balance = None",
+      "        lock = threading.Lock()",
+      "",
+      "    def get_balance(self):",
+      "        with self.lock:",
+      "            if not self.is_open:",
+      "                raise ValueError('account not open')",
+      "            return self.balance",
+      "",
+      "    def open(self):",
+      "        if self.is_open:",
+      "            raise ValueError('account already open')",
+      "        self.is_open = True",
+      "        self.balance = 0",
+      "",
+      "    def deposit(self, amount):",
+      "        with self.lock:",
+      "            if not self.is_open:",
+      "                raise ValueError('account not open')",
+      "            if amount <= 0:",
+      "                raise ValueError('amount must be greater than 0')",
+      "            self.balance += amount",
+      "",
+      "    def withdraw(self, amount):",
+      "        with self.lock:",
+      "            if not self.is_open:",
+      "                raise ValueError('account not open')",
+      "            if amount <= 0:",
+      "                raise ValueError('amount must be greater than 0')",
+      "            if amount > self.balance:",
+      "                raise ValueError('amount must be less than balance')",
+      "            self.balance -= amount",
+      "",
+      "    def close(self):",
+      "        if not self.is_open:",
+      "            raise ValueError('account not open')",
+      "        self.is_open = False"
+    ],
+    "cursor": [
+      3,
+      8
+    ]
+  },
+  "expect": {
+    "lines": [
+      "class BankAccount:",
+      "    def __init__(self):",
+      "        self.is_open = False",
+      "        self.balance = None",
+      "        self.lock = threading.Lock()",
+      "",
+      "    def get_balance(self):",
+      "        with self.lock:",
+      "            if not self.is_open:",
+      "                raise ValueError('account not open')",
+      "            return self.balance",
+      "",
+      "    def open(self):",
+      "        if self.is_open:",
+      "            raise ValueError('account already open')",
+      "        self.is_open = True",
+      "        self.balance = 0",
+      "",
+      "    def deposit(self, amount):",
+      "        with self.lock:",
+      "            if not self.is_open:",
+      "                raise ValueError('account not open')",
+      "            if amount <= 0:",
+      "                raise ValueError('amount must be greater than 0')",
+      "            self.balance += amount",
+      "",
+      "    def withdraw(self, amount):",
+      "        with self.lock:",
+      "            if not self.is_open:",
+      "                raise ValueError('account not open')",
+      "            if amount <= 0:",
+      "                raise ValueError('amount must be greater than 0')",
+      "            if amount > self.balance:",
+      "                raise ValueError('amount must be less than balance')",
+      "            self.balance -= amount",
+      "",
+      "    def close(self):",
+      "        if not self.is_open:",
+      "            raise ValueError('account not open')",
+      "        self.is_open = False"
+    ]
+  },
+  "par": {
+    "keys": "<C-v>2jIself.<Esc>",
+    "count": 10,
+    "verified": "nvim 0.12.5 2026-10-12"
+  },
+  "alternates": [
+    "V2j:norm Iself.<CR>"
+  ],
+  "hints": [
+    {
+      "trigger": "^Iself",
+      "text": "<C-v>2j selects a column on all 3 lines; I inserts on every one."
+    },
+    {
+      "trigger": "^:|^V",
+      "text": ":norm works too; the block insert is shorter here."
+    },
+    {
+      "trigger": null,
+      "text": "<C-v>2jIself.<Esc>: block-select the column, insert, Esc copies it to every line."
+    }
+  ],
+  "tags": [
+    "assignment",
+    "block-edit",
+    "insert"
+  ],
+  "target": [
+    {
+      "start": [
+        3,
+        8
+      ],
+      "end": [
+        3,
+        12
+      ]
+    },
+    {
+      "start": [
+        4,
+        8
+      ],
+      "end": [
+        4,
+        12
+      ]
+    },
+    {
+      "start": [
+        5,
+        8
+      ],
+      "end": [
+        5,
+        12
+      ]
+    }
+  ],
+  "template": "prefix_each_line",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/bank-account/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      4,
+      43
+    ]
+  },
+  "emulator": {
+    "vscodevim": "unverified",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "text": "self.",
+    "n": 3
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 23,
+  "reviewed": false
+}

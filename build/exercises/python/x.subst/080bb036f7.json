@@ -1,0 +1,216 @@
+{
+  "id": "py/x.subst/080bb036f7",
+  "skill": "x.subst",
+  "lang": "python",
+  "kind": "ex",
+  "task": "Rename every `root` to `source` (6 occurrences)",
+  "start": {
+    "lines": [
+      "class BinarySearchTree:",
+      "    def __init__(self, tree_data):",
+      "        self.root = None",
+      "        for data in tree_data:",
+      "            self.add(data)",
+      "",
+      "    def add(self, data):",
+      "        if self.root is None:",
+      "            self.root = TreeNode(data)",
+      "            return",
+      "        inserted = False",
+      "        cur_node = self.root",
+      "",
+      "        while not inserted:",
+      "            if data <= cur_node.data:",
+      "                if cur_node.left:",
+      "                    cur_node = cur_node.left",
+      "                else:",
+      "                    cur_node.left = TreeNode(data)",
+      "                    inserted = True",
+      "            elif data > cur_node.data:",
+      "                if cur_node.right:",
+      "                    cur_node = cur_node.right",
+      "                else:",
+      "                    cur_node.right = TreeNode(data)",
+      "                    inserted = True",
+      "",
+      "    def _inorder_traverse(self, node, elements):",
+      "        if node is not None:",
+      "            self._inorder_traverse(node.left, elements)",
+      "            elements.append(node.data)",
+      "            self._inorder_traverse(node.right, elements)",
+      "",
+      "    def data(self):",
+      "        return self.root",
+      "",
+      "    def sorted_data(self):",
+      "        elements = []",
+      "        self._inorder_traverse(self.root, elements)",
+      "        return elements"
+    ],
+    "cursor": [
+      1,
+      0
+    ]
+  },
+  "expect": {
+    "lines": [
+      "class BinarySearchTree:",
+      "    def __init__(self, tree_data):",
+      "        self.source = None",
+      "        for data in tree_data:",
+      "            self.add(data)",
+      "",
+      "    def add(self, data):",
+      "        if self.source is None:",
+      "            self.source = TreeNode(data)",
+      "            return",
+      "        inserted = False",
+      "        cur_node = self.source",
+      "",
+      "        while not inserted:",
+      "            if data <= cur_node.data:",
+      "                if cur_node.left:",
+      "                    cur_node = cur_node.left",
+      "                else:",
+      "                    cur_node.left = TreeNode(data)",
+      "                    inserted = True",
+      "            elif data > cur_node.data:",
+      "                if cur_node.right:",
+      "                    cur_node = cur_node.right",
+      "                else:",
+      "                    cur_node.right = TreeNode(data)",
+      "                    inserted = True",
+      "",
+      "    def _inorder_traverse(self, node, elements):",
+      "        if node is not None:",
+      "            self._inorder_traverse(node.left, elements)",
+      "            elements.append(node.data)",
+      "            self._inorder_traverse(node.right, elements)",
+      "",
+      "    def data(self):",
+      "        return self.source",
+      "",
+      "    def sorted_data(self):",
+      "        elements = []",
+      "        self._inorder_traverse(self.source, elements)",
+      "        return elements"
+    ]
+  },
+  "par": {
+    "keys": ":%s/root/source<CR>",
+    "count": 16,
+    "verified": "nvim 0.12.5 2026-10-12"
+  },
+  "alternates": [
+    ":%s/root\\>/source<CR>",
+    ":%s/\\<root/source<CR>",
+    ":%s/root/source/g<CR>",
+    ":%s/\\<root\\>/source<CR>",
+    ":%s/root\\>/source/g<CR>",
+    ":%s/\\<root/source/g<CR>",
+    ":%s/\\<root\\>/source/g<CR>"
+  ],
+  "hints": [
+    {
+      "trigger": "^[*#]|cgn|ciw|cw|\\.",
+      "text": ":%s/old/new/g renames every occurrence in one command."
+    },
+    {
+      "trigger": "^:s/",
+      "text": "Without % only the cursor line is substituted; :%s covers the whole buffer."
+    },
+    {
+      "trigger": null,
+      "text": ":%s/root/source/g: substitute in every line; add /g for several per line."
+    }
+  ],
+  "tags": [
+    "identifier",
+    "substitute"
+  ],
+  "target": [
+    {
+      "start": [
+        3,
+        13
+      ],
+      "end": [
+        3,
+        16
+      ]
+    },
+    {
+      "start": [
+        8,
+        16
+      ],
+      "end": [
+        8,
+        19
+      ]
+    },
+    {
+      "start": [
+        9,
+        17
+      ],
+      "end": [
+        9,
+        20
+      ]
+    },
+    {
+      "start": [
+        12,
+        24
+      ],
+      "end": [
+        12,
+        27
+      ]
+    },
+    {
+      "start": [
+        35,
+        20
+      ],
+      "end": [
+        35,
+        23
+      ]
+    },
+    {
+      "start": [
+        39,
+        36
+      ],
+      "end": [
+        39,
+        39
+      ]
+    }
+  ],
+  "template": "rename_all_subst",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/binary-search-tree/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      11,
+      50
+    ]
+  },
+  "emulator": {
+    "vscodevim": "full",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "old": "root",
+    "new": "source"
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 149,
+  "reviewed": false
+}

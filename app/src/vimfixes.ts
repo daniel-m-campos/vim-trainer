@@ -17,6 +17,14 @@
 //    (and * / # to ignorecase); the oracle runs `nvim --clean`, which is case-sensitive.
 //    caseSensitiveSearch() strips the `i` flag from every stored query.
 //
+// 5. `i(` `i[` `i{` `i<` (and `ib` `iB`) after an operator follow Vim's current_block():
+//    when the opening bracket is the last character of its line the object starts on the
+//    next line, and when the closing bracket has only blanks before it the object stops
+//    at the end of the previous line. Both together make it linewise, so `di{` on a
+//    multi-line dict leaves `{` and `}` on their own lines and `>i{` indents only the
+//    body. codemirror-vim takes the brackets' inner text as is (joining the lines).
+//    Visual mode (`vi{`) keeps codemirror-vim's behaviour: TODO(mvp) if a par needs it.
+//
 // TODO(mvp): the same exclusive-linewise rule applies to c, y, gU, > and the other
 // operators and to every exclusive motion (searches, `w` aside); only `d` with `}` / `)`
 // is patched because only those pars hit it in the current content.
@@ -43,6 +51,16 @@ interface CM {
   replaceSelections(texts: string[]): void;
   getCursor(): P;
   setCursor(p: P): void;
+}
+interface MotionArgs {
+  selectedCharacter?: string;
+  linewise?: boolean;
+}
+interface VimState {
+  inputState: { operatorArgs?: OperatorArgs | null };
+}
+interface ScanCM extends CM {
+  scanForBracket(from: P, dir: 1 | -1, style?: unknown, config?: { bracketRegex: RegExp }): { pos: P } | null | undefined;
 }
 interface OperatorArgs {
   linewise?: boolean;
@@ -112,6 +130,38 @@ function deleteOperator(cm: CM, args: OperatorArgs, ranges: Range[], oldAnchor?:
   }
   Vim.getRegisterController().pushText(args.registerName, "delete", text, linewise, !!vim.visualBlock);
   return clip(cm, finalHead);
+}
+
+const BLOCKS: Record<string, [string, string]> = {
+  "(": ["(", ")"], ")": ["(", ")"], b: ["(", ")"],
+  "[": ["[", "]"], "]": ["[", "]"],
+  "{": ["{", "}"], "}": ["{", "}"], B: ["{", "}"],
+  "<": ["<", ">"], ">": ["<", ">"],
+};
+
+/** Fix 5: the inner block object as Vim's current_block() cuts it (operator-pending only). */
+function innerBlock(cm: ScanCM, head: P, motionArgs: MotionArgs, vim: VimState): [P, P] | null {
+  const pair = BLOCKS[motionArgs.selectedCharacter ?? ""];
+  if (!pair) return null;
+  const [open, close] = pair;
+  const re = new RegExp(`[\\${open}\\${close}]`);
+  const from = { line: head.line, ch: head.ch + (cm.getLine(head.line).charAt(head.ch) === open ? 1 : 0) };
+  const a = cm.scanForBracket(from, -1, undefined, { bracketRegex: re });
+  const b = cm.scanForBracket(from, 1, undefined, { bracketRegex: re });
+  if (!a || !b) return null;
+  let [o, c] = [a.pos, b.pos];
+  if (o.line > c.line || (o.line === c.line && o.ch > c.ch)) [o, c] = [c, o];
+  const openAtEol = o.ch + 1 >= cm.getLine(o.line).length;
+  const start: P = openAtEol && c.line > o.line ? { line: o.line + 1, ch: 0 } : { line: o.line, ch: o.ch + 1 };
+  const closeAtSol = c.line > o.line && /^\s*$/.test(cm.getLine(c.line).slice(0, c.ch));
+  if (!closeAtSol) return [start, c];
+  if (c.line - 1 < start.line) return [start, start]; // `{` and `}` on adjacent lines: nothing inside
+  if (openAtEol) {
+    motionArgs.linewise = true;
+    if (vim.inputState.operatorArgs) vim.inputState.operatorArgs.linewise = true;
+    return [start, { line: c.line - 1, ch: 0 }];
+  }
+  return [start, { line: c.line - 1, ch: cm.getLine(c.line - 1).length }];
 }
 
 /** An ex address as the 1-based line after which to put text (0 = above line 1). */
@@ -200,6 +250,11 @@ export function installVimFixes(): void {
   if (installed) return;
   installed = true;
   Vim.defineOperator("delete", deleteOperator as never);
+  Vim.defineMotion("innerBlockVim", innerBlock as never);
+  for (const ch of Object.keys(BLOCKS)) {
+    // Unshifted onto the keymap, so it wins over the built-in `i<register>` entry.
+    Vim._mapCommand({ keys: `i${ch}`, type: "motion", motion: "innerBlockVim", motionArgs: { textObjectInner: true, selectedCharacter: ch }, context: "operatorPending" } as never);
+  }
   // Names differ from the built-in "move" (the bare `:15` line jump), which must stay.
   Vim.defineEx("movelines", "m", exMove as never);
   Vim.defineEx("copylines", "co", exCopy as never);

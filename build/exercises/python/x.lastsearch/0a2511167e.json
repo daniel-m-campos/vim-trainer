@@ -1,0 +1,181 @@
+{
+  "id": "py/x.lastsearch/0a2511167e",
+  "skill": "x.lastsearch",
+  "lang": "python",
+  "kind": "edit",
+  "task": "Rename every `parent` to `record` (3 occurrences), one match at a time",
+  "start": {
+    "lines": [
+      "import collections",
+      "import itertools",
+      "",
+      "class RelativeDistance:",
+      "    def __init__(self, family_tree):",
+      "        self.neighbors = collections.defaultdict(set)",
+      "        for parent, children in family_tree.items():",
+      "            for child in children:",
+      "                self.neighbors[parent].add(child)",
+      "                self.neighbors[child].add(parent)",
+      "",
+      "            for child1, child2 in itertools.combinations(children, 2):",
+      "                self.neighbors[child1].add(child2)",
+      "                self.neighbors[child2].add(child1)",
+      "",
+      "    def degree_of_separation(self, person_a, person_b):",
+      "        if person_a not in self.neighbors:",
+      "            raise ValueError(\"Person A not in family tree.\")",
+      "        if person_b not in self.neighbors:",
+      "            raise ValueError(\"Person B not in family tree.\")",
+      "",
+      "        queue = collections.deque([(person_a, 0)])",
+      "        visited = {person_a}",
+      "",
+      "        while queue:",
+      "            current, degree = queue.popleft()",
+      "",
+      "            if current == person_b:",
+      "                return degree",
+      "",
+      "            for neighbor in self.neighbors.get(current, []):",
+      "                if neighbor not in visited:",
+      "                    visited.add(neighbor)",
+      "                    queue.append((neighbor, degree + 1))",
+      "",
+      "        raise ValueError(\"No connection between person A and person B.\")"
+    ],
+    "cursor": [
+      7,
+      14
+    ]
+  },
+  "expect": {
+    "lines": [
+      "import collections",
+      "import itertools",
+      "",
+      "class RelativeDistance:",
+      "    def __init__(self, family_tree):",
+      "        self.neighbors = collections.defaultdict(set)",
+      "        for record, children in family_tree.items():",
+      "            for child in children:",
+      "                self.neighbors[record].add(child)",
+      "                self.neighbors[child].add(record)",
+      "",
+      "            for child1, child2 in itertools.combinations(children, 2):",
+      "                self.neighbors[child1].add(child2)",
+      "                self.neighbors[child2].add(child1)",
+      "",
+      "    def degree_of_separation(self, person_a, person_b):",
+      "        if person_a not in self.neighbors:",
+      "            raise ValueError(\"Person A not in family tree.\")",
+      "        if person_b not in self.neighbors:",
+      "            raise ValueError(\"Person B not in family tree.\")",
+      "",
+      "        queue = collections.deque([(person_a, 0)])",
+      "        visited = {person_a}",
+      "",
+      "        while queue:",
+      "            current, degree = queue.popleft()",
+      "",
+      "            if current == person_b:",
+      "                return degree",
+      "",
+      "            for neighbor in self.neighbors.get(current, []):",
+      "                if neighbor not in visited:",
+      "                    visited.add(neighbor)",
+      "                    queue.append((neighbor, degree + 1))",
+      "",
+      "        raise ValueError(\"No connection between person A and person B.\")"
+    ]
+  },
+  "par": {
+    "keys": "*cgnrecord<Esc>..",
+    "count": 13,
+    "verified": "nvim 0.12.5 2026-10-12"
+  },
+  "alternates": [
+    "#cgnrecord<Esc>..",
+    "*Ncgnrecord<Esc>..",
+    "*ciwrecord<Esc>n.n.",
+    "/\\<parent\\><CR>cgnrecord<Esc>.."
+  ],
+  "hints": [
+    {
+      "trigger": "ciw|cw",
+      "text": "cgn changes the next match of the last search, so . alone repeats it on the next one."
+    },
+    {
+      "trigger": "n\\.",
+      "text": "With cgn the . finds the next match itself; no n needed between repeats."
+    },
+    {
+      "trigger": "^:",
+      "text": ":%s works too; this drill is about * + cgn + ."
+    },
+    {
+      "trigger": null,
+      "text": "* searches for the word under the cursor; cgnrecord<Esc> changes a match; . repeats on the next."
+    }
+  ],
+  "tags": [
+    "identifier",
+    "gn",
+    "dot"
+  ],
+  "target": [
+    {
+      "start": [
+        7,
+        12
+      ],
+      "end": [
+        7,
+        17
+      ]
+    },
+    {
+      "start": [
+        9,
+        31
+      ],
+      "end": [
+        9,
+        36
+      ]
+    },
+    {
+      "start": [
+        10,
+        42
+      ],
+      "end": [
+        10,
+        47
+      ]
+    }
+  ],
+  "template": "rename_all_dot",
+  "source": {
+    "repo": "github.com/exercism/python",
+    "path": "exercises/practice/relative-distance/.meta/example.py",
+    "commit": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "license": "MIT",
+    "lines": [
+      1,
+      36
+    ]
+  },
+  "emulator": {
+    "vscodevim": "unverified",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {
+    "old": "parent",
+    "new": "record",
+    "n": 3
+  },
+  "provenance": "generated by vimtrainer-content templates from real source code; pars verified in Neovim; no LLM",
+  "naive": 77,
+  "reviewed": false
+}

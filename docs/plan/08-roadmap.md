@@ -1,37 +1,51 @@
 # Roadmap
 
-Milestones, not dates. Each has an exit criterion. The author is the only user through
-M3.
+Milestones, not dates, with completion dates added as they happen. Each has an exit
+criterion. The author is the only user through M3.
 
-## M0 — Plan complete (this document set)
+Status on 2026-10-12: M0 to M3 built, M4 in progress.
+
+## M0 — Plan complete (this document set). Done 2026-10-11
 Exit: every `docs/plan/*.md` has no "To research" item that blocks the MVP; the
 remaining items are listed in 09 with how they will be resolved during build.
 
-## M1 — Spikes (de-risk the two unknowns)
+## M1 — Spikes (de-risk the two unknowns). Done 2026-10-11
 1. codemirror-vim key logger: capture normalised keystrokes, mode changes, and a
    reliable command-done signal in a throwaway page. Test Chrome, Firefox, Safari.
 2. Oracle round-trip: a Python script takes one exercise JSON, replays the canonical in
    `nvim --headless --clean`, compares, prints pass/fail and timing. Then the same via
    Playwright + codemirror-vim.
 Exit: both work; decisions recorded in `docs/decisions/`.
+Result: both work (0002, 0003). The Playwright half of spike 2 became the browser
+replay inside `make content` (0005). Real Safari and Firefox with a physical keyboard
+were not tested; Playwright's WebKit and Firefox stood in.
 
-## M2 — Content pipeline, Python only
+## M2 — Content pipeline, Python only. Done 2026-10-11
 Sources allowlist; Python language mapping; 5 templates (change_inner, delete_inner,
 jump_match, delete_trailing_comment, goto_line_rel); oracle with best-par search;
 review CLI; ATTRIBUTION.md; ≥ 20 exercises for each of 10 skills.
 Exit: `make content` produces `build/` from scratch with every par verified in CI.
+Result: 17 templates instead of 5, 587 exercises over 15 skills (at least 27 each).
+CI is written but has not run on GitHub yet (see 09).
 
-## M3 — Practice loop MVP (author dogfood)
+## M3 — Practice loop MVP (author dogfood). Built 2026-10-11, dogfood not started
 Practice screen per the mock; result strip with hints; adaptive model (TS + Python
 mirror with shared test vectors); placement test; localStorage; export/import; settings.
 Stats screen can be a plain table at this stage.
+The build is complete: practice loop, model, placement, stats table, export and
+import. A review round on 2026-10-12 fixed nine of ten findings. The dogfood exit
+below is still open.
 Exit: the author practises 10 min/day for 4 weeks; model constants recalibrated from
 that log; at least one "this changed how I edit" moment written down.
 
-## M4 — Breadth
+## M4 — Breadth. In progress (started 2026-10-12)
 C++ then TypeScript content; templates for tiers 5–8; emulator oracle flags and the
 generated supported-command list; VSCodeVim and IdeaVim profiles with verified flags;
 stats screen with charts and projection; session summary.
+In this round: C++ content, templates for tiers 5 to 8, and stats charts. Not started:
+TypeScript content, VSCodeVim and IdeaVim verification, session summary beyond the
+text version already in the app. The emulator oracle and the generated
+supported-command list for Neovim exist (0005); the browser side of the list does not.
 Exit: all v1 languages at ≥ 20 exercises per non-zero (language, skill); every
 "verify" flag in 02 is resolved.
 

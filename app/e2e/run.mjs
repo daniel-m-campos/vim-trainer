@@ -6,7 +6,12 @@
 // Flow: first visit (language, editor, relative numbers) -> placement -> skip the
 // first exercise with Esc Esc -> solve the ci" exercise -> the result strip says
 // "correct" with par 12. Then the ex exercise, the end of placement, stats, one
-// practice exercise and the session summary.
+// practice exercise and the session summary. Along the way: an <Esc> that cancels a
+// pending operator or count is not half of the give-up (and the first real one shows a
+// cue), insert-mode <Tab> follows the oracle's tab stops, a cursor give-up marks the
+// target, the snippet source line, a double space advances once, the placement count
+// on retries, the ex-kind "a : command was required" give-up, and the attempt clock
+// pausing while stats / settings are open.
 //
 // /build/ is forced to 404 so the app uses the bundled sample (deterministic, and
 // it exercises the fallback path). Browsers live in node_modules
@@ -44,6 +49,18 @@ for (const [engine, type] of Object.entries(engines)) {
   page.on("console", (m) => (m.type() === "warning" ? warnings.push(m.text()) : m.type() === "error" && !m.text().startsWith("Failed to load resource") ? errors.push(m.text()) : null));
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.route("**/build/**", (r) => r.fulfill({ status: 404, body: "not found" }));
+  // The sample has no `source`; give t.quote one so the strip's attribution line shows.
+  await page.route("**/build-sample/exercises/python/t.quote/*.json", async (r) => {
+    const res = await r.fetch();
+    const json = await res.json();
+    json.source = { repo: "github.com/exercism/python", path: "exercises/practice/x/.meta/example.py", commit: null, license: "MIT", lines: [1, 9] };
+    await r.fulfill({ response: res, json });
+  });
+  // Slow the first load of x.global so a double space lands while it is in flight.
+  await page.route("**/build-sample/exercises/python/x.global/*.json", async (r) => {
+    await new Promise((res) => setTimeout(res, 600));
+    await r.continue();
+  });
 
   try {
     await page.goto(url);
@@ -66,10 +83,42 @@ for (const [engine, type] of Object.entries(engines)) {
     const nums = await page.locator(".cm-relnums .cm-gutterElement").allInnerTexts();
     check(engine, "relative line numbers (current line absolute)", nums.includes("3") && nums.filter((n) => n === "1").length >= 2, nums.join(","));
     check(engine, "target is highlighted", (await page.locator(".cm-target").count()) > 0);
+
+    // An <Esc> that cancels a pending operator or count is not the first half of Esc Esc.
+    await page.keyboard.type("d");
+    await page.keyboard.press("Escape"); // cancels d
+    await page.keyboard.press("Escape"); // first real <Esc>: arms the give-up
+    await page.waitForTimeout(100);
+    check(engine, "d<Esc><Esc> does not give up", (await page.locator("#result").count()) === 0);
+    check(engine, "the first qualifying <Esc> shows 'Esc again to give up'", (await text(page, "#giveup")).includes("again to give up"), await text(page, "#giveup"));
+    await page.waitForTimeout(900);
+    check(engine, "the give-up cue clears after 800 ms", !(await text(page, "#giveup")).includes("again"), await text(page, "#giveup"));
+    await page.keyboard.type("3");
+    await page.keyboard.press("Escape"); // cancels the count
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(100);
+    check(engine, "3<Esc><Esc> does not give up", (await page.locator("#result").count()) === 0);
+    await page.waitForTimeout(900);
+
+    // Insert-mode <Tab>: spaces to the next 4-column stop (expandtab, ts=sw=4, sts=0), as in nvim.
+    await page.keyboard.type("Ax");
+    await page.keyboard.press("Tab");
+    await page.keyboard.type("y");
+    await page.keyboard.press("Tab");
+    await page.keyboard.type("z");
+    const line3 = await page.evaluate(() => window.vimTrainer.current().editor.view.state.doc.line(3).text);
+    check(engine, "insert-mode <Tab> fills to the next 4-column stop", line3 === '    parser.add_argument("src")x y   z', JSON.stringify(line3));
+    check(engine, "<Tab> keeps focus in the editor", await page.evaluate(() => !!document.activeElement?.closest(".cm-editor")));
+    await page.keyboard.press("Escape"); // leaves insert mode: not half of the give-up
+
     await page.keyboard.press("Escape");
     await page.keyboard.press("Escape");
     await waitResult(page);
     check(engine, "Esc Esc gives up and shows the strip", (await text(page, "#result")).includes("gave up"), await text(page, "#result"));
+    check(engine, "cursor give-up names the target line", (await text(page, "#result")).includes("target: line 10"), await text(page, "#result"));
+    check(engine, "cursor give-up shows the target line with a caret", (await text(page, "#result .targetline")).includes("args = parser.parse_args(argv)") && (await text(page, "#result .targetline")).includes("^"));
+    check(engine, "cursor give-up marks the target in the editor", (await page.locator(".cm-target-reveal").count()) === 1);
+    check(engine, "hand-written sample snippet: source line says so", (await text(page, "#result #src")).trim() === "written for vim-trainer", await text(page, "#result #src"));
     await page.keyboard.press(" ");
 
     // Placement 2: t.quote. Solve with ci"retrying<Esc>.
@@ -90,11 +139,15 @@ for (const [engine, type] of Object.entries(engines)) {
     check(engine, "strip lists space / r / ? / p (pro) / q",
       ["next", "retry", "hint", "replay par", "end session"].every((s) => strip.includes(s)), strip);
     check(engine, "editor is locked and the strip has focus", await page.evaluate(() => document.activeElement?.id === "foot"));
+    const src = await text(page, "#result #src");
+    check(engine, "strip shows the snippet source 'from exercism/python \u00b7 MIT'", src.trim() === "from exercism/python \u00b7 MIT", JSON.stringify(src));
 
     // r retries the same exercise; a retry with f" first triggers the exercise hint.
     await page.keyboard.press("r");
     await waitTask(page, "logger.warn");
     await editorFocused(page);
+    const prog = await text(page, "#progress");
+    check(engine, "a placement retry keeps its number (placement 2 of 3)", prog.includes("placement 2 of 3") && prog.includes("retry"), prog);
     check(engine, "retry restores the start buffer", (await page.locator(".cm-content").innerText()).includes("timeout, trying again"));
     await page.keyboard.type('f"ci"retrying');
     await page.keyboard.press("Escape");
@@ -127,11 +180,35 @@ for (const [engine, type] of Object.entries(engines)) {
     await waitResult(page);
     const you4 = await text(page, "#result .you");
     check(engine, "F1 between ci and \" keeps the pending command: 12 keys", (await text(page, "#result")).includes("correct") && you4.includes("12 keys"), you4);
+    check(engine, "result strip on a retry still says placement 2 of 3", (await text(page, "#progress")).includes("placement 2 of 3"), await text(page, "#progress"));
+
+    // Double space (plus an r) while the next exercise loads: one advance, strip inert.
     await page.keyboard.press(" ");
+    await page.keyboard.press(" ");
+    await page.keyboard.press("r");
+    const midLoad = await page.evaluate(() => ({ phase: window.vimTrainer.current()?.phase, task: document.querySelector("#task")?.textContent }));
+    check(engine, "keys on the strip are ignored until the next exercise renders", midLoad.phase === "result" && midLoad.task.includes("logger.warn"), JSON.stringify(midLoad));
 
     // Placement 3: x.global (ex kind).
     await waitTask(page, "print");
+    await editorFocused(page);
+    await page.waitForTimeout(700); // past the stray keys: nothing more may arrive
+    const after = await page.evaluate(() => ({ n: window.vimTrainer.current().editor.recorder.events.length, retry: window.vimTrainer.current().retry, prog: document.querySelector("#progress")?.textContent }));
+    check(engine, "double space advanced once: placement 3 of 3, no stray keys, not a retry", after.n === 0 && !after.retry && after.prog.includes("placement 3 of 3"), JSON.stringify(after));
     check(engine, "ex-kind task says it wants a : command", (await text(page, "#task .req")).includes("Ex"), await text(page, "#task"));
+
+    // Reach the expected buffer with dd, then give up: the strip explains instead of an empty diff.
+    await page.keyboard.type("jddjjddjdd");
+    await page.waitForFunction(() => document.querySelector("#midhint:not([hidden])")?.textContent?.includes(": command"), null, { timeout: 3000 });
+    check(engine, "ex kind: right buffer without : shows the mid-exercise note", true);
+    await page.keyboard.press("Escape");
+    await page.keyboard.press("Escape");
+    await waitResult(page);
+    const exStrip = await text(page, "#result");
+    check(engine, "ex give-up with a matching buffer says a : command was required (no empty diff)",
+      exStrip.includes("gave up") && exStrip.includes("a : command was required") && (await page.locator("#result pre.diff").count()) === 0, exStrip);
+    await page.keyboard.press("r");
+    await waitTask(page, "print");
     await editorFocused(page);
     await page.keyboard.type(":g/print/d");
     await page.keyboard.press("Enter");
@@ -143,10 +220,14 @@ for (const [engine, type] of Object.entries(engines)) {
     await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("We'll start with"), null, { timeout: 5000 });
     check(engine, "stats after placement names the starting skill", true);
     // Only skills with exercises are listed: the sample has 3 skills in 3 tiers.
-    check(engine, "stats table grouped by tier", (await page.locator("table.skills tr.tier").count()) === 3);
+    check(engine, "stats grid grouped by tier", (await page.locator(".sv-tier").count()) === 3, String(await page.locator(".sv-tier").count()));
+    check(engine, "stats grid outlines the focus skill", (await page.locator(".sv-cell.sv-focus").count()) === 1);
     await page.keyboard.press("Tab");
-    check(engine, "tab switches to sessions", (await text(page, "#page")).includes("no sessions yet") || (await page.locator("table.sessions").count()) === 1);
+    check(engine, "tab switches to progress", (await page.locator('.sv[data-tab="progress"]').count()) === 1);
     await page.keyboard.press("Tab");
+    check(engine, "tab switches to sessions", (await text(page, "#page")).includes("no sessions yet") || (await page.locator("table.sv-sessions").count()) === 1);
+    await page.keyboard.press("Tab");
+    check(engine, "tab cycles back to skills", (await page.locator('.sv[data-tab="skills"]').count()) === 1);
     const savedState = await page.evaluate(() => JSON.parse(localStorage.getItem("vim-trainer.v1") ?? "null"));
     check(engine, "state saved to localStorage with placement done", savedState?.placementDone === true && savedState.model.log.length >= 3,
       JSON.stringify(savedState?.model?.log?.length));
@@ -155,6 +236,19 @@ for (const [engine, type] of Object.entries(engines)) {
     await page.waitForSelector("#practice:not([hidden])", { timeout: 5000 });
     await editorFocused(page);
     check(engine, "enter starts practice", true);
+    // The attempt clock stops while stats and settings cover the exercise.
+    await page.locator("#nav-stats").click();
+    await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("Stats"));
+    await page.waitForTimeout(1500);
+    await page.keyboard.press("Escape");
+    await editorFocused(page);
+    await page.locator("#nav-settings").click();
+    await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("Settings"));
+    await page.waitForTimeout(1000);
+    await page.keyboard.press("Escape");
+    await editorFocused(page);
+    const clockMs = await page.evaluate(() => window.vimTrainer.current().editor.recorder.activeMs());
+    check(engine, "clock paused while stats / settings were open (2.5 s away, < 1.2 s counted)", clockMs < 1200, String(Math.round(clockMs)));
     // F1 shows a hint without touching Vim.
     await page.keyboard.press("F1");
     check(engine, "F1 reveals a mid-exercise hint", await page.locator("#midhint:not([hidden])").count() === 1);
@@ -167,6 +261,8 @@ for (const [engine, type] of Object.entries(engines)) {
 
     await page.keyboard.press(",");
     check(engine, ", opens settings", (await text(page, "#page")).includes("Settings"));
+    const href = await page.locator("#attribution-link").getAttribute("href").catch(() => null);
+    check(engine, "settings links ATTRIBUTION.md", !!href && href.endsWith("ATTRIBUTION.md"), String(href));
     await page.keyboard.press("Escape");
     check(engine, "Esc returns to the summary", (await text(page, "#page")).includes("Session done"));
 

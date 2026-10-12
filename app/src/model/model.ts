@@ -121,6 +121,12 @@ export const ACC_WINDOW = 20;
 export const RECENT_MAX = 50;
 export const FOCUS_HISTORY_MAX = 20;
 export const MAX_STREAK = 3;
+export const FOCUS_CANDIDATES = 3;
+export const FOCUS_FLOOR = 0.1;
+export const SHARE_WINDOW = 10;
+export const SHARE_MAX = 4;
+export const LOW_WEIGHT = 0.3;
+export const STARVE_WINDOW = 12;
 export const MASTER_N = 8;
 export const MASTER_ACC = 0.9;
 export const MASTER_EFF = 1.25;
@@ -707,9 +713,13 @@ function settlePlacement(
 // Selection =======================================================================================
 
 /**
- * Skill to drill next: the in-rotation skill with the lowest language-weighted confidence
- * (1 - (1 - confidence) * weight), never more than 3 in a row, and with probability 0.2 the
- * most overdue review skill. `seed` defaults to deriveSeed(log.length, now).
+ * Skill to drill next. With probability 0.2 the most overdue review skill. Otherwise a
+ * low-weight skill (language weight <= 0.3) absent from the last 11 picks (starvation guard).
+ * Otherwise the in-rotation skills are filtered (no 4th pick in a row; none with 4 of the last
+ * 9 picks, so none exceeds 4 of any 10) and one of the 3 lowest by priority
+ * 1 - (1 - confidence) * weight is drawn with weight (max priority of the three - priority) + 0.1.
+ * Each filter is skipped when it would leave nothing. The first RNG draw is the review roll, the
+ * second the weighted pick. `seed` defaults to deriveSeed(log.length, now).
  */
 export function chooseFocus(
   state: ModelState,
@@ -725,14 +735,8 @@ export function chooseFocus(
   const eligible = skillIds(graph).filter((id) => isEligible(graph, id, lang));
   const due = dueReviews(view, graph, lang, eligible);
   if (due.length && roll < REVIEW_P) return due[0];
-  let rotation = eligible.filter((id) => IN_ROTATION.includes(view.skills[id][lang].status));
-  const blocked = streakSkill(view.focusHistory);
-  if (blocked !== null && rotation.some((id) => id !== blocked)) {
-    rotation = rotation.filter((id) => id !== blocked);
-  }
-  if (rotation.length) {
-    return minBy(rotation, (id) => [priority(view, graph, id, lang), orderOf(graph, id)]);
-  }
+  const rotation = eligible.filter((id) => IN_ROTATION.includes(view.skills[id][lang].status));
+  if (rotation.length) return pickRotation(view, graph, lang, rotation, rng.next());
   if (due.length) return due[0];
   const mastered = eligible.filter((id) => view.skills[id][lang].status === 'mastered');
   if (mastered.length === 0) return null;
@@ -811,6 +815,52 @@ export function exercisePool(index: ExerciseIndex, lang: string, skillId: string
     pool.push({ id: item.id, skills });
   }
   return pool;
+}
+
+/** Starvation guard, then streak and share-cap filters, then a weighted draw among the weakest. */
+function pickRotation(state: ModelState, graph: SkillGraph, lang: string, rotation: string[], draw: number): string {
+  const history = state.focusHistory;
+  const starved = starvedOf(graph, lang, rotation, history);
+  if (starved.length) return minBy(starved, (id) => [orderOf(graph, id)]);
+  const streak = streakSkill(history);
+  let candidates = without(rotation, new Set(streak === null ? [] : [streak]));
+  candidates = without(candidates, cappedOf(history));
+  const ranked = candidates
+    .map((id) => ({ id, p: priority(state, graph, id, lang), o: orderOf(graph, id) }))
+    .sort((a, b) => (a.p < b.p ? -1 : a.p > b.p ? 1 : a.o - b.o))
+    .slice(0, FOCUS_CANDIDATES);
+  let top = ranked[0].p;
+  for (const r of ranked) if (r.p > top) top = r.p;
+  const weights = ranked.map((r) => top - r.p + FOCUS_FLOOR);
+  let total = 0;
+  for (const w of weights) total += w;
+  const target = draw * total;
+  let running = 0;
+  for (let i = 0; i < ranked.length; i++) {
+    running += weights[i];
+    if (target < running) return ranked[i].id;
+  }
+  return ranked[ranked.length - 1].id;
+}
+
+/** Low-weight rotation skills not picked in the last STARVE_WINDOW - 1 picks. */
+function starvedOf(graph: SkillGraph, lang: string, rotation: string[], history: string[]): string[] {
+  if (history.length < STARVE_WINDOW - 1) return [];
+  const recent = new Set(history.slice(-(STARVE_WINDOW - 1)));
+  return rotation.filter((id) => langWeight(graph, id, lang) <= LOW_WEIGHT && !recent.has(id));
+}
+
+/** Skills that would exceed SHARE_MAX of the last SHARE_WINDOW picks if picked again. */
+function cappedOf(history: string[]): Set<string> {
+  const counts = new Map<string, number>();
+  for (const id of history.slice(-(SHARE_WINDOW - 1))) counts.set(id, (counts.get(id) ?? 0) + 1);
+  return new Set([...counts].filter(([, n]) => n >= SHARE_MAX).map(([id]) => id));
+}
+
+/** Items not in `drop`, or all items when that would leave none. */
+function without(items: string[], drop: Set<string>): string[] {
+  const kept = items.filter((id) => !drop.has(id));
+  return kept.length ? kept : items;
 }
 
 function priority(state: ModelState, graph: SkillGraph, skillId: string, lang: string): number {

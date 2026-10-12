@@ -6,7 +6,9 @@
 // First visit -> placement solved at par -> a 15-exercise session (warm-ups and
 // practice; one give-up, one retry) -> summary. Checks: focus changes, no exercise
 // repeats in the session, result-strip values match the exercise, localStorage
-// survives a reload, and export -> reset -> import restores the same state.
+// survives a reload, and export -> reset -> import restores the same state. Every
+// result strip names the snippet's source ("from exercism/python \u00b7 MIT") from the
+// exercise's `source`, and a cursor give-up marks the target in the editor.
 process.env.PLAYWRIGHT_BROWSERS_PATH ??= "0";
 
 const { createServer } = await import("vite");
@@ -35,7 +37,7 @@ const text = (page, sel) => page.locator(sel).innerText();
 const current = (page) =>
   page.evaluate(() => {
     const c = window.vimTrainer.current();
-    return c && { id: c.ex.id, skill: c.skill, role: c.role, phase: c.phase, retry: c.retry, par: c.ex.par, kind: c.ex.kind };
+    return c && { id: c.ex.id, skill: c.skill, role: c.role, phase: c.phase, retry: c.retry, par: c.ex.par, kind: c.ex.kind, source: c.ex.source ?? null };
   });
 
 /** Wait until a fresh exercise is mounted and the editor has focus. */
@@ -51,14 +53,15 @@ async function nextMounted(page, prevKey) {
   return current(page);
 }
 
-/** Type a key string in Vim notation (<Esc>, <CR>, or literal characters). */
-async function typeKeys(page, keys) {
-  for (const tok of keys.match(/<Esc>|<CR>|./gs) ?? []) {
-    if (tok === "<Esc>") await page.keyboard.press("Escape");
-    else if (tok === "<CR>") await page.keyboard.press("Enter");
-    else await page.keyboard.type(tok);
-  }
+/** The strip's source line, as main.ts derives it from exercise.source. */
+const sourceText = (src) => (src?.repo === "author" ? "written for vim-trainer" : src?.repo ? `from ${src.repo.replace(/^(?:https?:\/\/)?(?:www\.)?github\.com\//, "").replace(/\.git$/, "")}${src.license ? ` \u00b7 ${src.license}` : ""}` : "");
+let sourceMismatches = [];
+async function checkSource(page, ex) {
+  const got = (await text(page, "#result #src").catch(() => "<missing>")).trim();
+  if (got !== sourceText(ex.source)) sourceMismatches.push(`${ex.id}: ${JSON.stringify(got)} vs ${JSON.stringify(sourceText(ex.source))}`);
 }
+
+const { typeKeys } = await import("./keys.mjs");
 
 async function solveAtPar(page, engine, ex, label) {
   await typeKeys(page, ex.par.keys);
@@ -74,6 +77,7 @@ async function solveAtPar(page, engine, ex, label) {
   const strip = await text(page, "#result");
   const you = await text(page, "#result .you");
   const par = await text(page, "#result .par");
+  await checkSource(page, ex);
   const ok = strip.includes("correct") && you.includes(`${ex.par.count} keys`) && you.includes("at par") &&
     par.includes(ex.par.keys) && new RegExp(`\\b${ex.par.count}\\b`).test(par) && /\d+(\.\d)?\s?s/.test(you);
   check(engine, `${label}: ${ex.id} (${ex.kind}) correct at par, strip shows ${ex.par.count} keys`, ok, `${you} || ${par}`);
@@ -89,6 +93,7 @@ for (const [engine, type] of Object.entries(engines)) {
   page.on("pageerror", (e) => errors.push(String(e)));
   const warnings = [];
   page.on("console", (m) => m.type() === "warning" && warnings.push(m.text()));
+  sourceMismatches = [];
 
   try {
     await page.goto(url);
@@ -115,8 +120,10 @@ for (const [engine, type] of Object.entries(engines)) {
       if (atStats) break;
     }
     check(engine, `placement ran ${placed} exercises and ended on stats`, placed >= 5 && (await text(page, "#page")).includes("We'll start with"), String(placed));
-    const statRows = await page.locator("table.skills tr[data-i]").count();
-    check(engine, "stats lists the 15 skills that have exercises", statRows === 15, String(statRows));
+    const statRows = await page.locator(".sv-cell").count();
+    const withContent = Object.values(JSON.parse(readFileSync(new URL("../../build/index.json", import.meta.url), "utf8")).langs.python.skills)
+      .filter((s) => s.ids.length > 0).length;
+    check(engine, `stats grid shows the ${withContent} skills that have python exercises`, statRows === withContent, String(statRows));
 
     // The session.
     await page.keyboard.press("Enter");
@@ -135,6 +142,8 @@ for (const [engine, type] of Object.entries(engines)) {
         const strip = await text(page, "#result");
         const shows = ex.kind === "cursor" ? strip.includes("target: line") : (await page.locator("#result pre.diff").count()) === 1;
         check(engine, `${label}: Esc Esc gives up and shows the ${ex.kind === "cursor" ? "target" : "expected diff"}`, strip.includes("gave up") && shows, strip);
+        if (ex.kind === "cursor") check(engine, `${label}: cursor give-up marks the target in the editor`, (await page.locator(".cm-target-reveal").count()) === 1);
+        await checkSource(page, ex);
       } else if (i === 6) {
         // Over par first (a no-op detour), then r and solve at par.
         await page.keyboard.type("jk");
@@ -159,6 +168,8 @@ for (const [engine, type] of Object.entries(engines)) {
       if (i < SESSION - 1) await page.keyboard.press(" ");
     }
 
+    check(engine, "every result strip shows the exercise's source line", sourceMismatches.length === 0, sourceMismatches.slice(0, 3).join(" | "));
+    check(engine, "real content carries a source (strip is not blank)", seen.some((e) => sourceText(e.source).startsWith("from exercism/python")), JSON.stringify(seen[0]?.source));
     const practice = seen.filter((e) => e.role === "practice");
     const focusSkills = [...new Set(practice.map((e) => e.skill))];
     check(engine, "focus changes during the session", focusSkills.length >= 2, focusSkills.join(","));
@@ -205,6 +216,37 @@ for (const [engine, type] of Object.entries(engines)) {
     await page.reload();
     await page.waitForSelector("#practice:not([hidden])", { timeout: 8000 });
     check(engine, "after import, a reload resumes practice", true);
+
+    // Switch to C++ mid-exercise: the open Python exercise is dropped unrecorded, the next
+    // one is C++, and its attempt lands in the per-language model state next to Python's.
+    const pyBefore = await page.evaluate(() => JSON.stringify(window.vimTrainer.saved().model.skills));
+    const logBefore = await page.evaluate(() => window.vimTrainer.saved().model.log.length);
+    await page.locator("#nav-settings").click();
+    await page.selectOption('select[name="lang"]', "cpp");
+    await page.keyboard.press("Escape");
+    const cppEx = await nextMounted(page, "");
+    check(engine, "after switching to C++ the next exercise is C++", cppEx.id.startsWith("cpp/"), cppEx.id);
+    check(engine, "the C++ editor has syntax highlighting", (await page.locator(".cm-content span[class]").count()) > 0);
+    await solveAtPar(page, engine, cppEx, "cpp 1");
+    const afterCpp = await page.evaluate(() => window.vimTrainer.saved().model);
+    const lastRec = afterCpp.log[afterCpp.log.length - 1];
+    check(engine, "the C++ attempt is logged with lang cpp (the dropped Python one is not)",
+      afterCpp.log.length === logBefore + 1 && lastRec.lang === "cpp" && lastRec.ex === cppEx.id, JSON.stringify(lastRec));
+    const pyKept = Object.entries(JSON.parse(pyBefore)).every(([id, langs]) => !langs.python || JSON.stringify(afterCpp.skills[id]?.python) === JSON.stringify(langs.python) || id === cppEx.skill);
+    check(engine, "Python model state is untouched by the C++ attempt", pyKept && !!afterCpp.skills[cppEx.skill]?.cpp);
+    await page.keyboard.press("s");
+    await page.waitForSelector(".sv-cell", { timeout: 5000 });
+    const cppSkills = Object.values(JSON.parse(readFileSync(new URL("../../build/index.json", import.meta.url), "utf8")).langs.cpp.skills)
+      .filter((s) => s.ids.length > 0).length;
+    check(engine, `C++ stats grid shows the ${cppSkills} C++ skills`, (await page.locator(".sv-cell").count()) === cppSkills && (await text(page, "#page h1")).includes("C++"));
+    await page.keyboard.press("f");
+    const forcedEx = await nextMounted(page, `${cppEx.id}|false|true`);
+    check(engine, "f on the stats grid drills the selected skill next", forcedEx.id.startsWith("cpp/"), forcedEx.id);
+    await page.locator("#nav-settings").click();
+    await page.selectOption('select[name="lang"]', "python");
+    await page.keyboard.press("Escape");
+    const backPy = await nextMounted(page, "");
+    check(engine, "switching back to Python serves Python again", backPy.id.startsWith("py/"), backPy.id);
   } catch (err) {
     failures++;
     console.log(`FAIL  [${engine}] ${err.message}`);
