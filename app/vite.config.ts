@@ -1,5 +1,5 @@
 import { resolve, join, normalize, extname } from "node:path";
-import { existsSync, statSync, createReadStream, cpSync } from "node:fs";
+import { existsSync, statSync, createReadStream, cpSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { defineConfig, type Plugin } from "vite";
 
 const repo = resolve(import.meta.dirname, "..");
@@ -42,7 +42,21 @@ function repoStatic(): Plugin {
     closeBundle() {
       const out = resolve(import.meta.dirname, "dist");
       const build = STATIC_DIRS["/build/"];
-      if (existsSync(build)) cpSync(build, join(out, "build"), { recursive: true });
+      if (!existsSync(build)) return;
+      cpSync(build, join(out, "build"), { recursive: true });
+      // One-file bundle of every exercise for hosts that cap the file count.
+      // Keys are "<lang>/<skill>/<leaf>" to match content.ts.
+      const exercises: Record<string, unknown> = {};
+      const root = join(build, "exercises");
+      for (const lang of readdirSync(root)) {
+        for (const skill of readdirSync(join(root, lang))) {
+          for (const f of readdirSync(join(root, lang, skill))) {
+            if (!f.endsWith(".json")) continue;
+            exercises[`${lang}/${skill}/${f.slice(0, -5)}`] = JSON.parse(readFileSync(join(root, lang, skill, f), "utf8"));
+          }
+        }
+      }
+      writeFileSync(join(out, "build", "all.json"), JSON.stringify({ exercises }));
     },
   };
 }

@@ -18,10 +18,25 @@ async function fetchJson<T>(url: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+/** Static hosts with a file-count limit ship every exercise in one build/all.json
+ * (written by vite.config.ts closeBundle). When it is present, exercises are served
+ * from it and never fetched one by one. Dev and CI keep the per-file layout. */
+let bundle: Record<string, Exercise> | null = null;
+
+async function loadBundle(): Promise<void> {
+  try {
+    const all = await fetchJson<{ exercises: Record<string, Exercise> }>(`${base}all.json`);
+    bundle = all.exercises;
+  } catch {
+    bundle = null;
+  }
+}
+
 export async function loadIndex(): Promise<ContentIndex> {
   if (index) return index;
   try {
     index = await fetchJson<ContentIndex>(`${base}index.json`);
+    await loadBundle();
   } catch (err) {
     console.warn(`vim-trainer: build/index.json not available (${(err as Error).message}); using the bundled sample content in build-sample/.`);
     base = "build-sample/";
@@ -44,7 +59,9 @@ export function loadExercise(id: string, skill: string, lang: string): Promise<E
   const key = `${lang}:${id}`;
   let p = cache.get(key);
   if (!p) {
-    p = fetchJson<Exercise>(exercisePath(id, skill, lang));
+    const leaf = id.split("/").pop() ?? id;
+    const hit = bundle?.[`${lang}/${skill}/${leaf}`];
+    p = hit ? Promise.resolve(hit) : fetchJson<Exercise>(exercisePath(id, skill, lang));
     p.catch(() => cache.delete(key));
     cache.set(key, p);
   }
