@@ -9,6 +9,8 @@
 #   make test     unit tests: content, model (Python and TS mirror), app grading, typecheck
 #   make e2e      Playwright: the sample flow, a 15-exercise session on build/, the stats demo,
 #                 editor regressions checked against nvim
+#   make difftest random key sequences in nvim vs the browser editor (SEED=YYYYMMDD COUNT=2000);
+#                 findings in content/.cache/difftest/<seed>/, exit 1 on ones not in known.jsonl
 #
 # Browsers live in app/node_modules (PLAYWRIGHT_BROWSERS_PATH=0), nothing global.
 
@@ -16,10 +18,10 @@ export PLAYWRIGHT_BROWSERS_PATH := 0
 BROWSERS ?= chromium
 CHECK_DIR := content/.cache/build-check
 
-.PHONY: setup content content-check dev test test-content test-model test-app e2e e2e-all emulator build clean help
+.PHONY: setup content content-check dev test test-content test-model test-app e2e e2e-all emulator difftest build clean help
 
 help:
-	@sed -n '1,15p' Makefile
+	@sed -n '1,17p' Makefile
 
 setup:
 	@command -v uv >/dev/null || { echo "uv is missing: brew install uv"; exit 1; }
@@ -71,6 +73,7 @@ e2e:
 	cd app && npm run e2e:session
 	cd app && npm run e2e:stats
 	cd app && npm run e2e:editor
+	cd app && npm run difftest:selftest
 
 # All three engines (run `make setup BROWSERS="chromium firefox webkit"` first).
 e2e-all:
@@ -81,6 +84,15 @@ e2e-all:
 # Report-only replay of every par and alternate in the browser.
 emulator:
 	cd app && node e2e/emulator.mjs --alternates
+
+# Differential test of the browser emulator against nvim (docs/plan/12-differential-testing.md).
+SEED ?= $(shell date +%Y%m%d)
+COUNT ?= 2000
+# STRICT= (empty) makes it report-only: the nightly job runs that way while the class-a
+# backlog in known.jsonl is being fixed, because every fresh seed still finds new shapes.
+STRICT ?= --strict
+difftest:
+	cd content && uv run vimtrainer-content difftest --seed $(SEED) --count $(COUNT) $(STRICT)
 
 # Static site in app/dist/ (build/ copied in).
 build:

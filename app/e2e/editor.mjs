@@ -56,9 +56,54 @@ const CASES = [
 // Known gap, not a case yet: <NL> (Ctrl-J) in Normal mode moves down like j in nvim
 // ("abc"/"def", cursor [1, 1], "<NL>x" -> "abc"/"df"), but codemirror-vim ignores it
 // ("ac"/"def"). No shipped par uses it; vimfixes.ts patches only what pars need.
+//
+// Open emulator bugs found by difftest (seed 20261012, docs/plan/12), accepted in
+// content/difftest/known.jsonl as class a. Expected values are Neovim's (with
+// startofline, as in Vim). They run on every pass and print XFAIL; one that starts
+// passing prints XPASS and fails the run, so its fix gets moved into CASES.
+// Today the browser gives the result after "web:".
+const KNOWN_FAILING = [
+  { name: "a failing f{c} aborts the operator (web: deletes one character)",
+    lines: ["abc def"], cursor: [1, 0], keys: "dfz", expect: ["abc def"], cursorAfter: [1, 0] },
+  { name: "ci' with no quotes on the line aborts, x then deletes (web: Insert mode, types x)",
+    lines: ["abc def"], cursor: [1, 0], keys: "ci'x", expect: ["bc def"], cursorAfter: [1, 0] },
+  { name: "S<Esc> drops the unused auto-indent (web: keeps 4 spaces, cursor [2, 3])",
+    lines: ["def f():", "    x = 1"], cursor: [2, 4], keys: "S<Esc>", expect: ["def f():", ""], cursorAfter: [2, 0] },
+  { name: "o<Esc> drops the unused auto-indent (web: keeps 4 spaces)",
+    lines: ["def f():", "    x = 1"], cursor: [2, 4], keys: "o<Esc>", expect: ["def f():", "    x = 1", ""], cursorAfter: [3, 0] },
+  { name: "<CR> in Insert mode keeps the indent (web: new line at column 0)",
+    lines: ["def f():", "    x = 1"], cursor: [2, 4], keys: "A<CR>y = 2<Esc>",
+    expect: ["def f():", "    x = 1", "    y = 2"], cursorAfter: [3, 8] },
+  { name: "yb moves the cursor to the start of the yanked text (web: stays at [1, 4])",
+    lines: ["foo bar"], cursor: [1, 4], keys: "yb", expect: ["foo bar"], cursorAfter: [1, 0] },
+  { name: ">G leaves empty lines empty (web: indents the empty line)",
+    lines: ["a", "", "b"], cursor: [1, 0], keys: ">G", expect: ["    a", "", "    b"], cursorAfter: [1, 4] },
+  { name: "J adds no space after trailing whitespace (web: adds one)",
+    lines: ["abc  ", "def"], cursor: [1, 0], keys: "J", expect: ["abc  def"], cursorAfter: [1, 5] },
+  { name: ":%norm A; leaves the cursor on the ; (web: one past it)",
+    lines: ["abc", "def"], cursor: [1, 0], keys: ":%norm A;<CR>", expect: ["abc;", "def;"], cursorAfter: [2, 3] },
+];
+// Also open: ":m<CR>" (no address) throws "E14: Invalid address" from vimfixes.ts
+// parseAddress as an uncaught page error; Neovim reports E16 and changes nothing.
 // Smoke: Playwright must accept the key name each of these tokens maps to (keys.mjs);
 // a bad name would otherwise throw only when a real exercise first uses the token.
 const SMOKE_KEYS = "<Nul><C-@><NL><F12><C-Space><C-Bslash><C-->";
+
+// Mount case `c` in the emulator page, type its keys and compare with nvim's result; called per case by the loops below.
+async function runCase(page, c) {
+  const ex = {
+    id: "e2e/editor", skill: "e2e", lang: "python", kind: "edit", task: c.name,
+    start: { lines: c.lines, cursor: c.cursor }, expect: { lines: c.expect }, par: { keys: c.keys, count: 0 },
+  };
+  await page.evaluate((ex) => window.emu.mount(ex), ex);
+  await page.waitForFunction(() => !!document.activeElement?.closest(".cm-editor"), null, { timeout: 3000 });
+  await typeKeys(page, c.keys);
+  await page.waitForTimeout(50);
+  const snap = (await page.evaluate(() => window.emu.status())).snap;
+  const ok = JSON.stringify(snap.lines) === JSON.stringify(c.expect) &&
+    (!c.cursorAfter || JSON.stringify(snap.cursor) === JSON.stringify(c.cursorAfter));
+  return { ok, snap };
+}
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const server = await createServer({ root, logLevel: "error", server: { port: 0 } });
@@ -75,19 +120,14 @@ for (const [engine, type] of Object.entries(engines)) {
   await page.goto(`${url}emulator-check.html`);
   await page.waitForFunction(() => !!window.emu);
   for (const c of CASES) {
-    const ex = {
-      id: "e2e/editor", skill: "e2e", lang: "python", kind: "edit", task: c.name,
-      start: { lines: c.lines, cursor: c.cursor }, expect: { lines: c.expect }, par: { keys: c.keys, count: 0 },
-    };
-    await page.evaluate((ex) => window.emu.mount(ex), ex);
-    await page.waitForFunction(() => !!document.activeElement?.closest(".cm-editor"), null, { timeout: 3000 });
-    await typeKeys(page, c.keys);
-    await page.waitForTimeout(50);
-    const snap = (await page.evaluate(() => window.emu.status())).snap;
-    const ok = JSON.stringify(snap.lines) === JSON.stringify(c.expect) &&
-      (!c.cursorAfter || JSON.stringify(snap.cursor) === JSON.stringify(c.cursorAfter));
+    const { ok, snap } = await runCase(page, c);
     if (!ok) failures++;
     console.log(`${ok ? "PASS" : "FAIL"}  [${engine}] ${c.name}${ok ? "" : `\n        got ${JSON.stringify(snap.lines)} cursor ${JSON.stringify(snap.cursor)}`}`);
+  }
+  for (const c of KNOWN_FAILING) {
+    const { ok } = await runCase(page, c);
+    if (ok) failures++;
+    console.log(`${ok ? "XPASS (now passes: move it into CASES)" : "XFAIL"}  [${engine}] ${c.name}`);
   }
   for (const tok of tokenize(SMOKE_KEYS)) {
     const err = await typeKeys(page, tok).then(() => null, (e) => String(e));

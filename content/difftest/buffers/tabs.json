@@ -1,0 +1,16 @@
+{
+  "id": "tabs",
+  "note": "tab-indented lines and mixed indent",
+  "lines": [
+    "def f():",
+    "\treturn 1",
+    "\tif x:",
+    "\t\ty = 2",
+    "  \tmixed = 3"
+  ],
+  "cursor": [
+    2,
+    1
+  ],
+  "options": {}
+}

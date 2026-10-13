@@ -1,0 +1,16 @@
+{
+  "id": "open_paren_end",
+  "note": "lines ending in (",
+  "lines": [
+    "result = compute(",
+    "    alpha,",
+    "    beta)",
+    "items.append(",
+    "print(x)"
+  ],
+  "cursor": [
+    1,
+    0
+  ],
+  "options": {}
+}

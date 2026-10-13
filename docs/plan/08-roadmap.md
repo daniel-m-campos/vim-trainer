@@ -59,8 +59,15 @@ run and a republished artifact.
   `idioms_learned.toml`; the anti-shortcut gate fix and `x.normal` for C++; the
   template kind audit; `keys.mjs` accepts every key token the oracle accepts. (11, 03,
   05.)
-- **3b. Next.** `difftest`: differential fuzzer between headless Neovim and the
-  emulator, minimiser, nightly CI job, seeded with the known divergences (12).
+- **3b. Built 2026-10-13.** `difftest`: a differential fuzzer between headless Neovim
+  and the emulator. A seeded generator draws key sequences over exercise and adversarial
+  buffers. A Node worker types them into the real editor over JSON lines, and a
+  minimiser reduces each divergence to a few keys. Findings are classified a-d and
+  checked against `content/difftest/known.jsonl`, which is seeded with the known
+  divergences. `make difftest` runs it, and a nightly CI job (`difftest.yml`, sharing
+  the setup action with `ci.yml`) fails only on new findings. Next: a first
+  50,000-sequence local run and triage into `vimfixes.ts` and the supported-command
+  list (12).
 - **3c.** Placement per language: `placementDone` per language, rebuild splits
   placement batches by language, a new model vector, e2e for the language switch.
 - **3d.** Mock-user QA: a workflow of Sonnet agents with personas driving the site

@@ -13,9 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NVIM_VERSION: v0.12.5
-  # sha256 of nvim-linux-x86_64.tar.gz from the GitHub release above.
-  NVIM_SHA256: bce0f56eda1f1b1db6eee8f4133d7a38813ea07933837dd1777411ca384c6875
+  # Neovim, uv and Node pins live in .github/actions/setup/action.yml.
   PLAYWRIGHT_BROWSERS_PATH: "0"
 
 jobs:
@@ -25,42 +23,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Neovim (pinned release)
-        run: |
-          curl -fsSL -o nvim.tar.gz "https://github.com/neovim/neovim/releases/download/${NVIM_VERSION}/nvim-linux-x86_64.tar.gz"
-          echo "${NVIM_SHA256}  nvim.tar.gz" | sha256sum -c -
-          sudo tar -C /opt -xzf nvim.tar.gz
-          echo "/opt/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
-          rm nvim.tar.gz
-      - run: nvim --version | head -1
-
-      - uses: astral-sh/setup-uv@v6
-        with:
-          version: "0.10.0"
-          enable-cache: true
-          cache-dependency-glob: "**/uv.lock"
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "26"
-          cache: npm
-          cache-dependency-path: app/package-lock.json
-
-      # Every pinned clone (content/.cache/<source name>); the key changes with any pin.
-      - name: Cache pinned content sources
-        uses: actions/cache@v4
-        with:
-          path: content/.cache/exercism-*
-          key: content-sources-${{ hashFiles('content/sources.toml') }}
-
-      - name: Install Python and Node dependencies
-        run: |
-          (cd content && uv sync)
-          (cd model && uv sync)
-          (cd app && npm ci)
-      - name: Install Playwright Chromium
-        working-directory: app
-        run: npx playwright install --with-deps chromium
+      # Neovim, uv, Node, source cache, uv sync, npm ci, Playwright Chromium.
+      - uses: ./.github/actions/setup
 
       - name: Unit tests (content, model, app + TS model mirror, typecheck)
         run: make test

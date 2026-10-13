@@ -50,6 +50,47 @@ Learned idioms start with `status = "new"`. `vimtrainer-content review --idioms`
 To review one, set its `status` to `"ok"` in `idioms_learned.toml`. Set it to `"rejected"`
 to stop the par search from using it.
 
+## Differential testing (difftest)
+
+`difftest` looks for places where the browser emulator disagrees with Neovim. It
+generates random key sequences, runs each in `nvim --headless --clean` and in the app's
+editor (headless Chromium), and compares lines, cursor and mode. The design is in
+`docs/plan/12-differential-testing.md`.
+
+```sh
+make difftest                                   # from the repo root: today's seed, 2000 cases, --strict
+make difftest SEED=20261013 COUNT=50000         # before a release
+cd content
+uv run vimtrainer-content difftest --seed 20261013 --only-index 417          # replay one case
+uv run vimtrainer-content difftest \
+    --to-editor-case .cache/difftest/20261013/findings.jsonl                 # editor.mjs cases, one per finding
+uv run vimtrainer-content difftest --accept .cache/difftest/20261013/findings.jsonl \
+    --class b --note "why this is accepted"                                  # append to known.jsonl
+```
+
+Outputs go to `.cache/difftest/<seed>/`:
+
+- `summary.md`: counts (cases, incomplete, minimised findings, new, unminimised) and one
+  row per minimised finding shape;
+- `findings.jsonl`: every finding with both sides, the class guess and the minimised keys;
+- `cases.jsonl`: every generated case, only with `--dump`.
+
+To triage, read `summary.md` and decide the class of each new shape:
+
+| class | meaning | what to do |
+|---|---|---|
+| a | emulator bug | `--to-editor-case`, add the case to `app/e2e/editor.mjs`, fix `app/src/vimfixes.ts` |
+| b | emulator limitation | `--accept --class b`; the command goes on the supported-command list and out of drills |
+| c | harness artefact (errors, indent noise, flaky) | fix the harness, or `--accept --class c` |
+| d | Neovim-specific behaviour we accept | `--accept --class d` with a note |
+
+`content/difftest/known.jsonl` holds the accepted shapes; commit it after `--accept`.
+With `--strict`, the run exits 1 only for minimised findings that match no entry there
+(a long unminimised sequence has a shape of its own, so it is counted, not judged).
+Class-a entries are open emulator bugs; remove one when its fix lands. The nightly CI job
+`.github/workflows/difftest.yml` runs `make difftest STRICT=` (report-only while the class-a
+backlog is open; see docs/plan/12) and uploads `.cache/difftest/`.
+
 ## C++
 
 C++ is the second content language. Its sources, mapping and windowing live in

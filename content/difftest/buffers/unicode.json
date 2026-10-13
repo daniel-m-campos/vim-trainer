@@ -1,0 +1,15 @@
+{
+  "id": "unicode",
+  "note": "é, CJK and emoji (non-BMP); cursor on ASCII so byte and UTF-16 columns agree",
+  "lines": [
+    "name = \"café\"  # é",
+    "greet = \"你好世界\"",
+    "emoji = \"🙂👍 ok\"",
+    "mix = \"aé你🙂b\""
+  ],
+  "cursor": [
+    1,
+    0
+  ],
+  "options": {}
+}

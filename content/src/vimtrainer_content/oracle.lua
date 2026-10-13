@@ -13,15 +13,30 @@ M.OPTIONS = { number = true, relativenumber = true, expandtab = true, shiftwidth
 local FILETYPE = { tsx = 'typescriptreact' }
 for _, p in ipairs({ 'python3', 'node', 'perl', 'ruby' }) do vim.g['loaded_' .. p .. '_provider'] = 0 end
 vim.o.showmode, vim.o.more, vim.o.swapfile = false, false, false
-local final_mode, used_ex
-vim.keymap.set({ 'n', 'i', 'v', 'x', 's', 'o', 'c', 't' }, '<Plug>(oracle-done)',
-  function() final_mode = vim.api.nvim_get_mode().mode end)
+local final_mode, final_lines, final_cursor, used_ex
+-- Runs right after the keys: records the state before <C-\><C-n> (which would move an
+-- Insert-mode cursor left and apply a pending insert count such as 3iW).
+vim.keymap.set({ 'n', 'i', 'v', 'x', 's', 'o', 'c', 't' }, '<Plug>(oracle-done)', function()
+  final_mode = vim.api.nvim_get_mode().mode
+  final_lines, final_cursor = vim.api.nvim_buf_get_lines(0, 0, -1, false), vim.api.nvim_win_get_cursor(0)
+end)
 vim.api.nvim_create_autocmd('CmdlineEnter', { pattern = ':', callback = function() used_ex = true end })
 local function tc(s) return vim.api.nvim_replace_termcodes(s, true, false, true) end
 
+-- Overwrites the global repeat state of the previous job in a throwaway buffer, so that
+-- `.`, `@:`, `@@`, `&`, `g&`, `:&&` and `".` do nothing (as in a fresh editor): a never-
+-- matching :s with the e flag (sets @: and the last substitute), @: (sets @@ to it) and
+-- a<Esc> (an empty insert: `.` repeats it without moving the cursor). Kept off the job
+-- buffer so its marks ('^ '[ '.) stay unset.
+local SCRUB = ':s/\\%0l//e<CR>@:a<Esc>'
 local function reset(ex)
   vim.cmd('enew!')
   vim.bo.bufhidden = 'wipe'
+  vim.api.nvim_feedkeys(tc(SCRUB), 'ntx', false)
+  vim.fn.histdel('/')
+  vim.cmd('enew!')
+  vim.bo.bufhidden = 'wipe'
+  vim.fn.setreg('/', '')
   vim.bo.filetype = FILETYPE[ex.lang] or ex.lang or ''
   for k, v in pairs(vim.tbl_extend('force', M.OPTIONS, ex.options or {})) do vim.opt_local[k] = v end
   for r in ('"abcdefghijklmnopqrstuvwxyz0123456789-/'):gmatch('.') do vim.fn.setreg(r, {}) end
@@ -32,7 +47,7 @@ local function reset(ex)
   vim.api.nvim_buf_set_lines(0, 0, -1, false, ex.start.lines)
   vim.bo.undolevels = ul
   vim.api.nvim_win_set_cursor(0, ex.start.cursor)
-  final_mode, used_ex, vim.v.errmsg = nil, false, ''
+  final_mode, final_lines, final_cursor, used_ex, vim.v.errmsg = nil, nil, nil, false, ''
 end
 
 function M.run(ex, keys)
@@ -44,12 +59,12 @@ function M.run(ex, keys)
   M.pending = tc(keys .. '<Plug>(oracle-done)')
   local ok, err = pcall(vim.cmd, "silent! lua vim.api.nvim_feedkeys(require'oracle_self'.pending, 'mtx', false)")
   local res = { keys = keys, mode = final_mode or vim.api.nvim_get_mode().mode, used_ex = used_ex,
-    recording = vim.fn.reg_recording() ~= '', errmsg = ok and vim.v.errmsg or tostring(err),
+    done = final_mode ~= nil, recording = vim.fn.reg_recording() ~= '', errmsg = ok and vim.v.errmsg or tostring(err),
     ms = (vim.uv.hrtime() - t0) / 1e6 }
   if res.recording then vim.cmd('normal! q') end
   vim.api.nvim_feedkeys(tc('<C-\\><C-n>'), 'nx', false)
-  res.lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-  res.cursor = vim.api.nvim_win_get_cursor(0)
+  res.lines = final_lines or vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  res.cursor = final_cursor or vim.api.nvim_win_get_cursor(0)
   return res
 end
 

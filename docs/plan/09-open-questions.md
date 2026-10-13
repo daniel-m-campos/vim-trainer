@@ -48,7 +48,6 @@ All four resolved; see Resolved below.
 ## Added 2026-10-13 (architecture)
 | question | from | resolve by |
 |---|---|---|
-| Differential fuzzer `difftest`: generator, both harnesses, minimiser, nightly CI job | 12 | round 3b |
 | Placement per language (C++ users start with no placement) | 04 | round 3c |
 | Reading order and comments in app/ for a TypeScript newcomer | 0008 | started in round 3a (flag path in app/README.md); continue with each app change |
 
@@ -81,4 +80,5 @@ All four resolved; see Resolved below.
 - Server-side real Neovim vs browser emulator: emulator, with differential testing. 2026-10-13 (ADR 0008).
 - Per-attempt `seq`, `beatPar`, `flag`; `!` flag picker; prefilled GitHub issue to the main repo for now. 2026-10-13, round 3a (11).
 - `ingest` command: Neovim-verifies player pars, writes `idioms_learned.toml`, alternates and review queues. 2026-10-13, round 3a (11, ADR 0009).
+- How we find emulator divergences: `difftest`, a seeded differential fuzzer (Neovim vs the app's editor) with a minimiser, `known.jsonl` and a nightly CI job. 2026-10-13, round 3b (12).
 - Template kind audit: ex only where normal mode would be a repetition drill. 2026-10-13, round 3a (03).

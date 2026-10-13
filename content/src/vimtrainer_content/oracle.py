@@ -84,6 +84,7 @@ class Outcome:
     used_ex: bool
     recording: bool
     errmsg: str
+    done: bool = True  # False: the keys swallowed oracle.lua's end marker (ended mid-command)
 
 
 @dataclass(frozen=True)
@@ -324,6 +325,7 @@ def _outcome(raw: dict[str, Any]) -> Outcome:
     return Outcome(
         keys=raw["keys"], lines=lines, cursor=list(raw["cursor"]), mode=raw["mode"],
         used_ex=bool(raw["used_ex"]), recording=bool(raw["recording"]), errmsg=raw.get("errmsg") or "",
+        done=bool(raw.get("done", True)),
     )
 
 
