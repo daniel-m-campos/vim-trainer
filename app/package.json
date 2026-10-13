@@ -15,7 +15,8 @@
     "e2e:session": "node e2e/session.mjs",
     "e2e:stats": "node e2e/stats-demo.mjs",
     "e2e:editor": "node e2e/editor.mjs",
-    "emulator": "node e2e/emulator.mjs"
+    "emulator": "node e2e/emulator.mjs",
+    "difftest:selftest": "node e2e/difftest-worker.mjs --self-test"
   },
   "dependencies": {
     "@codemirror/commands": "6.11.1",

@@ -1,4 +1,4 @@
-"""``vimtrainer-content``: fetch sources, build the corpus, review exercises, ingest player logs."""
+"""``vimtrainer-content``: fetch sources, build the corpus, review exercises, ingest player logs, difftest."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ import time
 from collections.abc import Sequence
 
 from vimtrainer_content import build, ingest, review, sources
+from vimtrainer_content.difftest import run as difftest
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -86,6 +87,8 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("paths", nargs="+", type=pathlib.Path, help="exported progress JSON or a saved '!' issue body")
     p.add_argument("--out", type=pathlib.Path, default=build.DEFAULT_OUT)
     p.set_defaults(func=_ingest)
+
+    difftest.add_parser(sub)
     return parser
 
 

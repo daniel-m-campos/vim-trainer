@@ -193,6 +193,13 @@ fail in the emulator are shipped with `emulator.web = "unsupported"` and exclude
 the browser trainer until the emulator or the exercise is fixed. The published
 supported-command list is generated from this.
 
+The par replay checks one sequence per exercise. `vimtrainer-content difftest` checks
+the emulator more widely. It generates random key sequences over exercise buffers and
+an adversarial buffer set, runs each in Neovim and in the app's editor, and minimises
+every divergence to a few keys. Class-b findings (emulator limitations) feed the
+supported-command list and the web-unsupported flag; class-a findings become fixes in
+`app/src/vimfixes.ts`. It runs nightly in CI (12).
+
 VSCodeVim and IdeaVim flags are initially copied from the skill graph's per-skill
 flags (see 02 To research for making them real).
 

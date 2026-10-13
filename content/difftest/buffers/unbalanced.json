@@ -1,0 +1,16 @@
+{
+  "id": "unbalanced",
+  "note": "unbalanced brackets and quotes",
+  "lines": [
+    "f(a, (b, c)",
+    "x = [1, 2",
+    "}",
+    "if (y) { z(];",
+    "s = \"open"
+  ],
+  "cursor": [
+    1,
+    0
+  ],
+  "options": {}
+}

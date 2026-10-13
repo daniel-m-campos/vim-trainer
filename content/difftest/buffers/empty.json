@@ -1,0 +1,12 @@
+{
+  "id": "empty",
+  "note": "empty buffer",
+  "lines": [
+    ""
+  ],
+  "cursor": [
+    1,
+    0
+  ],
+  "options": {}
+}

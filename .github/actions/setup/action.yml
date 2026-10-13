@@ -1,0 +1,60 @@
+name: setup
+description: >-
+  Pinned Neovim, uv, Node, the pinned content-source cache, Python and Node
+  dependencies, and Playwright Chromium. Shared by ci.yml and difftest.yml.
+  The caller checks out the repo first and sets PLAYWRIGHT_BROWSERS_PATH=0 in its env.
+
+inputs:
+  nvim-version:
+    description: Neovim release tag.
+    default: v0.12.5
+  nvim-sha256:
+    description: sha256 of nvim-linux-x86_64.tar.gz from that release.
+    default: bce0f56eda1f1b1db6eee8f4133d7a38813ea07933837dd1777411ca384c6875
+
+runs:
+  using: composite
+  steps:
+    - name: Install Neovim (pinned release)
+      shell: bash
+      env:
+        NVIM_VERSION: ${{ inputs.nvim-version }}
+        NVIM_SHA256: ${{ inputs.nvim-sha256 }}
+      run: |
+        curl -fsSL -o nvim.tar.gz "https://github.com/neovim/neovim/releases/download/${NVIM_VERSION}/nvim-linux-x86_64.tar.gz"
+        echo "${NVIM_SHA256}  nvim.tar.gz" | sha256sum -c -
+        sudo tar -C /opt -xzf nvim.tar.gz
+        echo "/opt/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
+        rm nvim.tar.gz
+    - shell: bash
+      run: nvim --version | head -1
+
+    - uses: astral-sh/setup-uv@v6
+      with:
+        version: "0.10.0"
+        enable-cache: true
+        cache-dependency-glob: "**/uv.lock"
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "26"
+        cache: npm
+        cache-dependency-path: app/package-lock.json
+
+    # Every pinned clone (content/.cache/<source name>); the key changes with any pin.
+    - name: Cache pinned content sources
+      uses: actions/cache@v4
+      with:
+        path: content/.cache/exercism-*
+        key: content-sources-${{ hashFiles('content/sources.toml') }}
+
+    - name: Install Python and Node dependencies
+      shell: bash
+      run: |
+        (cd content && uv sync)
+        (cd model && uv sync)
+        (cd app && npm ci)
+    - name: Install Playwright Chromium
+      shell: bash
+      working-directory: app
+      run: npx playwright install --with-deps chromium
