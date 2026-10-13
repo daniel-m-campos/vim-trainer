@@ -39,6 +39,8 @@ code { font-family: var(--mono); font-size: .93em; }
 .code { min-width: 0; overflow: hidden; }
 .code .cm-editor { height: 100%; }
 .code .cm-editor.cm-focused { outline: none; }
+/* No code ligatures: every character is a cursor position, so != must show as two glyphs. */
+.code .cm-content { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
 .cm-target { background: var(--accent-tint); box-shadow: inset 0 -2px 0 var(--accent); border-radius: 2px; }
 /* cursor give-up: where the cursor should have been (outline + tint, not colour alone) */
 .cm-target-reveal { outline: 2px solid var(--pass); outline-offset: -1px; background: rgba(127, 191, 127, .22); border-radius: 2px; }

@@ -842,7 +842,7 @@ function renderSettings(): void {
     const f = (e.target as HTMLInputElement).files?.[0];
     if (!f) return;
     try {
-      saved = parseImport(await f.text());
+      saved = parseImport(await f.text(), LANGS.map(([k]) => k));
       saved.settings = { ...DEFAULTS, ...saved.settings };
       refreshGraph();
       persist();
@@ -1044,6 +1044,8 @@ async function boot(): Promise<void> {
   const prior = load();
   saved = prior ?? { version: 1, settings: { ...DEFAULTS }, model: M.newState(baseGraph()), placementDone: {}, sessions: [] };
   saved.settings = { ...DEFAULTS, ...saved.settings };
+  // An import from before validation may hold an unknown language; fall back to the default.
+  if (!LANGS.some(([k]) => k === saved.settings.lang)) saved.settings.lang = DEFAULTS.lang;
   refreshGraph();
   document.addEventListener("keydown", onKey);
   $("#nav-stats").addEventListener("click", (e) => (e.preventDefault(), openStats()));
