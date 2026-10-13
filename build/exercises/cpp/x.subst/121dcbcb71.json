@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/121dcbcb71",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `cpy` to `parse_input` (3 occurrences)",
   "start": {
     "lines": [
@@ -80,7 +80,8 @@
     ":%s/\\<cpy\\>/parse_input<CR>",
     ":%s/cpy\\>/parse_input/g<CR>",
     ":%s/\\<cpy/parse_input/g<CR>",
-    ":%s/\\<cpy\\>/parse_input/g<CR>"
+    ":%s/\\<cpy\\>/parse_input/g<CR>",
+    "/\\<cpy\\><CR>cgnparse_input<Esc>.."
   ],
   "hints": [
     {

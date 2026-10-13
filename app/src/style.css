@@ -74,6 +74,13 @@ code { font-family: var(--mono); font-size: .93em; }
 .hint::before { content: 'hint  '; color: var(--muted); letter-spacing: .08em; font-size: 12px; text-transform: uppercase; }
 .result .keys { display: flex; flex-wrap: wrap; gap: 14px; color: var(--muted); font-size: 13px; }
 .result .keys .off { opacity: .55; }
+.beat { color: var(--pass); font-weight: 600; }
+/* the "!" flag picker: replaces the key legend until enter or Esc */
+.flagpick { align-items: center; }
+.flagpick .flag-opt { cursor: pointer; }
+.flagpick .flag-opt.sel { color: var(--accent); }
+.flagpick input { flex: 1 1 14em; min-width: 10em; background: var(--panel); color: var(--fg); border: 1px solid var(--rule); border-radius: 4px; padding: 3px 6px; font: inherit; }
+.flagpick input:focus { outline: none; border-color: var(--accent); }
 /* snippet source: always rendered (nbsp when unknown) so the strip height is stable */
 .result .src { color: var(--muted); font-size: 12.5px; line-height: 1.4; min-height: 1.4em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .settings a { color: var(--accent); }

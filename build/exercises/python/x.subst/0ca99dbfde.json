@@ -2,7 +2,7 @@
   "id": "py/x.subst/0ca99dbfde",
   "skill": "x.subst",
   "lang": "python",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `member_2` to `source` (3 occurrences)",
   "start": {
     "lines": [
@@ -90,7 +90,8 @@
     ":%s/\\<member_2\\>/source<CR>",
     ":%s/member_2\\>/source/g<CR>",
     ":%s/\\<member_2/source/g<CR>",
-    ":%s/\\<member_2\\>/source/g<CR>"
+    ":%s/\\<member_2\\>/source/g<CR>",
+    "/\\<member_2\\><CR>cgnsource<Esc>.."
   ],
   "hints": [
     {

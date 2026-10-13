@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/0b91dfdd08",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `start_day` to `count` (3 occurrences)",
   "start": {
     "lines": [
@@ -48,7 +48,8 @@
     ":%s/\\<start_day\\>/count<CR>",
     ":%s/start_day\\>/count/g<CR>",
     ":%s/\\<start_day/count/g<CR>",
-    ":%s/\\<start_day\\>/count/g<CR>"
+    ":%s/\\<start_day\\>/count/g<CR>",
+    "/\\<start_day\\><CR>cgncount<Esc>.."
   ],
   "hints": [
     {

@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/124d2ee7e8",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `ovenTime` to `process` (3 occurrences)",
   "start": {
     "lines": [
@@ -76,7 +76,8 @@
     ":%s/\\<ovenTime\\>/process<CR>",
     ":%s/ovenTime\\>/process/g<CR>",
     ":%s/\\<ovenTime/process/g<CR>",
-    ":%s/\\<ovenTime\\>/process/g<CR>"
+    ":%s/\\<ovenTime\\>/process/g<CR>",
+    "/\\<ovenTime\\><CR>cgnprocess<Esc>.."
   ],
   "hints": [
     {

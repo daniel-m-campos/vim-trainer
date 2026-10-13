@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/0c761c00c9",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `generate_name` to `parse_input` (3 occurrences)",
   "start": {
     "lines": [
@@ -104,7 +104,8 @@
     ":%s/\\<generate_name\\>/parse_input<CR>",
     ":%s/generate_name\\>/parse_input/g<CR>",
     ":%s/\\<generate_name/parse_input/g<CR>",
-    ":%s/\\<generate_name\\>/parse_input/g<CR>"
+    ":%s/\\<generate_name\\>/parse_input/g<CR>",
+    "/\\<generate_name\\><CR>cgnparse_input<Esc>.."
   ],
   "hints": [
     {

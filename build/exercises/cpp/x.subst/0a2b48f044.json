@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/0a2b48f044",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `Japanese` to `Handler` (3 occurrences)",
   "start": {
     "lines": [
@@ -62,7 +62,8 @@
   "alternates": [
     ":%s/Japanese\\>/Handler/g<CR>",
     ":%s/\\<Japanese/Handler/g<CR>",
-    ":%s/\\<Japanese\\>/Handler/g<CR>"
+    ":%s/\\<Japanese\\>/Handler/g<CR>",
+    "/\\<Japanese\\><CR>cgnHandler<Esc>.."
   ],
   "hints": [
     {

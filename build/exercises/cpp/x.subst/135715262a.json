@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/135715262a",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `score_number` to `limit` (3 occurrences)",
   "start": {
     "lines": [
@@ -60,7 +60,8 @@
   "alternates": [
     ":%s/score_number\\>/limit/g<CR>",
     ":%s/\\<score_number/limit/g<CR>",
-    ":%s/\\<score_number\\>/limit/g<CR>"
+    ":%s/\\<score_number\\>/limit/g<CR>",
+    "/\\<score_number\\><CR>cgnlimit<Esc>.."
   ],
   "hints": [
     {

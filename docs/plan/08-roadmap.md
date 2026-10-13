@@ -49,9 +49,27 @@ supported-command list for Neovim exist (0005); the browser side of the list doe
 Exit: all v1 languages at ≥ 20 exercises per non-zero (language, skill); every
 "verify" flag in 02 is resolved.
 
+## Round 3: feedback loop and fidelity (inside M3/M4)
+Started 2026-10-13 after the first dogfood sessions (ADRs 0007, 0008, 0009). Split into
+four rounds; each ends with `make test`, `make e2e`, `make content-check`, a green CI
+run and a republished artifact.
+
+- **3a. Built 2026-10-13.** Attempt records carry `seq`, `beatPar` and `flag`; the
+  `beat par` band; the `!` flag picker and prefilled GitHub issue; the `ingest` CLI with
+  `idioms_learned.toml`; the anti-shortcut gate fix and `x.normal` for C++; the
+  template kind audit; `keys.mjs` accepts every key token the oracle accepts. (11, 03,
+  05.)
+- **3b. Next.** `difftest`: differential fuzzer between headless Neovim and the
+  emulator, minimiser, nightly CI job, seeded with the known divergences (12).
+- **3c.** Placement per language: `placementDone` per language, rebuild splits
+  placement batches by language, a new model vector, e2e for the language switch.
+- **3d.** Mock-user QA: a workflow of Sonnet agents with personas driving the site
+  through Playwright; no code. Their findings become round 4.
+
 ## M5 — Soft launch
 Hosting, domain, FAQ ("why no mobile", "why these commands"), GitHub Sponsors link,
 10–20 testers from r/neovim, bug fixing, opt-in anonymous log upload.
+Decide where outside testers file feedback (a public feedback repo; see 09).
 Exit: five testers return for a second week unprompted.
 
 ## M6 — Public launch

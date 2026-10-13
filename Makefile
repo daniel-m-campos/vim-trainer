@@ -59,9 +59,11 @@ test-content:
 test-model:
 	cd model && uv run pytest -q
 
-# Grading unit tests, the build/ contract test and the TS model mirror (node --test).
+# Grading unit tests, the build/ contract test and the TS model mirror (node --test),
+# plus the e2e key-notation helper (keys.mjs).
 test-app:
 	cd app && npm test
+	cd app && npm run test:e2e-helpers
 	cd app && npm run typecheck
 
 e2e:

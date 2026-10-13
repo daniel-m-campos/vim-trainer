@@ -2,7 +2,7 @@
   "id": "py/x.subst/002a1daa6a",
   "skill": "x.subst",
   "lang": "python",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `result` to `entry` (3 occurrences)",
   "start": {
     "lines": [
@@ -74,7 +74,8 @@
   "alternates": [
     ":%s/\\<result\\>/entry<CR>",
     ":%s/\\<result/entry/g<CR>",
-    ":%s/\\<result\\>/entry/g<CR>"
+    ":%s/\\<result\\>/entry/g<CR>",
+    "/\\<result\\><CR>cgnentry<Esc>.."
   ],
   "hints": [
     {

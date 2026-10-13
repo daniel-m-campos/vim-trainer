@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/06919052d9",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `minute_` to `target` (3 occurrences)",
   "start": {
     "lines": [
@@ -64,7 +64,8 @@
     ":%s/\\<minute_\\>/target<CR>",
     ":%s/minute_\\>/target/g<CR>",
     ":%s/\\<minute_/target/g<CR>",
-    ":%s/\\<minute_\\>/target/g<CR>"
+    ":%s/\\<minute_\\>/target/g<CR>",
+    "/\\<minute_\\><CR>cgntarget<Esc>.."
   ],
   "hints": [
     {

@@ -2,7 +2,7 @@
   "id": "cpp/x.copymove/05bd413cd9",
   "skill": "x.copymove",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Move this line below `dic[\"AUG\"] = \"Methionine\";`",
   "start": {
     "lines": [
@@ -79,19 +79,20 @@
     ]
   },
   "par": {
-    "keys": ":m+1<CR>",
-    "count": 5,
+    "keys": "ddp",
+    "count": 3,
     "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
+    ":m+1<CR>",
     ":m12<CR>",
     ":move +1<CR>",
     ":move 12<CR>"
   ],
   "hints": [
     {
-      "trigger": "^\"?[a-z]?dd",
-      "text": ":m moves the line without touching any register; this drill wants the Ex command."
+      "trigger": "^\"?[a-z]?dd\\d*[jk]",
+      "text": ":m+N / :m-N moves the line without touching a register, and the count does not change the key count."
     },
     {
       "trigger": null,

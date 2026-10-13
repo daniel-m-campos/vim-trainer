@@ -2,7 +2,7 @@
   "id": "py/x.subst/0a5aa13269",
   "skill": "x.subst",
   "lang": "python",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `root` to `data` (3 occurrences)",
   "start": {
     "lines": [
@@ -72,7 +72,8 @@
   "alternates": [
     ":%s/\\<root\\>/data<CR>",
     ":%s/root\\>/data/g<CR>",
-    ":%s/\\<root\\>/data/g<CR>"
+    ":%s/\\<root\\>/data/g<CR>",
+    "/\\<root\\><CR>cgndata<Esc>.."
   ],
   "hints": [
     {

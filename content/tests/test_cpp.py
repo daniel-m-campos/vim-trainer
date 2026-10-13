@@ -165,6 +165,61 @@ def test_trailing_comment_skips_bare_closing_brace(drafts):
     assert comments[0].variants[0] == "f/D"
 
 
+CONSTANTS = """\
+namespace phone {
+
+const int area_code_length = 3;
+const int exchange_length = 3;
+const int extension_length = 4;
+
+enum class plant {
+    grass,
+    clover,
+    radishes,
+};
+
+struct Song {
+    std::string title;
+    std::string artist;
+    std::string album;
+};
+
+int digits(int n) {
+    int count = 0;
+    count += n / 10;
+    count += n % 10;
+    total_seen = total_seen + count;
+    return count;
+}
+
+}  // namespace phone
+"""
+
+
+@pytest.mark.skipif(shutil.which("nvim") is None, reason="nvim not installed")
+def test_x_normal_prefix_and_upper_constants_need_normal_over_a_range(monkeypatch):
+    # The fixture has three prefix runs; lift the per-window cap so all of them are drafted.
+    monkeypatch.setattr(templates, "MAX_PER_WINDOW", 8)
+    (win,) = cpp.windows(CONSTANTS, SOURCE)
+    drafts = [d for d in cpp.generate(win) if d.skill == "x.normal"]
+    prefixes = {d.params["text"] for d in drafts if d.template == "prefix_each_line"}
+    assert prefixes == {"const ", "// "}  # never `std::`: cinkeys re-indents `std:` as a label
+    assert {d.tags[0] for d in drafts if d.template == "upper_constants"} == {"enumerator_list", "declaration_list"}
+    jobs, owners = [], []
+    for i, d in enumerate(drafts):
+        changed = [r for r, (a, b) in enumerate(zip(d.lines, d.expect["lines"])) if a != b]
+        assert d.kind == "ex" and len(changed) == d.params["n"] >= templates.EX_MIN_LINES, d.task
+        assert ":norm " in d.variants[0]
+        ex = d.exercise(cpp.LANG.name)
+        ex["id"] = d.uid
+        for keys in d.variants + d.alternates:
+            jobs.append((ex, keys))
+            owners.append(i)
+    verdicts = oracle.verify_many(jobs, oracle.subprocess_runner())
+    failing = [(drafts[owners[k]].task, v.keys, v.reason) for k, v in enumerate(verdicts) if not v.passed]
+    assert not failing
+
+
 MID_LINE_COMMENT = """\
 int sum_items(const std::vector<int>& items, int limit) {
     int total = compute_total(/* fast */ items, limit);
@@ -229,6 +284,12 @@ def test_move_and_copy_only_touch_whole_one_line_items(drafts):
     for d in moves:
         assert sorted(d.expect["lines"]) == sorted(d.lines + ([] if d.template == "move_line" else
                                                                [d.lines[d.cursor[0] - 1]]))
+
+
+def test_move_and_copy_are_edit_kind_with_a_normal_mode_variant(drafts):
+    for d in (d for d in drafts if d.skill == "x.copymove"):
+        assert d.kind == "edit"
+        assert any(not k.startswith(":") for k in d.variants), d.variants
 
 
 def test_change_rhs_fits_the_value_and_keeps_the_semicolon(drafts):

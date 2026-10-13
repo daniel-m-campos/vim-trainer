@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/0ad4aae599",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `amount` to `offset` (3 occurrences)",
   "start": {
     "lines": [
@@ -60,7 +60,8 @@
     ":%s/\\<amount\\>/offset<CR>",
     ":%s/amount\\>/offset/g<CR>",
     ":%s/\\<amount/offset/g<CR>",
-    ":%s/\\<amount\\>/offset/g<CR>"
+    ":%s/\\<amount\\>/offset/g<CR>",
+    "/\\<amount\\><CR>cgnoffset<Esc>.."
   ],
   "hints": [
     {

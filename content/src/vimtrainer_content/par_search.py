@@ -6,6 +6,11 @@ Values come from the exercise's optional ``params`` object plus a few derived fr
 exercise itself (see ``_context``). A list value expands into one candidate per item.
 A template whose placeholder has no value is skipped.
 
+Player-found idioms in ``content/idioms_learned.toml`` (written by ``vimtrainer-content
+ingest``) are merged into ``IDIOMS`` at import, after the built-in ones. A learned
+idiom's ``{{k}}`` stands for a count and expands to 1-9, the same count at every
+``{{k}}``. Entries with ``status = "rejected"`` are skipped.
+
 The canonical solution and its alternates are always candidates. If a candidate beats
 the canonical by more than ``FLAG_MARGIN`` keystrokes, the result is flagged for review
 (quality gate 4 in 03-content-pipeline.md); the canonical is never replaced silently.
@@ -26,16 +31,19 @@ import json
 import pathlib
 import re
 import sys
+import tomllib
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any, Final
 
-from vimtrainer_content import oracle
+from vimtrainer_content import oracle, sources
 
 FLAG_MARGIN: Final = 1
+LEARNED_TOML: Final = sources.CONTENT_DIR / "idioms_learned.toml"
+LEARNED_COUNTS: Final = range(1, 10)
 _PLACEHOLDER: Final = re.compile(r"\{\{(\w+)\}\}")
 
-IDIOMS: Final[dict[str, tuple[str, ...]]] = {
+_BUILTIN_IDIOMS: Final[dict[str, tuple[str, ...]]] = {
     "t.quote": (
         'ci"{{text}}<Esc>', "ci'{{text}}<Esc>", 'f"ci"{{text}}<Esc>', 'F"ci"{{text}}<Esc>',
         'di"i{{text}}<Esc>', 'f"lct"{{text}}<Esc>',
@@ -74,6 +82,30 @@ IDIOMS: Final[dict[str, tuple[str, ...]]] = {
 }
 
 
+def load_learned(path: pathlib.Path = LEARNED_TOML) -> dict[str, tuple[str, ...]]:
+    """Learned idioms per skill from ``idioms_learned.toml``, with ``{{k}}`` expanded to counts."""
+    if not path.exists():
+        return {}
+    learned: dict[str, list[str]] = {}
+    for entry in tomllib.loads(path.read_text()).get("idiom", []):
+        if entry.get("status") == "rejected":
+            continue
+        keys = entry["keys"]
+        expanded = [keys.replace("{{k}}", str(k)) for k in LEARNED_COUNTS] if "{{k}}" in keys else [keys]
+        learned.setdefault(entry["skill"], []).extend(expanded)
+    return {skill: tuple(dict.fromkeys(keys)) for skill, keys in learned.items()}
+
+
+def merge_idioms(builtin: dict[str, tuple[str, ...]], learned: dict[str, tuple[str, ...]]) -> dict[str, tuple[str, ...]]:
+    """Built-in idioms first, then learned ones, de-duplicated per skill."""
+    skills = dict.fromkeys([*builtin, *learned])
+    return {s: tuple(dict.fromkeys([*builtin.get(s, ()), *learned.get(s, ())])) for s in skills}
+
+
+LEARNED: Final = load_learned()
+IDIOMS: Final = merge_idioms(_BUILTIN_IDIOMS, LEARNED)
+
+
 @dataclass(frozen=True)
 class ParResult:
     """Outcome of a best-par search for one exercise."""
@@ -93,6 +125,12 @@ class ParResult:
 
 
 # Public Functions =================================================================================
+
+
+def learned_keys(exercise: oracle.Exercise) -> list[str]:
+    """Learned idioms of the exercise's skill, expanded for it; build.evaluate adds them as canonical variants."""
+    ctx = _context(exercise)
+    return list(dict.fromkeys(k for t in LEARNED.get(exercise["skill"], ()) for k in _expand(t, ctx)))
 
 
 def candidates(exercise: oracle.Exercise) -> list[str]:

@@ -10,7 +10,7 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ??= "0";
 const { createServer } = await import("vite");
 const { chromium, firefox, webkit } = await import("playwright");
 const { fileURLToPath } = await import("node:url");
-const { typeKeys } = await import("./keys.mjs");
+const { typeKeys, tokenize } = await import("./keys.mjs");
 
 const CASES = [
   {
@@ -53,6 +53,12 @@ const CASES = [
     cursorAfter: [2, 3],
   },
 ];
+// Known gap, not a case yet: <NL> (Ctrl-J) in Normal mode moves down like j in nvim
+// ("abc"/"def", cursor [1, 1], "<NL>x" -> "abc"/"df"), but codemirror-vim ignores it
+// ("ac"/"def"). No shipped par uses it; vimfixes.ts patches only what pars need.
+// Smoke: Playwright must accept the key name each of these tokens maps to (keys.mjs);
+// a bad name would otherwise throw only when a real exercise first uses the token.
+const SMOKE_KEYS = "<Nul><C-@><NL><F12><C-Space><C-Bslash><C-->";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const server = await createServer({ root, logLevel: "error", server: { port: 0 } });
@@ -82,6 +88,11 @@ for (const [engine, type] of Object.entries(engines)) {
       (!c.cursorAfter || JSON.stringify(snap.cursor) === JSON.stringify(c.cursorAfter));
     if (!ok) failures++;
     console.log(`${ok ? "PASS" : "FAIL"}  [${engine}] ${c.name}${ok ? "" : `\n        got ${JSON.stringify(snap.lines)} cursor ${JSON.stringify(snap.cursor)}`}`);
+  }
+  for (const tok of tokenize(SMOKE_KEYS)) {
+    const err = await typeKeys(page, tok).then(() => null, (e) => String(e));
+    if (err) failures++;
+    console.log(`${err ? "FAIL" : "PASS"}  [${engine}] Playwright accepts ${tok}${err ? `\n        ${err}` : ""}`);
   }
   if (errors.length) {
     failures++;

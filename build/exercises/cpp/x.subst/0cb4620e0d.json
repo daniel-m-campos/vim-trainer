@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/0cb4620e0d",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `close` to `entry` (3 occurrences)",
   "start": {
     "lines": [
@@ -80,7 +80,8 @@
     ":%s/\\<close\\>/entry<CR>",
     ":%s/close\\>/entry/g<CR>",
     ":%s/\\<close/entry/g<CR>",
-    ":%s/\\<close\\>/entry/g<CR>"
+    ":%s/\\<close\\>/entry/g<CR>",
+    "/\\<close\\><CR>cgnentry<Esc>.."
   ],
   "hints": [
     {

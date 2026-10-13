@@ -145,6 +145,17 @@ test('model functions do not mutate their input state', () => {
   assert.equal(JSON.stringify(state), snapshot);
 });
 
+test('app-only record fields (seq, beatPar, flag) are logged unchanged and do not change the state', () => {
+  const graph = DEFAULT_GRAPH;
+  const plain = { t: 1, ex: 'py/f.hjkl/0001', skill: 'f.hjkl', lang: 'python', ok: true, ms: 2000, keys: 4, par: 6,
+    hint: false, retry: false, undo: 0 };
+  const extra = { seq: 'jjll', beatPar: true, flag: { reason: 'wrong-par', note: '4 keys is enough' } };
+  const record = { ...plain, ...extra };
+  const state = applyAttempt(newState(graph), record, graph);
+  assert.deepEqual(state.log.at(-1), record);
+  assert.deepEqual(digest(state), digest(applyAttempt(newState(graph), plain, graph)));
+});
+
 test('exercisePool reads the build/index.json shape (langs.<lang>.skills.<skill>.ids)', () => {
   const build = { version: 1, langs: { python: { skills: { 't.quote': { ids: ['a'], count: 1 } } } } };
   assert.deepEqual(exercisePool(build as any, 'python', 't.quote'), [{ id: 'a', skills: ['t.quote'] }]);

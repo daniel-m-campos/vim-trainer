@@ -200,16 +200,25 @@ def evaluate(
         ``(exercise or None, gate name, detail)``; gate is ``"ok"`` on acceptance.
     """
     margin = 0 if draft.kind == oracle.Kind.CURSOR else gates.FLAG_MARGIN
-    canonical, best, problem = gates.judge_par(draft.variants, verdicts, draft.forbid, margin)
+    ex = draft.exercise(lang.name)
+    # A player-found idiom (idioms_learned.toml) competes as a canonical variant, after the
+    # template's own, so an ingested beat-par survives the rebuild instead of failing gate 4.
+    # candidate_keys replays every learned key (par_search.candidates expands IDIOMS, which
+    # holds LEARNED), so a missing verdict means the two paths diverged: fail loudly.
+    learned = par_search.learned_keys(ex)
+    missing = [k for k in learned if k not in verdicts]
+    if missing:
+        raise ValueError(f"{draft.uid}: learned idioms were never replayed: {missing}")
+    variants = [*draft.variants, *learned]
+    canonical, best, problem = gates.judge_par(variants, verdicts, draft.forbid, margin)
     if canonical is None:
         return None, "oracle", problem or ""
     if problem:
         return None, "shortcut" if problem.startswith("shortcut") else "par", problem
-    ex = draft.exercise(lang.name)
     if draft.kind == oracle.Kind.CURSOR and probes is not None:
         # Ties are allowed for the declared solutions only: the idiom lists hold plain
         # motions ($, w, W) precisely so that they are caught here.
-        allowed = {*draft.variants, *draft.alternates}
+        allowed = {*variants, *draft.alternates}
         problem = gates.cursor_probe_problem(ex, canonical.count, gates.cursor_probes(ex), probes, allowed)
         if problem:
             return None, "motion", problem
@@ -219,7 +228,7 @@ def evaluate(
     problem = gates.target_problem(ex, draft.target, draft.task)
     if problem:
         return None, "target", problem
-    known = [*draft.variants, *draft.alternates]
+    known = [*variants, *draft.alternates]
     alternates = [k for k in dict.fromkeys(known) if k != canonical.keys and verdicts[k].passed]
     par = {"keys": canonical.keys, "count": canonical.count, "verified": stamp}
     if best is not None and best.count < canonical.count:

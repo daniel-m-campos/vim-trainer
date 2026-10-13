@@ -1,4 +1,4 @@
-"""``vimtrainer-content``: fetch sources, build the corpus, review exercises."""
+"""``vimtrainer-content``: fetch sources, build the corpus, review exercises, ingest player logs."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import sys
 import time
 from collections.abc import Sequence
 
-from vimtrainer_content import build, review, sources
+from vimtrainer_content import build, ingest, review, sources
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -42,8 +42,16 @@ def _build(args: argparse.Namespace) -> int:
     return 1 if thin and args.strict else 0
 
 
+def _ingest(args: argparse.Namespace) -> int:
+    for path in args.paths:
+        ingest.ingest(path, out=args.out)
+    return 0
+
+
 def _review(args: argparse.Namespace) -> int:
-    if args.list:
+    if args.idioms:
+        review.list_idioms()
+    elif args.list:
         review.list_exercises(args.out, args.skill)
     else:
         review.review(args.out, args.skill, args.all)
@@ -71,7 +79,13 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("--skill")
     p.add_argument("--all", action="store_true", help="include already reviewed exercises")
     p.add_argument("--list", action="store_true", help="print all, no prompts")
+    p.add_argument("--idioms", action="store_true", help="list idioms learned from players (idioms_learned.toml)")
     p.set_defaults(func=_review)
+
+    p = sub.add_parser("ingest", help="verify player key sequences in Neovim; update pars, alternates, review queues")
+    p.add_argument("paths", nargs="+", type=pathlib.Path, help="exported progress JSON or a saved '!' issue body")
+    p.add_argument("--out", type=pathlib.Path, default=build.DEFAULT_OUT)
+    p.set_defaults(func=_ingest)
     return parser
 
 

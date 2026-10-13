@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/0d50cdaa66",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `text` to `label` (3 occurrences)",
   "start": {
     "lines": [
@@ -84,7 +84,8 @@
   "alternates": [
     ":%s/text\\>/label/g<CR>",
     ":%s/\\<text/label/g<CR>",
-    ":%s/\\<text\\>/label/g<CR>"
+    ":%s/\\<text\\>/label/g<CR>",
+    "/\\<text\\><CR>cgnlabel<Esc>.."
   ],
   "hints": [
     {

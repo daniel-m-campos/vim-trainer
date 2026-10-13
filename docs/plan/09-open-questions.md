@@ -42,17 +42,21 @@ All four resolved; see Resolved below.
 ## Added from dogfooding (2026-10-13)
 | question | from | resolve by |
 |---|---|---|
-| Record `keySeq`, `beatPar`, `flag` per attempt; `!` flag UI; prefilled GitHub issue link | 11 | next app round |
-| `ingest` command: oracle-verify player pars, generalise idioms, batch wording reports | 11 | next content round |
 | Cross-skill idiom search in par_search | 11 | next content round; measure oracle time |
-| Audit every template's kind: ex only where retyping defeats the drill | 11 | done for copy/move 2026-10-13; check prefix_each_line, upper_constants, rename_all_subst |
-| Stability-gate metrics need a counter in the app (flag rate per 4 weeks) | 07 | with the flag UI |
+| Stability-gate metrics need a counter in the app (flag rate per 4 weeks) | 07 | flags now live on attempt records (round 3a), so the rate is a count over `model.log`; nothing displays it yet |
 
 ## Added 2026-10-13 (architecture)
 | question | from | resolve by |
 |---|---|---|
-| Differential fuzzer `difftest`: generator, both harnesses, minimiser, nightly CI job | 12 | next build round |
-| Reading order and comments in app/ for a TypeScript newcomer | 0008 | with the next app change |
+| Differential fuzzer `difftest`: generator, both harnesses, minimiser, nightly CI job | 12 | round 3b |
+| Placement per language (C++ users start with no placement) | 04 | round 3c |
+| Reading order and comments in app/ for a TypeScript newcomer | 0008 | started in round 3a (flag path in app/README.md); continue with each app change |
+
+## Added in round 3a
+| question | from | resolve by |
+|---|---|---|
+| Public feedback repo at soft launch: the `!` issue link targets the private main repo `daniel-m-campos/vim-trainer`, which outside testers cannot use | 11 | M5; one constant in `app/src/feedback.ts` |
+| Is the ingest generalisation rule (counts to `{{k}}`, insert text to `{{text}}`) too loose or too strict? | 11, 0009 | after the first ingest runs on real exports |
 
 ## Resolved
 - Command-done and mode-change hooks: unreliable alone, so a filtered microtask check reads state. 2026-10-11 (05).
@@ -75,3 +79,6 @@ All four resolved; see Resolved below.
 - copy_line/move_line were ex-kind and rejected `yyjp`; now edit-kind with normal-mode variants. 2026-10-13 (11).
 - No charging until the stability gate in 07 is met. 2026-10-13.
 - Server-side real Neovim vs browser emulator: emulator, with differential testing. 2026-10-13 (ADR 0008).
+- Per-attempt `seq`, `beatPar`, `flag`; `!` flag picker; prefilled GitHub issue to the main repo for now. 2026-10-13, round 3a (11).
+- `ingest` command: Neovim-verifies player pars, writes `idioms_learned.toml`, alternates and review queues. 2026-10-13, round 3a (11, ADR 0009).
+- Template kind audit: ex only where normal mode would be a repetition drill. 2026-10-13, round 3a (03).

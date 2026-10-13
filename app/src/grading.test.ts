@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  tokenize, displayKeys, splitKeys, checkPass, band, isGiveUp, armsGiveUp, PausableClock, tabSpaces, chooseHint, diffLines, usedExCommand, targetRange, targetRanges, exerciseHints,
+  tokenize, displayKeys, replayKeys, splitKeys, checkPass, band, isGiveUp, armsGiveUp, PausableClock, tabSpaces, chooseHint, diffLines, usedExCommand, targetRange, targetRanges, exerciseHints,
   type KeyEvent, type Mode,
 } from "./grading.ts";
 import type { Exercise } from "./types.ts";
@@ -35,6 +35,12 @@ test("ci\"retrying<Esc> is 12 keys and displays as typed", () => {
   const t = tokenize(ciQuote(), "esc", "normal");
   assert.equal(t.length, 12);
   assert.equal(displayKeys(t), 'ci"retrying<Esc>');
+});
+
+test("the jk escape displays as jk but is logged for replay as <Esc>", () => {
+  const t = tokenize([ev("c"), ev("w"), ev("x", "insert"), ev("j", "insert"), ev("k", "insert")], "jk", "normal");
+  assert.equal(displayKeys(t), "cwxjk");
+  assert.equal(replayKeys(t), "cwx<Esc>");
 });
 
 test("splitKeys counts notation tokens as one key", () => {
@@ -83,6 +89,8 @@ test("ex kind needs an executed : command", () => {
 });
 
 test("efficiency bands", () => {
+  assert.equal(band(9, 11), "beat");
+  assert.equal(band(0, 1), "beat");
   assert.equal(band(12, 12), "par");
   assert.equal(band(15, 12), "close");
   assert.equal(band(16, 12), "pass");

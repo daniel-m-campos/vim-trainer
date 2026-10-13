@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/127fcddebb",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `students_by_grade` to `data` (3 occurrences)",
   "start": {
     "lines": [
@@ -78,7 +78,8 @@
     ":%s/\\<students_by_grade\\>/data<CR>",
     ":%s/students_by_grade\\>/data/g<CR>",
     ":%s/\\<students_by_grade/data/g<CR>",
-    ":%s/\\<students_by_grade\\>/data/g<CR>"
+    ":%s/\\<students_by_grade\\>/data/g<CR>",
+    "/\\<students_by_grade\\><CR>cgndata<Esc>.."
   ],
   "hints": [
     {

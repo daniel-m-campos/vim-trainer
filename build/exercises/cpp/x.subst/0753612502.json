@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/0753612502",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `houses` to `rows` (3 occurrences)",
   "start": {
     "lines": [
@@ -64,7 +64,8 @@
     ":%s/\\<houses\\>/rows<CR>",
     ":%s/houses\\>/rows/g<CR>",
     ":%s/\\<houses/rows/g<CR>",
-    ":%s/\\<houses\\>/rows/g<CR>"
+    ":%s/\\<houses\\>/rows/g<CR>",
+    "/\\<houses\\><CR>cgnrows<Esc>.."
   ],
   "hints": [
     {

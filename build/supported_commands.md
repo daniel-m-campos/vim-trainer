@@ -88,18 +88,15 @@ VSCodeVim and IdeaVim verification is not done yet: TODO(mvp).
 | t.word | `ciw{text}<Esc>` | 80 |
 | v.blockedit | `<C-v>NjI{text}<Esc>` | 18 |
 | v.blockedit | `<C-v>Nj$A{text}<Esc>` | 11 |
-| x.copymove | `ddkP` | 17 |
-| x.copymove | `:mN<CR>` | 17 |
-| x.copymove | `:t.<CR>` | 9 |
-| x.copymove | `yyp` | 6 |
-| x.copymove | `:tN<CR>` | 6 |
-| x.copymove | `:m+N<CR>` | 6 |
-| x.copymove | `ddp` | 5 |
-| x.copymove | `yykP` | 4 |
-| x.copymove | `:t+N<CR>` | 4 |
-| x.copymove | `:m-N<CR>` | 3 |
-| x.copymove | `:t-N<CR>` | 2 |
-| x.copymove | `ddNkP` | 1 |
+| x.copymove | `ddkP` | 29 |
+| x.copymove | `yyp` | 13 |
+| x.copymove | `yykP` | 12 |
+| x.copymove | `ddp` | 12 |
+| x.copymove | `:mN<CR>` | 6 |
+| x.copymove | `:tN<CR>` | 3 |
+| x.copymove | `:m-N<CR>` | 2 |
+| x.copymove | `ddNkP` | 2 |
+| x.copymove | `yyNkP` | 1 |
 | x.global | `:g/^$/d<CR>` | 14 |
 | x.global | `:v/def/d<CR>` | 7 |
 | x.global | `:v/ret/d<CR>` | 7 |
@@ -113,9 +110,10 @@ VSCodeVim and IdeaVim verification is not done yet: TODO(mvp).
 | x.lastsearch | `*cgn{new}<Esc>....` | 6 |
 | x.lastsearch | `*cgn{new}<Esc>.....` | 3 |
 | x.lastsearch | `*cgn{new}<Esc>.......` | 3 |
+| x.normal | `VNj:norm I{text}<CR>` | 55 |
 | x.normal | `VNj:norm gUe<CR>` | 4 |
-| x.normal | `VNj:norm I{text}<CR>` | 3 |
-| x.normal | `VNj:norm ^gUe<CR>` | 1 |
+| x.normal | `VNj:norm ^gUe<CR>` | 2 |
+| x.normal | `VNj:norm f=bgUe<CR>` | 2 |
 | x.subst | `:%s/{old}/{new}<CR>` | 36 |
 | x.subst | `:%s/{old}/{new}/g<CR>` | 20 |
 | x.subst | `:%s/\<{old}/{new}<CR>` | 9 |

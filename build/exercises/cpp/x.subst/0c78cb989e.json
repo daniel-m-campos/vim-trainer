@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/0c78cb989e",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `spiral_matrix` to `process` (3 occurrences)",
   "start": {
     "lines": [
@@ -48,7 +48,8 @@
     ":%s/\\<spiral_matrix\\>/process<CR>",
     ":%s/spiral_matrix\\>/process/g<CR>",
     ":%s/\\<spiral_matrix/process/g<CR>",
-    ":%s/\\<spiral_matrix\\>/process/g<CR>"
+    ":%s/\\<spiral_matrix\\>/process/g<CR>",
+    "/\\<spiral_matrix\\><CR>cgnprocess<Esc>.."
   ],
   "hints": [
     {
