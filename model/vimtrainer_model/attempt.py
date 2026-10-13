@@ -83,15 +83,19 @@ def apply_attempt(state: dict, record: dict, graph: dict) -> dict:
 
 
 def rebuild(log: list[dict], graph: dict) -> dict:
-    """Recompute a state from its log (placement records are those flagged ``placement``)."""
+    """Recompute a state from its log (placement records are those flagged ``placement``).
+
+    Consecutive placement records form one ``apply_placement`` batch; a change of language
+    closes the batch, because the app runs one placement test per language.
+    """
     state = new_state(graph)
     batch: list[dict] = []
     for record in log:
+        if batch and (not record.get("placement") or record["lang"] != batch[0]["lang"]):
+            state, batch = apply_placement(state, batch, graph), []
         if record.get("placement"):
             batch.append(record)
             continue
-        if batch:
-            state, batch = apply_placement(state, batch, graph), []
         state = apply_attempt(state, record, graph)
     if batch:
         state = apply_placement(state, batch, graph)

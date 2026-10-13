@@ -199,7 +199,7 @@ for (const [engine, type] of Object.entries(engines)) {
     await page.reload();
     await page.waitForSelector("#practice:not([hidden])", { timeout: 8000 });
     const afterReload = await page.evaluate(() => window.vimTrainer.saved());
-    check(engine, "reload restores the model log and sessions", afterReload.model.log.length === log.length && afterReload.sessions.length === 1 && afterReload.placementDone,
+    check(engine, "reload restores the model log and sessions", afterReload.model.log.length === log.length && afterReload.sessions.length === 1 && afterReload.placementDone.python === true,
       `${afterReload.model.log.length} vs ${log.length}`);
 
     // Export -> reset -> import.
@@ -207,7 +207,7 @@ for (const [engine, type] of Object.entries(engines)) {
     const [download] = await Promise.all([page.waitForEvent("download"), page.locator("#btn-export").click()]);
     const file = await download.path();
     const exported = JSON.parse(readFileSync(file, "utf8"));
-    check(engine, "export writes the full state", exported.model.log.length === log.length && exported.placementDone === true);
+    check(engine, "export writes the full state", exported.model.log.length === log.length && exported.placementDone.python === true);
     await page.locator("#btn-reset").click();
     await page.locator("#btn-reset").click(); // armed: erases and reloads
     await page.waitForSelector(".choice", { timeout: 8000 });
@@ -221,13 +221,36 @@ for (const [engine, type] of Object.entries(engines)) {
     await page.waitForSelector("#practice:not([hidden])", { timeout: 8000 });
     check(engine, "after import, a reload resumes practice", true);
 
+    // Migration: a save from before per-language placement has placementDone: true; a
+    // reload turns it into {python: true} (the saved language) and practice resumes.
+    await page.evaluate(() => {
+      const d = JSON.parse(localStorage.getItem("vim-trainer.v1"));
+      d.placementDone = true;
+      localStorage.setItem("vim-trainer.v1", JSON.stringify(d));
+    });
+    await page.reload();
+    await page.waitForSelector("#practice:not([hidden])", { timeout: 8000 });
+    const migrated = await page.evaluate(() => window.vimTrainer.saved().placementDone);
+    check(engine, "old placementDone: true migrates to {python: true}", JSON.stringify(migrated) === JSON.stringify({ python: true }), JSON.stringify(migrated));
+
     // Switch to C++ mid-exercise: the open Python exercise is dropped unrecorded, the next
     // one is C++, and its attempt lands in the per-language model state next to Python's.
     const pyBefore = await page.evaluate(() => JSON.stringify(window.vimTrainer.saved().model.skills));
     const logBefore = await page.evaluate(() => window.vimTrainer.saved().model.log.length);
     await page.locator("#nav-settings").click();
     await page.selectOption('select[name="lang"]', "cpp");
+    check(engine, "switching to C++ says it has no placement yet", (await text(page, "#settings-msg")).includes("placement"), await text(page, "#settings-msg"));
     await page.keyboard.press("Escape");
+    // C++ has no placement yet: Esc opens its intro; x skips it and lands on stats.
+    await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("where you are"), null, { timeout: 5000 });
+    const intro = await text(page, "#page");
+    check(engine, "the C++ placement intro appears on the first switch", intro.includes("C++") && intro.includes("new language") && intro.includes("mastered in another language"), intro);
+    await page.keyboard.press("x");
+    await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("We'll start with"), null, { timeout: 5000 });
+    const done = await page.evaluate(() => window.vimTrainer.saved().placementDone);
+    check(engine, "x skips the C++ placement: placementDone is {python: true, cpp: true}",
+      JSON.stringify(done, Object.keys(done).sort()) === JSON.stringify({ cpp: true, python: true }), JSON.stringify(done));
+    await page.keyboard.press("Enter");
     const cppEx = await nextMounted(page, "");
     check(engine, "after switching to C++ the next exercise is C++", cppEx.id.startsWith("cpp/"), cppEx.id);
     check(engine, "the C++ editor has syntax highlighting", (await page.locator(".cm-content span[class]").count()) > 0);
@@ -251,6 +274,34 @@ for (const [engine, type] of Object.entries(engines)) {
     await page.keyboard.press("Escape");
     const backPy = await nextMounted(page, "");
     check(engine, "switching back to Python serves Python again", backPy.id.startsWith("py/"), backPy.id);
+
+    // Second-language placement with enter: forget the C++ skip, switch to C++ again and
+    // run its placement. The queue skips skills mastered (or in review) in Python; one
+    // exercise at par, then q ends it and marks C++ placed.
+    await page.evaluate(() => delete window.vimTrainer.saved().placementDone.cpp);
+    await page.locator("#nav-settings").click();
+    await page.selectOption('select[name="lang"]', "cpp");
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("where you are"), null, { timeout: 5000 });
+    await page.keyboard.press("Enter");
+    const cppPlace = await nextMounted(page, "");
+    const { queued, masteredPy } = await page.evaluate(() => ({
+      queued: window.vimTrainer.placementSkills(),
+      masteredPy: Object.entries(window.vimTrainer.saved().model.skills)
+        .filter(([, l]) => l.python && ["mastered", "review"].includes(l.python.status)).map(([id]) => id),
+    }));
+    check(engine, "the C++ placement queue skips skills mastered in Python",
+      cppPlace.role === "placement" && cppPlace.id.startsWith("cpp/") && queued.length > 0 && masteredPy.length > 0 && !queued.some((s) => masteredPy.includes(s)),
+      `queued ${queued.join(",")} | mastered ${masteredPy.join(",")}`);
+    await solveAtPar(page, engine, cppPlace, "cpp placement 1");
+    await page.keyboard.press("q");
+    await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("We'll start with"), null, { timeout: 5000 });
+    const afterPlace = await page.evaluate(() => window.vimTrainer.saved());
+    const placeRec = afterPlace.model.log[afterPlace.model.log.length - 1];
+    check(engine, "q ends the C++ placement: placementDone is {python: true, cpp: true} and the record is logged as cpp placement",
+      JSON.stringify(afterPlace.placementDone, ["cpp", "python"]) === JSON.stringify({ cpp: true, python: true }) && Object.keys(afterPlace.placementDone).length === 2 &&
+        placeRec.placement === true && placeRec.lang === "cpp" && placeRec.ex === cppPlace.id,
+      `${JSON.stringify(afterPlace.placementDone)} ${JSON.stringify(placeRec)}`);
   } catch (err) {
     failures++;
     console.log(`FAIL  [${engine}] ${err.message}`);

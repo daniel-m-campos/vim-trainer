@@ -535,18 +535,19 @@ export function applyAttempt(state: ModelState, record: AttemptRecord, graph: Sk
   return result;
 }
 
-/** Recompute a state from its log (records flagged `placement` are replayed as placement). */
+/** Recompute a state from its log (records flagged `placement` are replayed as placement).
+ *  Consecutive placement records form one applyPlacement batch; a language change closes it. */
 export function rebuild(log: AttemptRecord[], graph: SkillGraph): ModelState {
   let state = newState(graph);
   let batch: AttemptRecord[] = [];
   for (const record of log) {
+    if (batch.length && (!record.placement || record.lang !== batch[0].lang)) {
+      state = applyPlacement(state, batch, graph);
+      batch = [];
+    }
     if (record.placement) {
       batch.push(record);
       continue;
-    }
-    if (batch.length) {
-      state = applyPlacement(state, batch, graph);
-      batch = [];
     }
     state = applyAttempt(state, record, graph);
   }

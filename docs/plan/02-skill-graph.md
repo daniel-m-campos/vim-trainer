@@ -257,7 +257,9 @@ o.dot, t.compose, a.*, x.global, x.normal, r.*. Tier 11–12 enabled on request.
 ## Placement test
 
 Twelve exercises in five minutes, sampled one per tier 1–9 plus three from tier 3–4,
-in the selected language. Scores seed per-skill confidence. A learner who passes at par
+in the selected language. Placement is per language; the first switch to a new
+language opens its placement, which skips skills mastered in another language. Scores
+seed per-skill confidence. A learner who passes at par
 on tiers 1–5 starts the Advanced track; otherwise Switcher. Learner can override.
 
 ## Measurement per node (summary; details in 04-adaptive-model.md)

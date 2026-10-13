@@ -134,6 +134,14 @@ unless all prerequisites were inferred mastered, in which case they start active
 Result: an Advanced-track user sees 10–20 skills inferred mastered and 4–7 active in
 tiers 4–7; a Switcher sees tiers 0–1 mastered and 3–4 active in tiers 1–3.
 
+Placement is per language. `placementDone` in the saved state is a map
+`{lang: true}`; an old save's single `true` migrates to `{<saved language>: true}`. The
+first switch to a language with no placement opens that language's placement intro;
+`x` skips it and marks the language done. A second language's placement skips every
+skill already mastered (or due for review) in another language, since those carry over
+(see Per-language state). It keeps one skill per tier 1–9 among the rest and fills the
+remaining slots with the skills that weigh most in the new language (`langWeights`).
+
 ## Projection (the chart line)
 
 Copied from keybr: fit a polynomial (linear, then quadratic when n ≥ 15) over the last
@@ -158,6 +166,12 @@ No fixed length. Within a session:
 Confidence is tracked per (skill, language) but unlocking uses the max across
 languages, so switching from Python to C++ doesn't re-lock `ci"`. The stats grid shows
 the current language's numbers with the cross-language max as a faint marker.
+
+A skill mastered in any language enters a new language as mastered with its first
+review due at once, so the new language's placement does not sample it and the first
+review confirms it. Placement records carry their own `lang` and seed only that
+language's states; a rebuild of the log never merges two languages' placements into
+one batch.
 
 ## Emulator profile
 

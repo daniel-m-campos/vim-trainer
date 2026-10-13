@@ -11,7 +11,8 @@ export interface Saved {
   version: 1;
   settings: Settings;
   model: ModelState;
-  placementDone: boolean;
+  /** Per language: true once that language's placement ran or was skipped. */
+  placementDone: Record<string, boolean>;
   sessions: SessionRecord[];
 }
 
@@ -20,7 +21,7 @@ export function load(): Saved | null {
     const raw = localStorage.getItem(KEY);
     if (!raw) return null;
     const data = JSON.parse(raw) as Saved;
-    return data && data.version === 1 && data.model && data.settings ? data : null;
+    return data && data.version === 1 && data.model && data.settings ? normalize(data) : null;
   } catch {
     return null;
   }
@@ -59,5 +60,14 @@ export function parseImport(text: string): Saved {
   if (!data || data.version !== 1 || !data.model || !Array.isArray(data.model.log) || !data.settings)
     throw new Error("not a vim-trainer export (version 1)");
   data.sessions ??= [];
+  return normalize(data);
+}
+
+// Upgrades older saves in place; called by load() and parseImport(). placementDone was
+// one boolean before placement went per language: true meant the saved language's.
+function normalize(data: Saved): Saved {
+  const old = data.placementDone as unknown;
+  if (typeof old === "boolean") data.placementDone = old ? { [data.settings.lang ?? "python"]: true } : {};
+  else if (!old || typeof old !== "object" || Array.isArray(old)) data.placementDone = {};
   return data;
 }
