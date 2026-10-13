@@ -52,6 +52,14 @@ def seed_with_roll(below: bool, start: int = 0) -> int:
     return seed
 
 
+def cpp_placement_records() -> list[dict]:
+    """A short C++ placement run 300 s after the Python one: a failed sample of a skill
+    mastered in Python, a pass on o.delete and a give-up on t.quote."""
+    return [rec(T0 + 300, "m.word", ok=False, keys=3, par=3, lang="cpp"),
+            rec(T0 + 320, "o.delete", keys=3, par=3, ms=1500, lang="cpp"),
+            rec(T0 + 340, "t.quote", ok=False, keys=12, par=12, ms=3000, lang="cpp")]
+
+
 def scenarios(graph: dict) -> dict[str, dict]:
     """All scenarios by file name."""
     builders = [
@@ -60,7 +68,7 @@ def scenarios(graph: dict) -> dict[str, dict]:
         _introduced_pull_in, _placement_advanced, _placement_switcher, _composite_credit_and_choice,
         _exercise_recent_and_weights, _projection_fits, _cross_language, _profile_vscodevim,
         _simulated_fast_sloppy, _simulated_quitter, _forced_locked_skill, _placement_hinted,
-        _cross_language_after_placement, _share_cap, _starvation_guard,
+        _cross_language_after_placement, _share_cap, _starvation_guard, _second_language_placement,
     ]
     result = {}
     for position, build in enumerate(builders, start=1):
@@ -328,6 +336,21 @@ def _starvation_guard(graph: dict) -> dict:
     return {"description": "d0 has Python weight 0.2, so its weighted confidence is never among the 3 weakest; "
                            "the starvation guard still picks it at least once in every 12 picks.",
             "graph": mini, "ops": ops}
+
+
+def _second_language_placement(graph: dict) -> dict:
+    learner = simulate.LEARNERS["plateaued_expert"]
+    records = simulate.placement_records(learner, random.Random(11), Counter(), graph, T0)
+    ops = [{"op": "applyPlacement", "records": records}, {"op": "digest"},
+           {"op": "applyPlacement", "records": cpp_placement_records()}, {"op": "digest"}]
+    ops += attempts("o.dot", 2, T0 + 700, keys=8, par=4, ms=4000)
+    ops += attempts("o.dot", 2, T0 + 800, keys=8, par=4, ms=4000, lang="cpp")
+    ops += [{"op": "digest"}, {"op": "rebuildMatches"},
+            {"op": "chooseFocus", "lang": PY, "now": T0 + 900, "seed": 1},
+            {"op": "chooseFocus", "lang": "cpp", "now": T0 + 900, "seed": 1}]
+    return {"description": "A Python placement then a C++ placement with no attempt between: the C++ batch "
+                           "leaves Python states untouched, and rebuild replays the two as separate batches.",
+            "ops": ops}
 
 
 def _profile_vscodevim(graph: dict) -> dict:

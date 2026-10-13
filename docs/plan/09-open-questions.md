@@ -48,7 +48,8 @@ All four resolved; see Resolved below.
 ## Added 2026-10-13 (architecture)
 | question | from | resolve by |
 |---|---|---|
-| Placement per language (C++ users start with no placement) | 04 | round 3c |
+| ~~Placement per language (C++ users start with no placement)~~ | 04 | done in round 3c: the first switch to a new language opens its placement; `placementDone` is per language |
+| Sticky mastery across languages: a C++ placement sample that *fails* on a skill mastered in Python leaves it mastered in C++ (n=1, review due at once), via `ensureSkill` carry-over. Pinned by vector 26 as current behaviour; is it intended, or should a failed placement sample demote the carried-over skill? | 04 | author decides after dogfooding C++ |
 | Reading order and comments in app/ for a TypeScript newcomer | 0008 | started in round 3a (flag path in app/README.md); continue with each app change |
 
 ## Added in round 3a

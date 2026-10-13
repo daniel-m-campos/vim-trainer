@@ -67,6 +67,26 @@ result strip flags the attempt and opens a prefilled GitHub issue. The functions
    it to `window.open`, then `closeFlagPicker()` redraws the strip as flagged, with a link
    to the form (and "popup blocked" when `window.open` returned null).
 
+## Reading note: placement per language
+
+`saved.placementDone` is a map such as `{python: true, cpp: true}`, one entry per
+language whose placement ran or was skipped. `load()` and `parseImport()` in
+`src/storage.ts` call `normalize()`, which turns an old save's `true` into
+`{<saved language>: true}`.
+
+- `placed(lang = S().lang)` in `src/main.ts` answers "has this language been placed?".
+  `lang = S().lang` is a default parameter, as in Python: `placed()` asks about the
+  current language. `boot()`, `goBack()`, the header and the stats page call it.
+- `placementQueue()` picks up to 12 `{skill, id}` pairs. `masteredElsewhere(lang)` lists
+  the skills that are mastered or due for review in another language, and the queue
+  skips them. On a first visit that set is empty and the queue is one skill per tier 1–9,
+  then three more from tiers 3–4. For a second language it keeps one per tier and fills
+  the rest by the new language's `langWeights`, highest first.
+- `startPlacement()` stores the language in `placement.lang`; `finishPlacement()` sets
+  `saved.placementDone[placement.lang]`, or the current language when `x` skipped it.
+- `onLangChange()` puts a message in settings for a language with no placement yet;
+  `Esc` then goes through `goBack()`, which opens the placement intro.
+
 What each file is for:
 
 - `src/main.ts`: screens, the practice loop, the result strip and the key handler. `finish()`

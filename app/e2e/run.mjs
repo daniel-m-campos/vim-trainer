@@ -275,7 +275,7 @@ for (const [engine, type] of Object.entries(engines)) {
       await page.evaluate(() => document.activeElement?.tagName));
     await page.keyboard.press("1");
     const savedState = await page.evaluate(() => JSON.parse(localStorage.getItem("vim-trainer.v1") ?? "null"));
-    check(engine, "state saved to localStorage with placement done", savedState?.placementDone === true && savedState.model.log.length >= 3,
+    check(engine, "state saved to localStorage with placement done", JSON.stringify(savedState?.placementDone) === JSON.stringify({ python: true }) && savedState.model.log.length >= 3,
       JSON.stringify(savedState?.model?.log?.length));
     // The flag set on placement 2 reached the log when placement ended, with seq and beatPar.
     const quoteRec = savedState?.model?.log?.find((r) => r.ex === "py/t.quote/0001" && !r.retry);

@@ -94,7 +94,7 @@ let view: View = "loading";
 const backStack: View[] = []; // where Esc returns to from stats / settings
 let cur: Current | null = null;
 let session = { startMs: Date.now(), sinceT: nowSec(), count: 0, warmupsLeft: WARMUPS, seen: new Set<string>(), recorded: false };
-let placement: { queue: { skill: string; id: string }[]; i: number; records: AttemptRecord[] } | null = null;
+let placement: { lang: string; queue: { skill: string; id: string }[]; i: number; records: AttemptRecord[] } | null = null;
 let forced: string | null = null;
 let afterPlacement = false;
 let statsTab: StatsTab = "skills";
@@ -196,19 +196,38 @@ function warmupSkill(): string | null {
   }
 }
 
+/** True once `lang`'s placement ran or was skipped; boot, goBack, stats and the header ask. */
+function placed(lang = S().lang): boolean {
+  return saved.placementDone[lang] === true;
+}
+
+/** Skills mastered (or due for review) in a language other than `lang`; placementQueue skips them. */
+function masteredElsewhere(lang: string): Set<string> {
+  const out = new Set<string>();
+  for (const [id, langs] of Object.entries(saved.model.skills))
+    for (const [l, st] of Object.entries(langs)) if (l !== lang && (st.status === "mastered" || st.status === "review")) out.add(id);
+  return out;
+}
+
 function placementQueue(): { skill: string; id: string }[] {
-  const avail = available();
+  const lang = S().lang;
+  const skip = masteredElsewhere(lang);
+  const avail = [...available()].filter((id) => !skip.has(id));
   const nodes = graphNodes(graph);
   const tierOf = new Map(nodes.map((n) => [n.id, n.tier]));
-  const skills = [...avail].sort((a, b) => (tierOf.get(a) ?? 99) - (tierOf.get(b) ?? 99));
+  const skills = avail.sort((a, b) => (tierOf.get(a) ?? 99) - (tierOf.get(b) ?? 99));
   const picks: string[] = [];
   // One per tier 1-9, then three more from tiers 3-4, then anything left (04).
+  // A second language (some skills mastered elsewhere) fills after the tier pass with
+  // the skills that weigh most in this language instead.
   for (let tier = 1; tier <= 9; tier++) {
     const s = skills.find((id) => tierOf.get(id) === tier && !picks.includes(id));
     if (s) picks.push(s);
   }
-  for (const s of skills.filter((id) => [3, 4].includes(tierOf.get(id) ?? -1) && !picks.includes(id)).slice(0, 3)) picks.push(s);
-  for (const s of skills) if (picks.length < PLACEMENT_SIZE && !picks.includes(s) && (tierOf.get(s) ?? 0) > 0) picks.push(s);
+  const weight = (id: string) => graph.skills[id]?.langWeights?.[lang] ?? 1;
+  const rest = skip.size ? [...skills].sort((a, b) => weight(b) - weight(a)) : skills;
+  if (!skip.size) for (const s of skills.filter((id) => [3, 4].includes(tierOf.get(id) ?? -1) && !picks.includes(id)).slice(0, 3)) picks.push(s);
+  for (const s of rest) if (picks.length < PLACEMENT_SIZE && !picks.includes(s) && (tierOf.get(s) ?? 0) > 0) picks.push(s);
   const used = new Set<string>();
   const queue: { skill: string; id: string }[] = [];
   for (const skill of picks.slice(0, PLACEMENT_SIZE)) {
@@ -242,7 +261,7 @@ function show(v: View): void {
 
 function renderHeader(): void {
   $("#hdr-ctx").innerHTML = `${esc(langName(S().lang).toLowerCase())} &middot; ${esc(S().profile)}`;
-  const skill = cur?.skill ?? (saved.placementDone ? focusSkill() : "");
+  const skill = cur?.skill ?? (placed() ? focusSkill() : "");
   const info = skill ? skillInfo(skill) : null;
   $("#hdr-focus").innerHTML = info && view === "practice" ? `focus: ${code(info.keys)} &nbsp;${esc(info.name)}` : "";
 }
@@ -609,21 +628,34 @@ function startSession(): void {
 }
 
 function startPlacement(): void {
-  placement = { queue: placementQueue(), i: 0, records: [] };
+  placement = { lang: S().lang, queue: placementQueue(), i: 0, records: [] };
   if (!placement.queue.length) return finishPlacement();
   void nextExercise();
 }
 
 function finishPlacement(): void {
   if (placement) {
-    try {
-      saved.model = M.applyPlacement(saved.model, placement.records, graph);
-    } catch (err) {
-      console.error("applyPlacement failed", err);
+    // A language switch mid-placement leaves records in two languages. Apply each
+    // consecutive same-language run as its own batch, as rebuild() does, and mark
+    // every language that got samples as placed.
+    const runs: AttemptRecord[][] = [];
+    for (const r of placement.records) {
+      const last = runs[runs.length - 1];
+      if (last && last[0].lang === r.lang) last.push(r);
+      else runs.push([r]);
+    }
+    for (const run of runs) {
+      try {
+        saved.model = M.applyPlacement(saved.model, run, graph);
+      } catch (err) {
+        console.error("applyPlacement failed", err);
+      }
+      saved.placementDone[run[0].lang] = true;
     }
   }
+  // The x skip path has no placement object: the current language is the one skipped.
+  saved.placementDone[placement?.lang ?? S().lang] = true;
   placement = null;
-  saved.placementDone = true;
   persist();
   cur?.editor.destroy();
   cur = null;
@@ -702,7 +734,7 @@ function openStats(): void {
   if (view !== "stats") backStack.push(view);
   show("stats");
   const rows = statRows();
-  const focus = saved.placementDone ? focusSkill() : "";
+  const focus = placed() ? focusSkill() : "";
   const i = rows.findIndex((r) => r.id === (forced ?? focus));
   statsSel = i >= 0 ? i : 0;
   renderStats();
@@ -713,7 +745,7 @@ function renderStats(): void {
   const lang = S().lang;
   const avail = available();
   const rows = statRows();
-  const focus = saved.placementDone ? focusSkill() : "";
+  const focus = placed() ? focusSkill() : "";
   const lead = afterPlacement && focus ? `We'll start with ${code(skillInfo(focus).keys)}. Press enter.` : "";
   const hidden = graphNodes(graph).filter((n) => n.tier <= 12 && !avail.has(n.id)).length;
   $("#page").innerHTML = `
@@ -795,12 +827,12 @@ function renderSettings(): void {
     const t = e.target as HTMLInputElement;
     if (t.name === "lang") s.lang = t.value;
     if (t.name === "profile") s.profile = t.value as EditorProfile;
-    if (t.name === "lang") onLangChange();
+    settingsMsg = "saved; applies from the next exercise.";
+    if (t.name === "lang") onLangChange(); // may replace settingsMsg (a language with no placement yet)
     else if (t.name === "profile") refreshGraph();
     if (t.name === "rel") s.relativeNumbers = t.value === "yes";
     if (t.name === "escape") s.escape = t.value as EscapePref;
     persist();
-    settingsMsg = "saved; applies from the next exercise.";
     $("#settings-msg").textContent = settingsMsg;
     renderHeader();
   });
@@ -833,7 +865,8 @@ function renderSettings(): void {
 /**
  * The language changed in settings. Model state is per (skill, language), so nothing is
  * lost; the open exercise is in the old language and is dropped unrecorded, and a
- * placement in progress continues with exercises in the new language.
+ * placement in progress continues with exercises in the new language. A language with no
+ * placement yet gets a settings message, and Esc (goBack) opens its placement intro.
  */
 function onLangChange(): void {
   refreshGraph();
@@ -842,6 +875,7 @@ function onLangChange(): void {
     cur = null;
   }
   if (placement) placement = { ...placement, queue: placement.queue.slice(0, placement.i).concat(placementQueue().slice(placement.i)) };
+  else if (!placed()) settingsMsg = `${langName(S().lang)} is new here: Esc opens its placement (x skips it).`;
   statsSel = 0;
 }
 
@@ -860,7 +894,7 @@ function goBack(): void {
   if (to === "settings") return show("settings"), renderSettings(); // stats opened from settings (header link)
   if (to === "summary" && summaryData) return show("summary"), renderSummary();
   if (to === "onboarding") return show("onboarding"), renderOnboarding();
-  if (to === "placement-intro" || (!saved.placementDone && !placement && !cur)) return show("placement-intro"), renderPlacementIntro();
+  if (to === "placement-intro" || (!placed() && !placement && !cur)) return show("placement-intro"), renderPlacementIntro();
   if (cur) return show("practice");
   // A session in progress (no exercise open: dropped by a language change, or loading)
   // continues; only a fresh one starts over.
@@ -911,10 +945,13 @@ function onboardChoose(i: number): void {
 
 function renderPlacementIntro(): void {
   const n = placementQueue().length;
+  // Another language already placed: this is a language switch, not the first visit.
+  const second = Object.values(saved.placementDone).some(Boolean);
   $("#page").innerHTML = `
-    <p class="steps">first visit &middot; 4 of 4</p>
-    <h1>Let's see where you are</h1>
+    ${second ? `<p class="steps">new language</p>` : `<p class="steps">first visit &middot; 4 of 4</p>`}
+    <h1>Let's see where you are${second ? ` in ${esc(langName(S().lang))}` : ""}</h1>
     <p class="lead">${n} short exercises in ${esc(langName(S().lang))}, about five minutes. There is no pass mark; the results seed your chart.</p>
+    ${second ? `<p class="note">This is a new language: skills you mastered in another language are skipped (they come back as reviews).</p>` : ""}
     <p class="note">Solve each one in the editor. <kbd>Esc</kbd><kbd>Esc</kbd> in normal mode skips one you don't know.</p>
     <div class="keysline"><span><kbd>enter</kbd> start</span><span><kbd>x</kbd> skip placement</span></div>`;
 }
@@ -1005,7 +1042,7 @@ function onKey(e: KeyboardEvent): void {
 async function boot(): Promise<void> {
   index = await loadIndex();
   const prior = load();
-  saved = prior ?? { version: 1, settings: { ...DEFAULTS }, model: M.newState(baseGraph()), placementDone: false, sessions: [] };
+  saved = prior ?? { version: 1, settings: { ...DEFAULTS }, model: M.newState(baseGraph()), placementDone: {}, sessions: [] };
   saved.settings = { ...DEFAULTS, ...saved.settings };
   refreshGraph();
   document.addEventListener("keydown", onKey);
@@ -1022,7 +1059,7 @@ async function boot(): Promise<void> {
   if (!prior) {
     show("onboarding");
     renderOnboarding();
-  } else if (!saved.placementDone) {
+  } else if (!placed()) {
     show("placement-intro");
     renderPlacementIntro();
   } else startSession();
@@ -1030,10 +1067,11 @@ async function boot(): Promise<void> {
 
 declare global {
   interface Window {
-    vimTrainer: { saved: () => Saved; model: () => ModelState; current: () => Current | null };
+    vimTrainer: { saved: () => Saved; model: () => ModelState; current: () => Current | null; placementSkills: () => string[] };
   }
 }
-window.vimTrainer = { saved: () => saved, model: () => saved.model, current: () => cur };
+// Test hook for the e2e suites; placementSkills lists the open placement's queued skills.
+window.vimTrainer = { saved: () => saved, model: () => saved.model, current: () => cur, placementSkills: () => placement?.queue.map((q) => q.skill) ?? [] };
 
 boot().catch((err) => {
   console.error(err);

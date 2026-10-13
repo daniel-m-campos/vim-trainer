@@ -13,7 +13,7 @@ This directory holds the Python half of the adaptive model from
 | `skill-graph.json` | 93 skills: id, tier, keys, prereqs, emulator flags, `targetBase` 1200, `perKey` 180, `langWeights` for 16 language ids, `enabled`, and `tips` |
 | `tips.json` | "try in your editor today" lines for 53 skills (source for `graph.tips`) |
 | `vimtrainer_model/` | the model: `state`, `attempt`, `placement`, `selection`, `projection`, `summary`, `rng`, `graph`, `vectors` (shared runner) |
-| `gen_vectors.py` | builds the 25 scenarios and stores the Python outputs as `expect` |
+| `gen_vectors.py` | builds the 26 scenarios and stores the Python outputs as `expect` |
 | `vectors/*.json` | the shared scenarios |
 | `simulate.py` | the four simulated learners from the validation plan |
 | `tests/` | pytest suite (vectors, gates, unlocking, placement, selection, projection, summary, purity) |
@@ -24,7 +24,7 @@ This directory holds the Python half of the adaptive model from
 # from the repo root
 uv run --project model python model/gen_graph.py     # regenerate skill-graph.json (both copies)
 uv run --project model python model/gen_vectors.py   # regenerate vectors/*.json from Python
-uv run --project model pytest model                  # 75 tests incl. doctests and every vector
+uv run --project model pytest model                  # 80 tests incl. doctests and every vector
 node --test app/src/model/model.test.ts              # TS mirror against the same vectors (Node >= 23, zero install)
 uv run --project model python model/simulate.py      # all four learners; or name one: fast_sloppy, slow_precise, plateaued_expert, quitter
 uv run --project model python model/simulate.py picks plateaued_expert 40 5   # 40 focus picks after 5 days, with their distribution
@@ -90,6 +90,14 @@ something extra, and why:
   with its first review due at once; a skill only unlocked elsewhere is carried over as
   active while fewer than 7 are in rotation. This keeps the "no re-lock" rule without
   flooding the new language's rotation.
+- **Placement per language.** The app runs one placement test per language, and each
+  test is one `applyPlacement` call with records of that language only. A second
+  placement touches only the new language's states: skills mastered in the first
+  language start mastered with a review due at once (`ensureSkill`), and a pass infers
+  prerequisites in the new language only. `rebuild(log)` groups consecutive placement
+  records into one batch and closes the batch when `record.lang` changes, so a Python
+  placement followed directly by a C++ placement replays as two `applyPlacement` calls.
+  Vector `26_second_language_placement` checks this in both mirrors.
 
 ### Exercise index shape (`build/index.json`)
 
