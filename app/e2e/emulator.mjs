@@ -53,13 +53,18 @@ await page.waitForFunction(() => !!window.emu);
 const { typeKeys: typeInto } = await import("./keys.mjs");
 const typeKeys = (keys) => typeInto(page, keys);
 
-async function tryKeys(ex, keys) {
+async function tryKeys(ex, keys, attempt = 1) {
   await page.evaluate((ex) => window.emu.mount(ex), ex);
   await page.waitForFunction(() => !!document.activeElement?.closest(".cm-editor"), null, { timeout: 3000 });
   await typeKeys(keys);
-  // Commands finish synchronously; give the update listener a frame.
-  await page.waitForFunction(() => window.emu.status().passed, null, { timeout: 400 }).catch(() => {});
-  return page.evaluate(() => window.emu.status());
+  // Commands finish synchronously, so a pass resolves within a frame; the long timeout
+  // only matters on a failure. CI run 38337241533 marked one of 1589 pars as a web fail
+  // with a 400 ms wait on a slow runner, which flipped the committed build/.
+  await page.waitForFunction(() => window.emu.status().passed, null, { timeout: 3000 }).catch(() => {});
+  const status = await page.evaluate(() => window.emu.status());
+  // One retry: keys typed before the remounted editor settled can be dropped on a slow runner.
+  if (!status.passed && attempt < 2) return tryKeys(ex, keys, attempt + 1);
+  return status;
 }
 
 const failures = [];
