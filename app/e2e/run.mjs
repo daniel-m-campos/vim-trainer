@@ -262,6 +262,8 @@ for (const [engine, type] of Object.entries(engines)) {
     // Only skills with exercises are listed: the sample has 3 skills in 3 tiers.
     check(engine, "stats grid grouped by tier", (await page.locator(".sv-tier").count()) === 3, String(await page.locator(".sv-tier").count()));
     check(engine, "stats grid outlines the focus skill", (await page.locator(".sv-cell.sv-focus").count()) === 1);
+    const pills = await page.locator(".sv-pill").allInnerTexts();
+    check(engine, "no tile reads 'locked' with zero attempts (shown as 'untested')", !pills.includes("locked"), pills.join(","));
     await page.keyboard.press("Tab");
     check(engine, "tab switches to progress", (await page.locator('.sv[data-tab="progress"]').count()) === 1);
     await page.keyboard.press("Tab");
@@ -287,6 +289,8 @@ for (const [engine, type] of Object.entries(engines)) {
     await page.waitForSelector("#practice:not([hidden])", { timeout: 5000 });
     await editorFocused(page);
     check(engine, "enter starts practice", true);
+    const lig = await page.evaluate(() => getComputedStyle(document.querySelector(".code .cm-content")).fontVariantLigatures);
+    check(engine, "editor has code ligatures off", lig === "none", lig);
     // The attempt clock stops while stats and settings cover the exercise.
     await page.locator("#nav-stats").click();
     await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("Stats"));
@@ -331,6 +335,18 @@ for (const [engine, type] of Object.entries(engines)) {
     await page.reload();
     await page.waitForSelector("#practice:not([hidden])", { timeout: 5000 });
     check(engine, "reload resumes practice (no first-visit flow)", true);
+
+    // A save bricked by an old unchecked import (no model.skills, unknown language) still loads.
+    await page.evaluate(() => {
+      const s = JSON.parse(localStorage.getItem("vim-trainer.v1"));
+      delete s.model.skills;
+      s.settings.lang = "klingon";
+      localStorage.setItem("vim-trainer.v1", JSON.stringify(s));
+    });
+    await page.reload();
+    await page.waitForSelector("#practice:not([hidden])", { timeout: 5000 });
+    check(engine, "a save without model.skills or with an unknown language recovers on reload",
+      !(await text(page, "header")).includes("klingon") && (await page.locator(".code .cm-content").count()) === 1, await text(page, "header"));
   } catch (err) {
     failures++;
     console.log(`FAIL  [${engine}] ${err.message}`);

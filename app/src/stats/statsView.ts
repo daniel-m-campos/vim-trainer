@@ -207,6 +207,9 @@ function bar(row: SkillRow): string {
   return `<span class="sv-bar" aria-hidden="true"><i style="width:${pct(row.confidence)}%"></i>${marker}</span>`;
 }
 
+// Pill label: "locked" with no attempts reads as a gate, but f drills any skill, so say "untested".
+export const pillText = (row: Pick<SkillRow, "status" | "st">): string => (row.status === "locked" && !row.st?.n ? "untested" : row.status);
+
 function cell(row: SkillRow, i: number, focus: string, selected: number, times: number[]): string {
   const info = skillInfo(row.id);
   const cls = ["sv-cell", `sv-${row.status}`, row.id === focus ? "sv-focus" : "", i === selected ? "sv-sel" : ""].join(" ");
@@ -215,7 +218,7 @@ function cell(row: SkillRow, i: number, focus: string, selected: number, times: 
     <div class="sv-cell-top">${code(info.keys)}${row.id === focus ? `<span class="sv-focus-tag">focus</span>` : ""}</div>
     <div class="sv-name">${esc(info.name)}</div>
     <div class="sv-conf">${bar(row)}<span class="sv-num">${row.confidence.toFixed(2)}</span></div>
-    <div class="sv-meta"><span class="sv-num">n ${row.st?.n ?? 0}</span><span class="sv-pill sv-pill-${row.status}">${row.status}</span>${trend}</div>
+    <div class="sv-meta"><span class="sv-num">n ${row.st?.n ?? 0}</span><span class="sv-pill sv-pill-${row.status}">${pillText(row)}</span>${trend}</div>
   </div>`;
 }
 
@@ -334,7 +337,7 @@ export function renderStatsView(
     }
     const sel = rows[selected];
     const lead = sel
-      ? `<p class="sv-lead"><kbd>enter</kbd> history of ${code(keysOf(sel.id))} &middot; <kbd>f</kbd> drill ${code(keysOf(sel.id))} next</p>`
+      ? `<p class="sv-lead"><kbd>enter</kbd> history of ${code(keysOf(sel.id))} &middot; <kbd>f</kbd> drill ${code(keysOf(sel.id))} next${rows.some((r) => pillText(r) === "untested") ? " &middot; untested skills can be drilled too" : ""}</p>`
       : `<p class="sv-empty">no skills to show.</p>`;
     return `${lead}<div class="sv-tiers" role="grid">${html}</div>`;
   }
