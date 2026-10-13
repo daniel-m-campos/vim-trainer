@@ -48,6 +48,12 @@ All four resolved; see Resolved below.
 | Audit every template's kind: ex only where retyping defeats the drill | 11 | done for copy/move 2026-10-13; check prefix_each_line, upper_constants, rename_all_subst |
 | Stability-gate metrics need a counter in the app (flag rate per 4 weeks) | 07 | with the flag UI |
 
+## Added 2026-10-13 (architecture)
+| question | from | resolve by |
+|---|---|---|
+| Differential fuzzer `difftest`: generator, both harnesses, minimiser, nightly CI job | 12 | next build round |
+| Reading order and comments in app/ for a TypeScript newcomer | 0008 | with the next app change |
+
 ## Resolved
 - Command-done and mode-change hooks: unreliable alone, so a filtered microtask check reads state. 2026-10-11 (05).
 - `<Esc>` blur: held in Chromium, Firefox and WebKit (headless) with a guard; `Tab` was the real risk. Real Safari and Firefox with a keyboard are untested. 2026-10-11 (05).
@@ -68,3 +74,4 @@ All four resolved; see Resolved below.
 - Gamification: none in v1. 2026-10-11 (10).
 - copy_line/move_line were ex-kind and rejected `yyjp`; now edit-kind with normal-mode variants. 2026-10-13 (11).
 - No charging until the stability gate in 07 is met. 2026-10-13.
+- Server-side real Neovim vs browser emulator: emulator, with differential testing. 2026-10-13 (ADR 0008).
