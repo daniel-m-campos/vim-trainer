@@ -2,7 +2,7 @@
   "id": "py/x.copymove/05e499f00f",
   "skill": "x.copymove",
   "lang": "python",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Move this line below `high = len(search_list) - 1`",
   "start": {
     "lines": [
@@ -41,19 +41,20 @@
     ]
   },
   "par": {
-    "keys": ":m3<CR>",
-    "count": 4,
+    "keys": "ddp",
+    "count": 3,
     "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
+    ":m3<CR>",
     ":m+1<CR>",
     ":move +1<CR>",
     ":move 3<CR>"
   ],
   "hints": [
     {
-      "trigger": "^\"?[a-z]?dd",
-      "text": ":m moves the line without touching any register; this drill wants the Ex command."
+      "trigger": "^\"?[a-z]?dd\\d*[jk]",
+      "text": ":m+N / :m-N moves the line without touching a register, and the count does not change the key count."
     },
     {
       "trigger": null,

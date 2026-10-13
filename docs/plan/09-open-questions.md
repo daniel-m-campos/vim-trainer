@@ -39,6 +39,15 @@ All four resolved; see Resolved below.
 | FSRS replacing SM-2 | 04 |
 | Teams/education offering | 07 |
 
+## Added from dogfooding (2026-10-13)
+| question | from | resolve by |
+|---|---|---|
+| Record `keySeq`, `beatPar`, `flag` per attempt; `!` flag UI; prefilled GitHub issue link | 11 | next app round |
+| `ingest` command: oracle-verify player pars, generalise idioms, batch wording reports | 11 | next content round |
+| Cross-skill idiom search in par_search | 11 | next content round; measure oracle time |
+| Audit every template's kind: ex only where retyping defeats the drill | 11 | done for copy/move 2026-10-13; check prefix_each_line, upper_constants, rename_all_subst |
+| Stability-gate metrics need a counter in the app (flag rate per 4 weeks) | 07 | with the flag UI |
+
 ## Resolved
 - Command-done and mode-change hooks: unreliable alone, so a filtered microtask check reads state. 2026-10-11 (05).
 - `<Esc>` blur: held in Chromium, Firefox and WebKit (headless) with a guard; `Tab` was the real risk. Real Safari and Firefox with a keyboard are untested. 2026-10-11 (05).
@@ -57,3 +66,5 @@ All four resolved; see Resolved below.
 - Ads + $1 tier: rejected; free core + lifetime pro later. 2026-10-11 (07).
 - Real Vim in the browser: no; codemirror-vim + headless Neovim oracle. 2026-10-11 (06).
 - Gamification: none in v1. 2026-10-11 (10).
+- copy_line/move_line were ex-kind and rejected `yyjp`; now edit-kind with normal-mode variants. 2026-10-13 (11).
+- No charging until the stability gate in 07 is met. 2026-10-13.

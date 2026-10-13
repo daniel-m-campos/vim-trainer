@@ -644,20 +644,22 @@ def move_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
     other = row + k if down else row - k
     moved = lines[:row] + lines[row + 1:]
     expect = moved[:other] + [lines[row]] + moved[other:]  # `other` is also the landing index in `moved`
+    # Normal-mode yank/put is a legitimate idiom here, so the kind is "edit", not "ex":
+    # the ex rule exists for :g/:normal drills that retyping would defeat.
     if down:
-        variants = [f":m+{k}<CR>", f":m{row + k + 1}<CR>"]
+        variants = [f":m+{k}<CR>", f":m{row + k + 1}<CR>", "ddp" if k == 1 else f"dd{k - 1}jp"]
     else:
-        variants = [f":m-{k + 1}<CR>", f":m{row - k}<CR>"]
+        variants = [f":m-{k + 1}<CR>", f":m{row - k}<CR>", f"dd{k}kP" if k > 1 else "ddkP"]
     where = "below" if down else "above"
     yield Draft(
-        template="move_line", skill=skill, kind="ex",
+        template="move_line", skill=skill, kind="edit",
         task=f"Move this line {where} `{_clip(lines[other].strip())}`",
         lines=lines, cursor=[row + 1, _indent(lines[row])], expect={"lines": expect},
         variants=sorted(variants, key=len), alternates=[v.replace(":m", ":move ") for v in variants],
         target=[_range(row, 0, row, len(lines[row]) - 1), _range(other, 0, other, len(lines[other]) - 1)],
         window=win, tags=["line", "move"],
         hints=[
-            {"trigger": "^\"?[a-z]?dd", "text": ":m moves the line without touching any register; this drill wants the Ex command."},
+            {"trigger": "^\"?[a-z]?dd\\d*[jk]", "text": ":m+N / :m-N moves the line without touching a register, and the count does not change the key count."},
             {"trigger": None, "text": ":m+N moves the line below the line N lines down; :m-N moves it up N-1 lines."},
         ],
     )
@@ -675,21 +677,23 @@ def copy_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
     other = row + k if down else row - k
     dest = other + 1 if down else other
     expect = lines[:dest] + [lines[row]] + lines[dest:]
+    # Normal-mode yank/put is a legitimate idiom here (yyp is 3 keys to :t.'s 4), so the
+    # kind is "edit" and the shortest variant becomes the par.
     if k == 0:
-        variants, task = [":t.<CR>", f":t{row + 1}<CR>"], "Duplicate this line (the copy goes right below it)"
+        variants, task = [":t.<CR>", f":t{row + 1}<CR>", "yyp"], "Duplicate this line (the copy goes right below it)"
     elif down:
-        variants, task = [f":t+{k}<CR>", f":t{row + k + 1}<CR>"], f"Copy this line to just below `{_clip(lines[other].strip())}`"
+        variants, task = [f":t+{k}<CR>", f":t{row + k + 1}<CR>", "yyjp" if k == 1 else f"yy{k}jp"], f"Copy this line to just below `{_clip(lines[other].strip())}`"
     else:
-        variants, task = [f":t-{k + 1}<CR>", f":t{row - k}<CR>"], f"Copy this line to just above `{_clip(lines[other].strip())}`"
+        variants, task = [f":t-{k + 1}<CR>", f":t{row - k}<CR>", "yykP" if k == 1 else f"yy{k}kP"], f"Copy this line to just above `{_clip(lines[other].strip())}`"
     yield Draft(
-        template="copy_line", skill=skill, kind="ex", task=task,
+        template="copy_line", skill=skill, kind="edit", task=task,
         lines=lines, cursor=[row + 1, _indent(lines[row])], expect={"lines": expect},
         variants=sorted(variants, key=len), alternates=[v.replace(":t", ":copy ") for v in variants],
         target=[_range(row, 0, row, len(lines[row]) - 1)]
         + ([_range(other, 0, other, len(lines[other]) - 1)] if k else []),
         window=win, tags=["line", "copy"],
         hints=[
-            {"trigger": "^(yy|Y)", "text": ":t copies a line without yank and put; :t. duplicates it in place."},
+            {"trigger": "^(yy|Y)\\d*[jk]", "text": ":t+N / :t-N copies a line without touching a register; yy{N}jp ties it on keys."},
             {"trigger": None, "text": ":t. duplicates the line; :t+N puts the copy below the line N lines down."},
         ],
     )

@@ -2,7 +2,7 @@
   "id": "py/x.copymove/066c29c17a",
   "skill": "x.copymove",
   "lang": "python",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Move this line above `gifts = ', and '.join(gifts)`",
   "start": {
     "lines": [
@@ -75,20 +75,17 @@
     ]
   },
   "par": {
-    "keys": ":m-2<CR>",
-    "count": 5,
+    "keys": "ddkP",
+    "count": 4,
     "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
+    ":m-2<CR>",
     ":m23<CR>",
     ":move -2<CR>",
     ":move 23<CR>"
   ],
   "hints": [
-    {
-      "trigger": "^\"?[a-z]?dd",
-      "text": ":m moves the line without touching any register; this drill wants the Ex command."
-    },
     {
       "trigger": null,
       "text": ":m+N moves the line below the line N lines down; :m-N moves it up N-1 lines."

@@ -33,3 +33,4 @@ keybr for Vim: adaptive drills on real code that find your weakest motion and fi
 - 08-roadmap.md
 - 09-open-questions.md
 - 10-ux.md
+- 11-feedback-loop.md

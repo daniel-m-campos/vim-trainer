@@ -1,7 +1,7 @@
 {
   "windows": 490,
   "drafts": 15184,
-  "replays": 65908,
+  "replays": 67593,
   "accepted": {
     "python": {
       "m.find": 40,
@@ -58,7 +58,7 @@
   },
   "rejected": {
     "anti-shortcut": {
-      "total": 286,
+      "total": 285,
       "by": {
         "m.match/jump_match": 3,
         "n.unmatched/jump_block_end": 10,
@@ -86,7 +86,7 @@
         "t.quote/delete_inner": 28,
         "t.word/rename_here": 90,
         "x.copymove/copy_line": 4,
-        "x.copymove/move_line": 2,
+        "x.copymove/move_line": 1,
         "x.global/delete_matching_lines": 1,
         "x.global/keep_matching_lines": 1,
         "x.normal/prefix_each_line": 15
@@ -110,12 +110,12 @@
       }
     },
     "target": {
-      "total": 7,
+      "total": 28,
       "by": {
         "o.indent/indent_block": 3,
         "o.yank/duplicate_line": 2,
-        "x.copymove/copy_line": 1,
-        "x.copymove/move_line": 1
+        "x.copymove/copy_line": 19,
+        "x.copymove/move_line": 4
       }
     }
   }

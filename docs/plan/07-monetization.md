@@ -27,6 +27,23 @@ is what the community tolerates. No trainer sells a ~$1 tier; the lowest is $2.4
    school seats). Not in scope until the consumer product has 1,000+ MAU; note it as
    the growth option.
 
+## Stability gate (added 2026-10-13)
+
+The author's first sessions found a drill that rejected a correct solution and pars
+that could be shorter. A paid tier on top of that would earn refunds and the "slop"
+label the research warned about. So pro is gated on measured stability, not on a date:
+
+- The feedback loop in 11-feedback-loop.md has been live for at least 8 weeks.
+- Over the last 4 weeks, fewer than 0.5% of counted attempts carry a `wrong-par` or
+  `emulator` flag, and no ingested `beatPar` report has lowered a par in the last 2
+  weeks (the idiom libraries have converged).
+- Every `wording` flag older than 2 weeks is resolved or deliberately closed.
+- At least 200 monthly active users, so the rates mean something.
+
+Until then: free, no ads, GitHub Sponsors link only. The "tell me when pro exists" email
+field stays. This supersedes the "price-test after a few hundred MAU" line below where
+they conflict.
+
 ## Revenue model (planning numbers, not forecasts)
 
 | MAU | pro conversion | lifetime buyers / month | at $20 |

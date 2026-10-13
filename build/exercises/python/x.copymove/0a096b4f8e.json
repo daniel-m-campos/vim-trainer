@@ -2,7 +2,7 @@
   "id": "py/x.copymove/0a096b4f8e",
   "skill": "x.copymove",
   "lang": "python",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Copy this line to just above `worker = Thread(target=count_letters, args=(q...`",
   "start": {
     "lines": [
@@ -74,20 +74,17 @@
     ]
   },
   "par": {
-    "keys": ":t-2<CR>",
-    "count": 5,
+    "keys": "yykP",
+    "count": 4,
     "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
+    ":t-2<CR>",
     ":t19<CR>",
     ":copy -2<CR>",
     ":copy 19<CR>"
   ],
   "hints": [
-    {
-      "trigger": "^(yy|Y)",
-      "text": ":t copies a line without yank and put; :t. duplicates it in place."
-    },
     {
       "trigger": null,
       "text": ":t. duplicates the line; :t+N puts the copy below the line N lines down."

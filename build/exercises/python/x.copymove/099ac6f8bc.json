@@ -2,7 +2,7 @@
   "id": "py/x.copymove/099ac6f8bc",
   "skill": "x.copymove",
   "lang": "python",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Copy this line to just above `self.constitution = self.ability()`",
   "start": {
     "lines": [
@@ -65,14 +65,15 @@
     "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
+    "yy3kP",
     ":t-4<CR>",
     ":copy -4<CR>",
     ":copy 8<CR>"
   ],
   "hints": [
     {
-      "trigger": "^(yy|Y)",
-      "text": ":t copies a line without yank and put; :t. duplicates it in place."
+      "trigger": "^(yy|Y)\\d*[jk]",
+      "text": ":t+N / :t-N copies a line without touching a register; yy{N}jp ties it on keys."
     },
     {
       "trigger": null,

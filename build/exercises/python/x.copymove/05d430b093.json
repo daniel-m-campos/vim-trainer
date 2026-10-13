@@ -2,7 +2,7 @@
   "id": "py/x.copymove/05d430b093",
   "skill": "x.copymove",
   "lang": "python",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Move this line above `self.status = STATUS_ONGOING`",
   "start": {
     "lines": [
@@ -66,14 +66,15 @@
     "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
+    "dd3kP",
     ":m-4<CR>",
     ":move -4<CR>",
     ":move 8<CR>"
   ],
   "hints": [
     {
-      "trigger": "^\"?[a-z]?dd",
-      "text": ":m moves the line without touching any register; this drill wants the Ex command."
+      "trigger": "^\"?[a-z]?dd\\d*[jk]",
+      "text": ":m+N / :m-N moves the line without touching a register, and the count does not change the key count."
     },
     {
       "trigger": null,

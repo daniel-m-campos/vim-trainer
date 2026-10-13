@@ -2,7 +2,7 @@
   "id": "py/x.copymove/03beb75f15",
   "skill": "x.copymove",
   "lang": "python",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Copy this line to just above `output = temperature * neutrons_emitted`",
   "start": {
     "lines": [
@@ -80,20 +80,17 @@
     ]
   },
   "par": {
-    "keys": ":t6<CR>",
+    "keys": "yykP",
     "count": 4,
     "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
+    ":t6<CR>",
     ":t-2<CR>",
     ":copy -2<CR>",
     ":copy 6<CR>"
   ],
   "hints": [
-    {
-      "trigger": "^(yy|Y)",
-      "text": ":t copies a line without yank and put; :t. duplicates it in place."
-    },
     {
       "trigger": null,
       "text": ":t. duplicates the line; :t+N puts the copy below the line N lines down."

@@ -70,7 +70,7 @@ IDIOMS: Final[dict[str, tuple[str, ...]]] = {
     "o.indent": (">>", "<<", ">}", "<}", ">ip", "<ip"),
     "m.match": ("%",),
     "n.unmatched": ("])", "]}", "[(", "[{", "%"),
-    "x.copymove": (":m+1<CR>", ":m-2<CR>", ":t.<CR>"),
+    "x.copymove": (":m+1<CR>", ":m-2<CR>", ":t.<CR>", "yyp", "yyP", "ddp", "ddkP", "yyjp", "yykP", "yy2jp", "yy2kP", "dd2jp", "dd2kP"),
 }
 
 

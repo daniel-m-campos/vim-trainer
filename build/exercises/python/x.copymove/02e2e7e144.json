@@ -2,7 +2,7 @@
   "id": "py/x.copymove/02e2e7e144",
   "skill": "x.copymove",
   "lang": "python",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Move this line above `song = ''`",
   "start": {
     "lines": [
@@ -60,8 +60,8 @@
   ],
   "hints": [
     {
-      "trigger": "^\"?[a-z]?dd",
-      "text": ":m moves the line without touching any register; this drill wants the Ex command."
+      "trigger": "^\"?[a-z]?dd\\d*[jk]",
+      "text": ":m+N / :m-N moves the line without touching a register, and the count does not change the key count."
     },
     {
       "trigger": null,

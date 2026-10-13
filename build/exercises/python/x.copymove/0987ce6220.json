@@ -2,7 +2,7 @@
   "id": "py/x.copymove/0987ce6220",
   "skill": "x.copymove",
   "lang": "python",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Move this line above `low = max(index2 - 1, 0)`",
   "start": {
     "lines": [
@@ -69,20 +69,17 @@
     ]
   },
   "par": {
-    "keys": ":m-3<CR>",
+    "keys": "dd2kP",
     "count": 5,
     "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
+    ":m-3<CR>",
     ":m13<CR>",
     ":move -3<CR>",
     ":move 13<CR>"
   ],
   "hints": [
-    {
-      "trigger": "^\"?[a-z]?dd",
-      "text": ":m moves the line without touching any register; this drill wants the Ex command."
-    },
     {
       "trigger": null,
       "text": ":m+N moves the line below the line N lines down; :m-N moves it up N-1 lines."
