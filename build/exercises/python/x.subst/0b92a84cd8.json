@@ -2,7 +2,7 @@
   "id": "py/x.subst/0b92a84cd8",
   "skill": "x.subst",
   "lang": "python",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `result` to `item` (3 occurrences)",
   "start": {
     "lines": [
@@ -58,7 +58,8 @@
   "alternates": [
     ":%s/\\<result\\>/item<CR>",
     ":%s/\\<result/item/g<CR>",
-    ":%s/\\<result\\>/item/g<CR>"
+    ":%s/\\<result\\>/item/g<CR>",
+    "/\\<result\\><CR>cgnitem<Esc>.."
   ],
   "hints": [
     {

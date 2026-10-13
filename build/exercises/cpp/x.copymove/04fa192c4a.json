@@ -2,7 +2,7 @@
   "id": "cpp/x.copymove/04fa192c4a",
   "skill": "x.copymove",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Move this line above `const double earth_years_per_venus_year = 0.6...`",
   "start": {
     "lines": [
@@ -54,14 +54,15 @@
     "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
+    "dd2kP",
     ":m-3<CR>",
     ":move -3<CR>",
     ":move 3<CR>"
   ],
   "hints": [
     {
-      "trigger": "^\"?[a-z]?dd",
-      "text": ":m moves the line without touching any register; this drill wants the Ex command."
+      "trigger": "^\"?[a-z]?dd\\d*[jk]",
+      "text": ":m+N / :m-N moves the line without touching a register, and the count does not change the key count."
     },
     {
       "trigger": null,

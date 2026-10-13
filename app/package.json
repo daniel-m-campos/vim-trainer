@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "test": "node --test \"src/**/*.test.ts\"",
+    "test:e2e-helpers": "node --test e2e/keys.test.mjs",
     "e2e": "node e2e/run.mjs",
     "spike:test": "node src/spike/verify.mjs",
     "e2e:session": "node e2e/session.mjs",

@@ -178,6 +178,16 @@ def format_message(name, count, unit, price):
     return f'{name}: {count} {unit} at {price}'
 '''
 
+THREE_USES = '''
+def scale(values, factor):
+    scaled = [v * factor for v in values]
+    return scaled, factor
+
+
+def describe(values):
+    return len(values)
+'''
+
 CLASS_CONSTANTS = '''
 class Limits:
     lowest_level = 1
@@ -476,3 +486,39 @@ def test_prefix_each_line_block_insert_and_normal(runner):
         else:
             assert d.kind == "ex" and ":norm Iself." in d.variants[0]
         _assert_solvable(d, runner)
+
+
+# kind rule (templates.EX_MIN_LINES, templates.SUBST_EDIT_MAX) ======================================
+# "ex" only where the normal-mode way would be a repetition drill: :norm, :g and :v over
+# EX_MIN_LINES or more lines, :%s over more than SUBST_EDIT_MAX occurrences.
+
+
+def _deleted(d):
+    return len(d.lines) - len(d.expect["lines"])
+
+
+@pytest.mark.parametrize("template,snippet,skill,count", [
+    ("prefix_each_line", ASSIGNMENTS, "x.normal", lambda d: d.params["n"]),
+    ("upper_constants", CLASS_CONSTANTS, "x.normal", lambda d: d.params["n"]),
+    ("delete_matching_lines", LOGGING, "x.global", _deleted),
+    ("keep_matching_lines", PARAGRAPHS, "x.global", _deleted),
+], ids=["prefix_each_line", "upper_constants", "delete_matching_lines", "keep_matching_lines"])
+def test_line_range_drills_are_ex_from_ex_min_lines(template, snippet, skill, count):
+    drafts = _drafts(snippet, template, skill)
+    assert drafts
+    for d in drafts:
+        assert count(d) >= templates.EX_MIN_LINES and d.kind == "ex", (d.task, count(d), d.kind)
+
+
+def test_rename_all_subst_kind_follows_the_occurrence_count(runner):
+    drafts = _drafts(THREE_USES, "rename_all_subst") + _drafts(RENAMES, "rename_all_subst")
+    assert {len(d.target) <= templates.SUBST_EDIT_MAX for d in drafts} == {True, False}
+    for d in drafts:
+        few = len(d.target) <= templates.SUBST_EDIT_MAX
+        assert d.kind == ("edit" if few else "ex"), (d.task, d.kind)
+        assert any("cgn" in a for a in d.alternates) == few
+        _assert_solvable(d, runner)  # the cgn + . alternate passes in Neovim
+        if not few:
+            dots = "." * (len(d.target) - 1)
+            normal = _verdicts(d, [f"/\\<{d.params['old']}\\><CR>cgn{d.params['new']}<Esc>{dots}"], runner)[0]
+            assert not normal.passed and "':'" in normal.reason

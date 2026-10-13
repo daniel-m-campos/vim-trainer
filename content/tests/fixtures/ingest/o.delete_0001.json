@@ -1,0 +1,37 @@
+{
+  "id": "py/o.delete/0001",
+  "skill": "o.delete",
+  "lang": "python",
+  "kind": "edit",
+  "task": "Delete the first three lines",
+  "start": {
+    "lines": [
+      "one = 1",
+      "two = 2",
+      "three = 3",
+      "four = 4"
+    ],
+    "cursor": [
+      1,
+      0
+    ]
+  },
+  "expect": {
+    "lines": [
+      "four = 4"
+    ]
+  },
+  "par": {
+    "keys": "dddddd",
+    "count": 6,
+    "verified": "nvim 0.12.5 2026-10-12"
+  },
+  "alternates": [],
+  "template": "delete_lines",
+  "emulator": {
+    "vscodevim": "full",
+    "ideavim": "full",
+    "web": "pass"
+  },
+  "params": {}
+}

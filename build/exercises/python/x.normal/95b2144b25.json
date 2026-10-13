@@ -70,7 +70,7 @@
   ],
   "hints": [
     {
-      "trigger": "^Iself|j\\.",
+      "trigger": "^Iself\\.|j\\.",
       "text": ":norm Iself. runs I on every line of the range; V6j selects the 7 lines."
     },
     {

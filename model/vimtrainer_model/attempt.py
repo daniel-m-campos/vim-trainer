@@ -52,7 +52,11 @@ def apply_attempt(state: dict, record: dict, graph: dict) -> dict:
         Current ModelState (not modified).
     record : dict
         AttemptRecord. ``skill`` may name several skills joined by '+' (composites);
-        every named skill is credited.
+        every named skill is credited. The app also writes three optional fields that the
+        model ignores and logs unchanged: ``seq`` (str, the player's normalised keys),
+        ``beatPar`` (bool, ok and keys < par) and ``flag`` (dict with ``reason`` and an
+        optional ``note``, set when the player reports the exercise). ``vectors.digest``
+        does not read record contents, so these fields never change the vectors.
     graph : dict
         Skill graph.
 

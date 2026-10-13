@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/129704f5ba",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `step` to `item` (3 occurrences)",
   "start": {
     "lines": [
@@ -52,7 +52,8 @@
   "alternates": [
     ":%s/\\<step\\>/item<CR>",
     ":%s/step\\>/item/g<CR>",
-    ":%s/\\<step\\>/item/g<CR>"
+    ":%s/\\<step\\>/item/g<CR>",
+    "/\\<step\\><CR>cgnitem<Esc>.."
   ],
   "hints": [
     {

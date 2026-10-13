@@ -43,6 +43,31 @@ def test_anti_shortcut_subtracts_typed_text():
     assert gates.anti_shortcut_problem(tiny, oracle.count_keys('ci"x<Esc>'), typed=1) is not None
 
 
+@pytest.mark.parametrize("n", [3, 4])
+def test_anti_shortcut_counts_per_line_text_once_per_changed_line(n):
+    # The 15 x.normal prefix_each_line drafts the round-2 build rejected: par 16, naive 23+.
+    names = ["name", "size", "kind", "owner"][:n]
+    expect = [f"        self.{a} = data.{a}" for a in names]
+    ex = _edit([ln.replace("self.", "") for ln in expect], [1, 8], expect)
+    par = oracle.count_keys(f"V{n - 1}j:norm Iself.<CR>")
+    assert par == 16 and gates.naive_cost(ex) >= 23
+    assert gates.anti_shortcut_problem(ex, par, typed=5) is not None  # the untyped-key ratio rejects it
+    assert gates.anti_shortcut_problem(dict(ex, typed_per_line=True), par, typed=5) is None  # par < naive
+
+
+def test_anti_shortcut_per_line_rule_is_par_below_naive():
+    ex = dict(_edit(["a", "b", "c"], [1, 0], ["self.a", "self.b", "self.c"]), typed_per_line=True)
+    naive = gates.naive_cost(ex)
+    assert gates.anti_shortcut_problem(ex, naive - 1, typed=5) is None
+    assert gates.anti_shortcut_problem(ex, naive, typed=5) is not None
+
+
+def test_anti_shortcut_per_line_text_still_rejects_a_pointless_drill():
+    # One line: typed per line is typed once, so the flag changes nothing.
+    ex = dict(_edit(["x = 1"], [1, 0], ["self.x = 1"]), typed_per_line=True)
+    assert gates.anti_shortcut_problem(ex, oracle.count_keys(":norm Iself.<CR>"), typed=5) is not None
+
+
 # target ===========================================================================================
 
 

@@ -27,6 +27,12 @@ export interface AttemptRecord {
   undo: number;
   /** Set by applyPlacement on the records it logs, so rebuild() can replay them. */
   placement?: boolean;
+  /** The keys the player typed, normalised (grading displayKeys); the model ignores it. */
+  seq?: string;
+  /** ok and fewer keys than par; the model ignores it. */
+  beatPar?: boolean;
+  /** Set by the "!" flag on the result strip; the model ignores it. */
+  flag?: { reason: 'wrong-par' | 'wording' | 'emulator' | 'other'; note?: string };
 }
 
 export interface SkillState {

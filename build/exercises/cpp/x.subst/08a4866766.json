@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/08a4866766",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `transcription` to `target` (3 occurrences)",
   "start": {
     "lines": [
@@ -78,7 +78,8 @@
   "alternates": [
     ":%s/\\<transcription\\>/target<CR>",
     ":%s/\\<transcription/target/g<CR>",
-    ":%s/\\<transcription\\>/target/g<CR>"
+    ":%s/\\<transcription\\>/target/g<CR>",
+    "/\\<transcription\\><CR>cgntarget<Esc>.."
   ],
   "hints": [
     {

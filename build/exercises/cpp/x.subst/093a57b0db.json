@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/093a57b0db",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `prev` to `source` (3 occurrences)",
   "start": {
     "lines": [
@@ -70,7 +70,8 @@
   "alternates": [
     ":%s/\\<prev\\>/source<CR>",
     ":%s/prev\\>/source/g<CR>",
-    ":%s/\\<prev\\>/source/g<CR>"
+    ":%s/\\<prev\\>/source/g<CR>",
+    "/\\<prev\\><CR>cgnsource<Esc>.."
   ],
   "hints": [
     {

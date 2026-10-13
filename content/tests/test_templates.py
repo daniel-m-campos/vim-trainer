@@ -84,10 +84,10 @@ def test_indent_block_start_is_misindented_and_expect_is_source(window, drafts):
         assert d.lines != window.lines
 
 
-def test_rename_all_subst_is_ex_kind_and_dd_style_edits_fail(drafts, runner):
+def test_rename_all_subst_kind_follows_occurrences_and_a_variant_passes(drafts, runner):
     d = next(d for d in drafts if d.template == "rename_all_subst")
-    assert d.kind == "ex"
     assert len(d.target) >= 3
+    assert d.kind == ("edit" if len(d.target) <= templates.SUBST_EDIT_MAX else "ex")
     ok = [_replay(d, k, runner) for k in d.variants]
     assert any(v.passed for v in ok)
 

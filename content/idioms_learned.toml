@@ -1,0 +1,10 @@
+# Idioms learned from players. `vimtrainer-content ingest` appends one [[idiom]] table
+# when a player's key sequence beats an exercise's par and passes in Neovim.
+# par_search.IDIOMS merges these into the built-in idioms at import, so `make content`
+# tries them on every exercise of the skill.
+#
+# keys    the player's sequence, generalised: counts -> {{k}} (expands to 1-9),
+#         typed insert text -> {{text}} (needs a "text" param on the exercise)
+# seq     the player's sequence as typed; from: the exercise it beat
+# status  "new" until a human looks at it (`vimtrainer-content review --idioms`);
+#         set "ok" to keep it, "rejected" to stop par_search from using it

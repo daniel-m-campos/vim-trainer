@@ -2,7 +2,7 @@
   "id": "py/x.subst/0c043ec330",
   "skill": "x.subst",
   "lang": "python",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `owned_territories` to `names` (3 occurrences)",
   "start": {
     "lines": [
@@ -78,7 +78,8 @@
     ":%s/\\<owned_territories\\>/names<CR>",
     ":%s/owned_territories\\>/names/g<CR>",
     ":%s/\\<owned_territories/names/g<CR>",
-    ":%s/\\<owned_territories\\>/names/g<CR>"
+    ":%s/\\<owned_territories\\>/names/g<CR>",
+    "/\\<owned_territories\\><CR>cgnnames<Esc>.."
   ],
   "hints": [
     {

@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/106907dffc",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `student_scores` to `parts` (3 occurrences)",
   "start": {
     "lines": [
@@ -50,7 +50,8 @@
     ":%s/\\<student_scores\\>/parts<CR>",
     ":%s/student_scores\\>/parts/g<CR>",
     ":%s/\\<student_scores/parts/g<CR>",
-    ":%s/\\<student_scores\\>/parts/g<CR>"
+    ":%s/\\<student_scores\\>/parts/g<CR>",
+    "/\\<student_scores\\><CR>cgnparts<Esc>.."
   ],
   "hints": [
     {

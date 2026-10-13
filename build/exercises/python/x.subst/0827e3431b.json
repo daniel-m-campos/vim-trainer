@@ -2,7 +2,7 @@
   "id": "py/x.subst/0827e3431b",
   "skill": "x.subst",
   "lang": "python",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `amount` to `count` (3 occurrences)",
   "start": {
     "lines": [
@@ -70,7 +70,8 @@
     ":%s/\\<amount\\>/count<CR>",
     ":%s/amount\\>/count/g<CR>",
     ":%s/\\<amount/count/g<CR>",
-    ":%s/\\<amount\\>/count/g<CR>"
+    ":%s/\\<amount\\>/count/g<CR>",
+    "/\\<amount\\><CR>cgncount<Esc>.."
   ],
   "hints": [
     {

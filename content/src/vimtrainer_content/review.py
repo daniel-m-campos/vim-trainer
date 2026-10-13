@@ -3,6 +3,9 @@
 Accepted ids are appended to ``content/reviewed.txt`` and rejected ids to
 ``content/rejected.txt``. The build marks reviewed exercises with ``"reviewed": true`` and
 drops rejected ones. Both files are plain id-per-line allowlists and can be edited by hand.
+
+``list_idioms`` prints the idioms ``ingest`` learned from players (``idioms_learned.toml``);
+they are reviewed by setting each entry's ``status`` in that file.
 """
 
 from __future__ import annotations
@@ -10,10 +13,11 @@ from __future__ import annotations
 import difflib
 import json
 import pathlib
+import tomllib
 from collections.abc import Callable, Iterator, Sequence
 from typing import Any
 
-from vimtrainer_content import build
+from vimtrainer_content import build, par_search
 
 PROMPT = "[a]ccept  [r]eject  [s]kip  [q]uit > "
 
@@ -105,6 +109,15 @@ def list_exercises(out: pathlib.Path, skill: str | None, echo: Callable[[str], N
         echo(render(ex) + "\n")
         n += 1
     return n
+
+
+def list_idioms(path: pathlib.Path = par_search.LEARNED_TOML, echo: Callable[[str], None] = print) -> int:
+    """Print the idioms learned from players; review them by editing ``status`` in the file."""
+    entries = tomllib.loads(path.read_text()).get("idiom", []) if path.exists() else []
+    for e in entries:
+        echo(f"{e['status']:<9} {e['skill']:<12} {e['keys']!r}  (from {e['from']}, seq {e['seq']!r}, {e['added']})")
+    echo(f"{len(entries)} learned idioms in {path.name}; set status to \"ok\" or \"rejected\" there")
+    return len(entries)
 
 
 # Private Functions ================================================================================

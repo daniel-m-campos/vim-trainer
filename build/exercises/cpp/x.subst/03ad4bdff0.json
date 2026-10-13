@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/03ad4bdff0",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `own_power` to `data` (3 occurrences)",
   "start": {
     "lines": [
@@ -82,7 +82,8 @@
     ":%s/\\<own_power\\>/data<CR>",
     ":%s/own_power\\>/data/g<CR>",
     ":%s/\\<own_power/data/g<CR>",
-    ":%s/\\<own_power\\>/data/g<CR>"
+    ":%s/\\<own_power\\>/data/g<CR>",
+    "/\\<own_power\\><CR>cgndata<Esc>.."
   ],
   "hints": [
     {

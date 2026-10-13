@@ -54,6 +54,11 @@ export function displayKeys(tokens: Token[]): string {
   return tokens.map((t) => (t.key === "<Space>" && isInsertish(t.mode) ? " " : t.key)).join("");
 }
 
+/** Replayable form for the logged `seq` (main.ts finish and the flag issue): a `jk` escape becomes <Esc>, so Neovim replays it. */
+export function replayKeys(tokens: Token[]): string {
+  return displayKeys(tokens.map((t) => (t.key === "jk" ? { ...t, key: "<Esc>" } : t)));
+}
+
 /** Split a par/alternate key string ("ci\"x<Esc>") into notation tokens. */
 export function splitKeys(keys: string): string[] {
   return keys.match(/<(?:[A-Za-z]+-)*(?:[A-Za-z0-9]+|[^\s<>])>|./gs) ?? [];
@@ -103,9 +108,10 @@ export function checkPass(ex: Exercise, snap: Snapshot, tokens: Token[]): boolea
   return false;
 }
 
-export type Band = "par" | "close" | "pass" | "over";
+export type Band = "beat" | "par" | "close" | "pass" | "over";
 
 export function band(keys: number, par: number): Band {
+  if (keys < par) return "beat"; // fewer keys than the oracle's par: worth a look (ingest)
   const eff = keys / Math.max(1, par);
   if (eff <= 1.0) return "par";
   if (eff <= 1.25) return "close";
@@ -113,7 +119,7 @@ export function band(keys: number, par: number): Band {
   return "over";
 }
 
-export const BAND_LABEL: Record<Band, string> = { par: "at par", close: "close", pass: "passed", over: "over par" };
+export const BAND_LABEL: Record<Band, string> = { beat: "beat par", par: "at par", close: "close", pass: "passed", over: "over par" };
 
 export const GIVE_UP_MS = 800;
 

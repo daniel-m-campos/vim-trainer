@@ -164,3 +164,25 @@ The scratch build is `content/.cache/scratch-templates/build`, built with
 `--offline --skills ...`. Every one of the 15 original skills still reaches the cap of
 40 except t.brace, which has 25 (27 before). It lost change_inner on f-string fields
 that held calls and gained 4 multi-line `di{` exercises from delete_block.
+
+## Round 3: x.normal in C++ and the kind audit (new task texts)
+
+Read from a scratch build of all skills (`content/.cache/scratch-3a`): 34 C++ and 23
+Python x.normal exercises.
+
+- C++ `prefix_each_line` has two task texts. "Put `const` back at the start of each of
+  these N lines" restores a prefix that the source lines share. "Comment out these N
+  lines: put `// ` at the start of each" covers runs with no shared prefix. The `// ` in
+  backticks carries a trailing space, and a Markdown renderer may trim it. The highlight
+  and the expect still show the space. Open question: add "(with a space)" if players
+  miss it.
+- 27 of the 34 C++ x.normal exercises are comment-out drills. Restoring `std::` is not
+  generated. In a C++ buffer, typing `std:` at the start of a line re-indents the line as
+  a label (cinkeys), so `:norm Istd::` does not give back the source line.
+- C++ `upper_constants` reads "Uppercase the names of these N constants" for const and
+  constexpr declarations (`:norm f=bgUe`). For enums it reads "... these N enumerators"
+  (`:norm ^gUe`). The Python text ("Turn these N assignments into constants") is
+  unchanged.
+- `rename_all_subst` with 3 occurrences is now kind "edit". Its task text stays "Rename
+  every `x` to `y` (3 occurrences)". The text does not name `:s`, which fits a drill that
+  also accepts `/\<x\><CR>cgny<Esc>..`.

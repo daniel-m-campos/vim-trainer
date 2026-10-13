@@ -141,6 +141,24 @@ distractors must exist: a `t.quote` exercise needs other strings nearby so `f"` 
 ambiguous; a `m.rel` exercise needs the target far enough that `jjjj` loses to `7j`.
 The generator checks `par.count < retype_cost / 3` and discards exercises that fail.
 
+Templates that put the same text on every changed line (`typed_per_line`:
+`prefix_each_line`, `append_each_line`) use a different rule on purpose: `par.count <
+naive cost`. The naive baseline types the text once per line and par types it once, so
+the drill's whole payoff is the retyping it avoids. The ratio over untyped keys cannot
+see that payoff: a 3-line `:norm Iself.` drill is par 16 vs naive 23, and `16-5 <
+(23-15)/3` fails. Before round 3a the gate rejected all 15 `prefix_each_line` drafts
+and `x.normal` stayed thin.
+
+### Template kind rule
+
+`ex` kind only where a normal-mode solution would be a repetition drill rather than
+the skill: `:g`, `:v`, `:normal` or `:s` over 3 or more lines. Everything else is
+`edit`, with the ex solution kept as a verified variant. Round 3a applied this to
+`copy_line`, `move_line`, `prefix_each_line`, `upper_constants`, `rename_all_subst`,
+`delete_matching_lines` and `keep_matching_lines`; `rename_all_subst` with 3 or fewer
+occurrences is `edit` with `cgn` + `.` as a variant. One pytest per template checks the
+kind against the draft's line count.
+
 ## Par verification: Neovim as the oracle
 
 For each exercise, each canonical and alternate solution is replayed in real Neovim:
@@ -190,6 +208,24 @@ flags (see 02 To research for making them real).
 7. Secret scan on snippets (keys, tokens, emails) before publishing.
 8. Per-(language, skill) minimum: ≥ 20 exercises, else the skill is marked
    `thin` for that language and down-weighted.
+
+## Player ingest
+
+The last stage takes player reports back in (11, ADR 0009).
+`vimtrainer-content ingest <export.json | issue.txt>` replays each beat-par or
+`wrong-par` sequence in Neovim. A shorter passing sequence becomes the canonical (the
+old one moves to `alternates`) and its generalised form is appended to
+`content/idioms_learned.toml`; an equal one becomes an alternate; a failing one goes to
+`content/review/emulator-divergences.md`. Wording flags go to
+`content/review/wording-queue.md`, and every run is logged in
+`content/review/ingest-log.md`.
+
+`par_search.IDIOMS` merges `idioms_learned.toml` at import, so learned idioms stay data,
+separate from the hand-written list in code. The next `make content` re-pars every
+sibling exercise of the same skill with them, and `build.evaluate` adds the expanded
+learned idioms to the canonical variants (after the template's own), so a player's par
+survives the rebuild instead of failing gate 4. Entries with `status = "rejected"` are
+skipped. The author reviews the toml diff before committing.
 
 ## Measured language weights
 
@@ -314,3 +350,10 @@ Details not in the sections above:
   not built. Accepted ids go to `content/reviewed.txt`, rejected ids to
   `content/rejected.txt`. No exercise has been reviewed by a human yet.
 - Output also has `build/stats/gates.json` and `build/stats/emulator_web.json`.
+- Round 3a (2026-10-13): the `ingest` command and `idioms_learned.toml`, the
+  `par < naive` rule for per-line text in the anti-shortcut gate, the template kind rule (C++ `copy_line` and
+  `move_line` now match Python: edit kind with `yyp`/`ddp`-style variants), and `x.normal`
+  for C++ (see the sections above). The rebuild has 1,644 exercises; `x.normal` has 23 in
+  Python (18 `prefix_each_line`, 5 `upper_constants`) and 40 in C++ (37
+  `prefix_each_line`, 34 of them `// ` comment-outs, and 3 `upper_constants`). No skill is
+  thin in either language. All 1,644 pars pass in the browser.

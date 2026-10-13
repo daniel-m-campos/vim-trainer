@@ -26,6 +26,12 @@ from vimtrainer_content.lang import Language
 from vimtrainer_content.snippets import Window, pick, stable_hash
 
 MAX_PER_WINDOW: Final = 2  # drafts kept per (window, template, skill), spreads exercises across code
+# Kind rule for Ex drills. "ex" (the solution must use a `:` command) only where the
+# normal-mode way is a repetition drill rather than a skill: :g, :v and :normal over
+# EX_MIN_LINES or more lines, and :%s over more than SUBST_EDIT_MAX occurrences. With
+# SUBST_EDIT_MAX or fewer, `cgn` + `.` is a real normal-mode idiom, so the kind is "edit".
+EX_MIN_LINES: Final = 3
+SUBST_EDIT_MAX: Final = 3
 
 # Replacement text is chosen to fit the node it replaces (see _fit_value and _new_name):
 # a string gets a string, a number a number, an identifier a name in the same case style
@@ -99,6 +105,7 @@ class Draft:
     idioms: list[str] = field(default_factory=list)
     forbid: list[str] = field(default_factory=list)
     typed: int = 0  # characters every solution has to type (inserted text, new names)
+    typed_per_line: bool = False  # ``typed`` goes onto every changed line (gates.anti_shortcut_problem)
     params: dict[str, Any] = field(default_factory=dict)
     hints: list[dict[str, str | None]] = field(default_factory=list)
     tags: list[str] = field(default_factory=list)
@@ -110,11 +117,14 @@ class Draft:
 
     def exercise(self, lang: str) -> dict[str, Any]:
         """Oracle-ready exercise dict (par filled in later by the build)."""
-        return {
+        ex = {
             "skill": self.skill, "lang": lang, "kind": self.kind,
             "start": {"lines": self.lines, "cursor": self.cursor}, "expect": self.expect,
             "par": {"keys": self.variants[0]}, "alternates": self.alternates, "params": self.params,
         }
+        if self.typed_per_line:
+            ex["typed_per_line"] = True  # read by gate 5; build.evaluate does not ship it
+        return ex
 
 
 NodeTemplate = Callable[[Window, tree_sitter.Node, str, Language], Iterator[Draft]]
@@ -603,7 +613,12 @@ def rename_here(win: Window, node: tree_sitter.Node, skill: str, lang: Language)
 
 
 def rename_all_subst(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
-    """``:%s/\\<old\\>/new/g<CR>``: rename every whole-word occurrence (ex kind)."""
+    """``:%s/\\<old\\>/new/g<CR>``: rename every whole-word occurrence.
+
+    Ex kind above SUBST_EDIT_MAX occurrences. With SUBST_EDIT_MAX or fewer the kind is
+    "edit" and ``/\\<old\\><CR>cgnnew<Esc>..`` is a verified alternate: renaming three
+    names with ``cgn`` + ``.`` is a fair answer, not a way around the drill.
+    """
     old = _text(node)
     if len(old) < 3 or old in lang.keywords or not re.fullmatch(r"[A-Za-z_]\w*", old) or _seen(win, "subst", old):
         return
@@ -619,11 +634,14 @@ def rename_all_subst(win: Window, node: tree_sitter.Node, skill: str, lang: Lang
         return
     patterns = (old, f"{old}\\>", f"\\<{old}", f"\\<{old}\\>")
     variants = [f":%s/{p}/{new}{flag}<CR>" for flag in ("", "/g") for p in patterns]
+    few = len(hits) <= SUBST_EDIT_MAX
+    dots = "." * (len(hits) - 1)
     yield Draft(
-        template="rename_all_subst", skill=skill, kind="ex",
+        template="rename_all_subst", skill=skill, kind="edit" if few else "ex",
         task=f"Rename every `{old}` to `{new}` ({len(hits)} occurrences)",
         lines=win.lines, cursor=[cursor[0] + 1, cursor[1]], expect={"lines": [rx.sub(new, ln) for ln in win.lines]},
-        variants=sorted(variants, key=len), typed=len(new), params={"old": old, "new": new},
+        variants=sorted(variants, key=len), alternates=[f"/\\<{old}\\><CR>cgn{new}<Esc>{dots}"] if few else [],
+        typed=len(new), params={"old": old, "new": new},
         target=[_range(r, c, r, c + len(old) - 1) for r, c in hits], window=win, tags=["identifier", "substitute"],
         hints=[
             {"trigger": "^[*#]|cgn|ciw|cw|\\.", "text": ":%s/old/new/g renames every occurrence in one command."},
@@ -727,7 +745,7 @@ def append_each_line(win: Window, node: tree_sitter.Node, skill: str, lang: Lang
         alternates=[f"V{down}:norm A,<CR>", f":.,+{k}norm A,<CR>", f":.,+{k}normal A,<CR>"],
         idioms=["A,<Esc>" + "j." * k, "A,<Esc>" + "+." * k, f":.,+{k}s/$/,<CR>", f"<C-v>{down}A,<Esc>",
                 f"<C-v>{k + 1}j$A,<Esc>"],
-        typed=1, params={"text": ",", "n": k + 1},
+        typed=1, typed_per_line=True, params={"text": ",", "n": k + 1},
         target=[_range(r, 0, r, max(len(lines[r]) - 1, 0)) for r in item_rows], window=win,
         tags=[node.type, "block-edit", "append"],
         hints=[
@@ -763,7 +781,7 @@ def prefix_each_line(win: Window, node: tree_sitter.Node, skill: str, lang: Lang
                 lines=lines, cursor=[rows[0] + 1, col], expect={"lines": win.lines},
                 variants=[f"<C-v>{down}Iself.<Esc>"], alternates=[f"V{down}:norm Iself.<CR>"],
                 idioms=["Iself.<Esc>" + "j." * k, "Iself.<Esc>" + "+." * k, f":.,+{k}s/\\S/self.&<CR>"],
-                typed=5, params={"text": "self.", "n": k + 1}, target=target, window=win,
+                typed=5, typed_per_line=True, params={"text": "self.", "n": k + 1}, target=target, window=win,
                 tags=["assignment", "block-edit", "insert"],
                 hints=[
                     {"trigger": "^Iself", "text": f"<C-v>{down} selects a column on all {k + 1} lines; I inserts on every one."},
@@ -772,29 +790,43 @@ def prefix_each_line(win: Window, node: tree_sitter.Node, skill: str, lang: Lang
                 ],
             )
         else:
-            yield Draft(
-                template="prefix_each_line", skill=skill, kind="ex", task=task,
-                lines=lines, cursor=[rows[0] + 1, col], expect={"lines": win.lines},
-                variants=[f"V{down}:norm Iself.<CR>", f":.,+{k}norm Iself.<CR>",
-                          f":{rows[0] + 1},{rows[-1] + 1}norm Iself.<CR>"],
-                alternates=[f":.,+{k}normal Iself.<CR>"],
-                idioms=[f"V{down}:s/\\S/self.&<CR>", f":.,+{k}s/\\S/self.&<CR>"],
-                typed=5, params={"text": "self.", "n": k + 1}, target=target, window=win,
-                tags=["assignment", "normal", "insert"],
-                hints=[
-                    {"trigger": "^Iself|j\\.", "text": f":norm Iself. runs I on every line of the range; V{down} selects the {k + 1} lines."},
-                    {"trigger": ":[^n]*s/", "text": "A substitute works too, but this drill is about :normal."},
-                    {"trigger": None, "text": f"V{down}:norm Iself.<CR>: select the lines, then run Iself. on each."},
-                ],
-            )
+            yield normal_prefix(win, skill, rows, "self.", lines, win.lines, task, target, ["assignment", "normal", "insert"])
         return
+
+
+def normal_prefix(
+    win: Window, skill: str, rows: list[int], prefix: str, lines: list[str], expect: list[str], task: str,
+    target: list[dict[str, list[int]]], tags: list[str],
+) -> Draft:
+    """``V{n}j:norm I{prefix}<CR>``: the x.normal draft that turns ``lines`` into ``expect`` by
+    inserting ``prefix`` at the first non-blank of each of ``rows`` (consecutive). Ex kind: the
+    rows number 3 or more (EX_MIN_LINES), so ``I...<Esc>j.j.`` would be a repetition drill.
+    Used by ``prefix_each_line`` here and in ``lang/cpp.py``."""
+    k = len(rows) - 1
+    down = f"{k}j" if k > 1 else "j"
+    sub = prefix.replace("/", "\\/")
+    norm = f"I{prefix}"
+    return Draft(
+        template="prefix_each_line", skill=skill, kind="ex" if len(rows) >= EX_MIN_LINES else "edit", task=task,
+        lines=lines, cursor=[rows[0] + 1, _indent(lines[rows[0]])], expect={"lines": expect},
+        variants=[f"V{down}:norm {norm}<CR>", f":.,+{k}norm {norm}<CR>", f":{rows[0] + 1},{rows[-1] + 1}norm {norm}<CR>"],
+        alternates=[f":.,+{k}normal {norm}<CR>"],
+        idioms=[f"V{down}:s/\\S/{sub}&<CR>", f":.,+{k}s/\\S/{sub}&<CR>"],
+        typed=len(prefix), typed_per_line=True, params={"text": prefix, "n": k + 1}, target=target, window=win,
+        tags=tags,
+        hints=[
+            {"trigger": f"^{_js_escape(norm)}|j\\.", "text": f":norm {norm} runs I on every line of the range; V{down} selects the {k + 1} lines."},
+            {"trigger": ":[^n]*s/", "text": "A substitute works too, but this drill is about :normal."},
+            {"trigger": None, "text": f"V{down}:norm {norm}<CR>: select the lines, then run {norm} on each."},
+        ],
+    )
 
 
 def upper_constants(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
     """``V{n}j:norm gUiw<CR>``: uppercase the names of consecutive module- or class-level assignments (x.normal)."""
     if node.type == "block" and (node.parent is None or node.parent.type != "class_definition"):
         return
-    for run in _assignment_runs(win, node, 3):
+    for run in _assignment_runs(win, node, EX_MIN_LINES):  # ex kind: gUiwj.j. would be a repetition drill
         names = [_text(a.child_by_field_name("left")) for a in run]
         if not all(re.fullmatch(r"[a-z][a-z0-9_]*[a-z0-9]", n) for n in names):
             continue
@@ -833,7 +865,7 @@ def delete_matching_lines(win: Window, node: tree_sitter.Node, skill: str, lang:
     """``:g/pat/d<CR>``: delete every line that calls one function or is a comment (x.global, ex kind)."""
     made = 0
     for label, patterns, rows in _line_groups(win):
-        if not 3 <= len(rows) <= len(win.lines) - 4:
+        if not EX_MIN_LINES <= len(rows) <= len(win.lines) - 4:  # ex kind: fewer is just dd and j
             continue
         valid = [p for p in patterns if _matching_rows(win.lines, p) == rows]
         if not valid:
@@ -866,7 +898,7 @@ def keep_matching_lines(win: Window, node: tree_sitter.Node, skill: str, lang: L
     for label, pattern in _keep_patterns(win):
         rows = _matching_rows(win.lines, pattern)
         drop = [r for r in range(len(win.lines)) if r not in rows]
-        if len(rows) < 2 or len(drop) < 4:
+        if len(rows) < 2 or len(drop) < 4:  # ex kind: 4+ deleted lines (>= EX_MIN_LINES) are the repetition
             continue
         valid = [pattern[:i] for i in range(1, len(pattern) + 1) if _matching_rows(win.lines, pattern[:i]) == rows]
         variants = sorted((f":v/{p}/d<CR>" for p in valid), key=len)

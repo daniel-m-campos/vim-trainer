@@ -32,9 +32,50 @@ case-sensitive search, Vim's linewise `i{` / `i[` / `i(` on multi-line blocks af
 `make content` runs it with `--write`, which sets `emulator.web` and drops browser mismatches from the index.
 
 Keys: in the editor every key goes to Vim, except `F1` (hint). `Esc Esc` in normal mode gives up.
-On the result strip: `space` next, `r` retry, `?` hints, `p` replay (pro, disabled), `q` end session,
+On the result strip: `space` next, `r` retry, `?` hints, `p` replay (pro, disabled), `!` flag, `q` end session,
 `s` stats, `,` settings. Stats (`src/stats/`): `tab` / `1` `2` `3` skills grid / progress / sessions,
 `h` `j` `k` `l` move, `enter` history chart, `f` drill this next, `Esc` back. Straight after placement
 `enter` starts the session. `stats-demo.html` renders the view on a simulated learner (`npm run e2e:stats`).
 
 State lives in `localStorage["vim-trainer.v1"]`; export/import JSON in settings.
+
+## Reading guide: the flag code path
+
+A walk through one feature, top to bottom, for reading the TypeScript. Pressing `!` on the
+result strip flags the attempt and opens a prefilled GitHub issue. The functions run in this order:
+
+1. `onKey(e)` in `src/main.ts`. The single `keydown` listener for the whole page. In the
+   `"practice"` view with `cur.phase === "result"`, the key `!` calls `openFlagPicker()`. While
+   the picker is open, the same branch sends `1`-`4` to `pickFlagReason`, `Enter` to
+   `confirmFlag` and `Esc` to `closeFlagPicker`, and swallows every other key.
+2. `openFlagPicker()` sets `cur.flagging = true` and calls `renderResult()`. `renderResult`
+   puts `flagPickerHtml()` where the key legend was, then `wireFlagPicker()` adds the click
+   handlers and the note field's `Enter` handler. `onKey` ignores keys aimed at an `<input>`,
+   so the note field needs its own handler.
+3. `pickFlagReason(reason)` stores the reason in `cur.flagReason`, marks it in the DOM and
+   moves focus to the note field.
+4. `confirmFlag()` builds `{reason, note}` and finds the logged copy of the attempt by
+   exercise id and time `t`. A practice attempt is in `saved.model.log`. A first placement
+   attempt waits in `placement.records` until placement ends. Warm-ups and placement
+   retries are not logged, so for them only the issue form opens. It sets `flag` on the
+   logged copy and calls `persist()`.
+5. `persist()` in `src/main.ts` calls `save()` in `src/storage.ts`, which writes `saved` to
+   localStorage as JSON. The flag is a field on the attempt record (`AttemptRecord.flag` in
+   `src/model/model.ts`), so export carries it with no schema change.
+6. `issueUrl(report)` in `src/feedback.ts` returns the new-issue URL. The title and body
+   are URL-encoded and the encoded body is capped at 6000 characters. `confirmFlag` passes
+   it to `window.open`, then `closeFlagPicker()` redraws the strip as flagged, with a link
+   to the form (and "popup blocked" when `window.open` returned null).
+
+What each file is for:
+
+- `src/main.ts`: screens, the practice loop, the result strip and the key handler. `finish()`
+  builds the attempt record, including `seq` (the keys typed, from `replayKeys`) and `beatPar`.
+- `src/feedback.ts`: the issue URL. `REPO` is the one place that names the GitHub repo.
+- `src/grading.ts`: pure functions. Key tokens, pass checks and the efficiency `band()`
+  (`"beat"` when keys < par). `displayKeys` is what the strip shows; `replayKeys` is the
+  same string with a `jk` escape written as `<Esc>`, so Neovim can replay the logged `seq`.
+- `src/storage.ts`: localStorage load/save and JSON export/import.
+- `src/model/model.ts`: the adaptive model (TypeScript mirror of the Python model). It
+  ignores `seq`, `beatPar` and `flag`.
+- `src/dom.ts`: `$` (querySelector) and HTML-escaping helpers.

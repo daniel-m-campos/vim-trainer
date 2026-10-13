@@ -3,6 +3,53 @@
 The content pipeline turns real source code into verified Vim exercises. The design is in
 `docs/plan/03-content-pipeline.md`, and the top-level `README.md` lists the make targets.
 
+## Ingesting player logs
+
+`ingest` replays what players typed in real Neovim and folds the results back into the
+corpus. It reads either of two inputs:
+
+- an exported progress file (app Settings > export). Its `model.log` records carry the
+  player's keys (`seq`), `beatPar` and the `!` flag;
+- a GitHub issue body from the app's `!` flag, saved to a text file. The body is read as
+  `label: value` lines (`exercise`, `player keys` or `seq`, `reason`, `note`), case-insensitive.
+
+```sh
+cd content
+uv run vimtrainer-content ingest ~/Downloads/vim-trainer-2026-10-12.json issue-42.md
+```
+
+A record is replayed when it beat par or was flagged `wrong-par` or `emulator`. The result
+depends on the Neovim verdict:
+
+| Neovim verdict | effect |
+|---|---|
+| passes in fewer keys than par | the exercise in `build/` gets `seq` as `par.keys`; the old canonical moves to `alternates`; the generalised idiom is appended to `idioms_learned.toml` |
+| passes in par keys or more | `seq` is appended to the exercise's `alternates`; the generalised idiom is appended to `idioms_learned.toml`, so the rebuild keeps it as an alternate |
+| fails, but the app accepted it | an entry in `review/emulator-divergences.md` |
+| passes, but the app rejected it | also an entry in `review/emulator-divergences.md` |
+
+`wording` flags go to `review/wording-queue.md`, grouped by template. Every run appends a
+dated section to `review/ingest-log.md`. A second run on the same file adds no duplicate
+alternates, idioms or queue entries.
+
+An idiom is generalised before it is stored. Counts become `{{k}}`, so `yy2jp` is stored as
+`yy{{k}}jp`. Typed insert text becomes `{{text}}`, so `ciwfoo<Esc>` is stored as
+`ciw{{text}}<Esc>`. An idiom already in `idioms_learned.toml` for the skill (any status) is
+not added again; built-in idioms do not count, because the build only tries them as
+candidates and never as variants. `par_search.IDIOMS` merges the file at import and expands `{{k}}` to the counts 1-9.
+
+The edits to `build/` last only until the next `make content`, because the build
+regenerates every exercise from its template. The learned idiom is what survives: the
+rebuild replays it on every exercise of the skill, and `build.evaluate` adds it to the
+canonical variants after the template's own. When it passes and is shortest it becomes
+the par, so gate 4 does not reject the exercise. A tie keeps the template's canonical and
+ships the idiom as an alternate. Adding the idiom to the template's `variants` is still
+the tidy fix, and `review/ingest-log.md` names the template.
+
+Learned idioms start with `status = "new"`. `vimtrainer-content review --idioms` lists them.
+To review one, set its `status` to `"ok"` in `idioms_learned.toml`. Set it to `"rejected"`
+to stop the par search from using it.
+
 ## C++
 
 C++ is the second content language. Its sources, mapping and windowing live in

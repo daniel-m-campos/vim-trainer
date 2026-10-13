@@ -10,8 +10,9 @@
 // pending operator or count is not half of the give-up (and the first real one shows a
 // cue), insert-mode <Tab> follows the oracle's tab stops, a cursor give-up marks the
 // target, the snippet source line, a double space advances once, the placement count
-// on retries, the ex-kind "a : command was required" give-up, and the attempt clock
-// pausing while stats / settings are open.
+// on retries, the ex-kind "a : command was required" give-up, the attempt clock
+// pausing while stats / settings are open, the "!" flag (picker, note, prefilled issue
+// URL via a stubbed window.open, the flag in the log) and the "beat par" band.
 //
 // /build/ is forced to 404 so the app uses the bundled sample (deterministic, and
 // it exercises the fallback path). Browsers live in node_modules
@@ -142,6 +143,33 @@ for (const [engine, type] of Object.entries(engines)) {
     const src = await text(page, "#result #src");
     check(engine, "strip shows the snippet source 'from exercism/python \u00b7 MIT'", src.trim() === "from exercism/python \u00b7 MIT", JSON.stringify(src));
 
+    // "!" flags this attempt: pick a reason, type a note, enter opens the prefilled issue.
+    // window.open is stubbed so github.com is never loaded; the URL is checked instead.
+    await page.evaluate(() => { window.__opened = []; window.open = (u) => (window.__opened.push(String(u)), {}); });
+    check(engine, "strip legend lists ! flag", strip.includes("flag"), strip);
+    await page.keyboard.type("!");
+    await page.waitForSelector("#flagpick", { timeout: 2000 });
+    await page.keyboard.press("Escape");
+    check(engine, "Esc closes the flag picker without opening anything",
+      (await page.locator("#flagpick").count()) === 0 && (await page.evaluate(() => window.__opened.length)) === 0);
+    await page.keyboard.type("!");
+    await page.waitForSelector("#flagpick", { timeout: 2000 });
+    await page.keyboard.press("1");
+    check(engine, "picking a reason moves focus to the note field", await page.evaluate(() => document.activeElement?.id === "flag-note"));
+    await page.keyboard.type("par looks long");
+    await page.keyboard.press("Enter");
+    await page.waitForSelector("#flagpick", { state: "detached", timeout: 2000 });
+    const opened = await page.evaluate(() => window.__opened);
+    check(engine, "enter opens one prefilled issue on daniel-m-campos/vim-trainer",
+      opened.length === 1 && opened[0].startsWith("https://github.com/daniel-m-campos/vim-trainer/issues/new?labels=feedback&"), JSON.stringify(opened));
+    const body = opened.length ? new URL(opened[0]).searchParams.get("body") ?? "" : "";
+    check(engine, "issue body carries the id, the keys, the reason and the note",
+      ["py/t.quote/0001", 'ci"retrying<Esc>', "wrong-par", "par looks long"].every((s) => body.includes(s)), body);
+    check(engine, "strip says flagged and has focus again", (await text(page, "#result")).includes("flagged: wrong-par") &&
+      await page.evaluate(() => document.activeElement?.id === "foot"), await text(page, "#result"));
+    check(engine, "strip links the issue form as a fallback",
+      await page.evaluate((u) => document.querySelector("#result .flagged a")?.getAttribute("href") === u, opened[0] ?? ""));
+
     // r retries the same exercise; a retry with f" first triggers the exercise hint.
     await page.keyboard.press("r");
     await waitTask(page, "logger.warn");
@@ -214,6 +242,18 @@ for (const [engine, type] of Object.entries(engines)) {
     await page.keyboard.press("Enter");
     await waitResult(page);
     check(engine, ":g/print/d<CR> passes the ex exercise", (await text(page, "#result")).includes("correct"), await text(page, "#result"));
+    // Fewer keys than par: "nt(" matches only the print( lines. 9 keys against par 11.
+    await page.keyboard.press("r");
+    await waitTask(page, "print");
+    await editorFocused(page);
+    await page.keyboard.type(":g/nt(/d");
+    await page.keyboard.press("Enter");
+    await waitResult(page);
+    const beatRow = await text(page, "#result .row1");
+    const beatRec = await page.evaluate(() => window.vimTrainer.current().record);
+    check(engine, ":g/nt(/d<CR> beats par: 'you beat par: 9 vs 11', band 'beat par', record beatPar",
+      beatRow.includes("you beat par: 9 vs 11") && beatRow.includes("beat par") && beatRec?.beatPar === true && beatRec?.seq === ":g/nt(/d<CR>",
+      `${beatRow} | ${JSON.stringify(beatRec)}`);
     await page.keyboard.press(" ");
 
     // End of placement -> stats with the focus line.
@@ -237,6 +277,11 @@ for (const [engine, type] of Object.entries(engines)) {
     const savedState = await page.evaluate(() => JSON.parse(localStorage.getItem("vim-trainer.v1") ?? "null"));
     check(engine, "state saved to localStorage with placement done", savedState?.placementDone === true && savedState.model.log.length >= 3,
       JSON.stringify(savedState?.model?.log?.length));
+    // The flag set on placement 2 reached the log when placement ended, with seq and beatPar.
+    const quoteRec = savedState?.model?.log?.find((r) => r.ex === "py/t.quote/0001" && !r.retry);
+    check(engine, "flagged placement record is logged with flag {reason, note}, seq and beatPar",
+      quoteRec?.flag?.reason === "wrong-par" && quoteRec.flag.note === "par looks long" && quoteRec.seq === 'ci"retrying<Esc>' && quoteRec.beatPar === false,
+      JSON.stringify(quoteRec));
 
     await page.keyboard.press("Enter");
     await page.waitForSelector("#practice:not([hidden])", { timeout: 5000 });
@@ -269,6 +314,8 @@ for (const [engine, type] of Object.entries(engines)) {
     check(engine, ", opens settings", (await text(page, "#page")).includes("Settings"));
     const href = await page.locator("#attribution-link").getAttribute("href").catch(() => null);
     check(engine, "settings links ATTRIBUTION.md", !!href && href.endsWith("ATTRIBUTION.md"), String(href));
+    const issues = await page.locator("#issues-link").getAttribute("href").catch(() => null);
+    check(engine, "settings 'share your log' links the issues page", issues === "https://github.com/daniel-m-campos/vim-trainer/issues", String(issues));
     await page.keyboard.press("Escape");
     check(engine, "Esc returns to the summary", (await text(page, "#page")).includes("Session done"));
     // Stats opened from settings: Esc goes back to settings, then to the summary.

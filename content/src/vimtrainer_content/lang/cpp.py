@@ -40,11 +40,11 @@ from vimtrainer_content.templates import Draft
 WEIGHTS: Final = {
     "m.match": 1.5, "t.brace": 1.5, "n.unmatched": 1.5, "t.paren": 1.5, "t.bracket": 1.2, "t.quote": 1.0,
     "t.angle": 1.5, "o.indent": 1.0, "m.find": 1.5, "x.subst": 1.0, "o.delete": 1.0, "t.word": 1.0,
-    "m.rel": 1.0, "o.change": 1.0, "o.case": 1.0, "x.copymove": 1.0,
+    "m.rel": 1.0, "o.change": 1.0, "o.case": 1.0, "x.copymove": 1.0, "x.normal": 1.0,
 }
 TARGET_SKILLS: Final = (
     "t.quote", "t.paren", "t.brace", "t.bracket", "t.angle", "t.word", "m.find", "m.match", "m.rel",
-    "n.unmatched", "o.delete", "o.change", "o.indent", "o.case", "x.subst", "x.copymove",
+    "n.unmatched", "o.delete", "o.change", "o.indent", "o.case", "x.subst", "x.copymove", "x.normal",
 )
 
 STRING_TEXTS: Final = ("not found", "invalid input", "out of range", "unknown", "skipped", "empty", "error: ")
@@ -80,6 +80,15 @@ _LINE_PARENTS: Final = frozenset({
     "translation_unit", "compound_statement", "declaration_list", "field_declaration_list",
     "preproc_ifdef", "preproc_if", "preproc_else",
 })
+# x.normal: one-line items a `:norm` range runs over, and the line prefixes a run of them can
+# share (longest first). A run with no shared prefix is commented out with `// ` instead.
+# No `std::`: typing `std:` at the start of a line in a C++ buffer re-indents it as a label
+# (cinkeys), so `:norm Istd::` does not produce the source line.
+_RUN_ITEMS: Final = frozenset({
+    "declaration", "field_declaration", "expression_statement", "using_declaration", "alias_declaration",
+})
+_PREFIXES: Final = ("static constexpr ", "constexpr ", "static const ", "const ", "static ", "this->")
+_SNAKE: Final = re.compile(r"[a-z][a-z0-9_]*[a-z0-9]")
 _KEYWORDS: Final = frozenset("""
     alignas alignof and and_eq asm auto bitand bitor bool break case catch char char8_t char16_t char32_t
     class compl concept const consteval constexpr constinit const_cast continue co_await co_return co_yield
@@ -105,6 +114,7 @@ _IDENT = (
 )
 _LINE = (Use("x.copymove", ("cpp_move_line", "cpp_copy_line")),)
 _DELETE = (Use("o.delete", ("cpp_delete_lines",)),)
+_NORMAL = (Use("x.normal", ("cpp_prefix_each_line", "cpp_upper_constants")),)
 
 LANG = Language(
     name="cpp",
@@ -124,7 +134,11 @@ LANG = Language(
             Use("m.match", ("cpp_jump_match",)),
             Use("n.unmatched", ("cpp_jump_block_end",)),
             Use("o.indent", ("cpp_indent_block",)),
+            *_NORMAL,
         ),
+        "translation_unit": _NORMAL,
+        "declaration_list": _NORMAL,
+        "enumerator_list": (Use("x.normal", ("cpp_upper_constants",)),),
         # `{1, 2, 3}` is a brace pair, so it drills t.brace (not t.bracket).
         "initializer_list": (
             Use("t.brace", ("cpp_change_inner", "cpp_delete_inner", "cpp_delete_block")),
@@ -133,7 +147,7 @@ LANG = Language(
         ),
         "field_declaration_list": (
             Use("t.brace", ("cpp_delete_block",)), Use("m.match", ("cpp_jump_match",)),
-            Use("o.indent", ("cpp_indent_block",)),
+            Use("o.indent", ("cpp_indent_block",)), *_NORMAL,
         ),
         "template_argument_list": _ANGLE,
         "template_parameter_list": _ANGLE,
@@ -493,7 +507,7 @@ def indent_block(win: Window, node: tree_sitter.Node, skill: str, lang: Language
 
 
 def move_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
-    """``:m+k<CR>`` / ``:m-k<CR>``: move a one-line statement among its one-line siblings (ex kind)."""
+    """``:m+k<CR>`` / ``:m-k<CR>`` or ``ddp``: move a one-line statement among its one-line siblings."""
     _prime(win)
     plan = _line_move(win, node, "move")
     if plan is None:
@@ -503,23 +517,28 @@ def move_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
     other = row + k if down else row - k
     moved = lines[:row] + lines[row + 1:]
     expect = moved[:other] + [lines[row]] + moved[other:]
-    variants = [f":m+{k}<CR>", f":m{row + k + 1}<CR>"] if down else [f":m-{k + 1}<CR>", f":m{row - k}<CR>"]
+    # Normal-mode yank/put is a legitimate idiom here, so the kind is "edit", as in
+    # templates.move_line (players typing ddp were marked wrong while this was "ex").
+    if down:
+        variants = [f":m+{k}<CR>", f":m{row + k + 1}<CR>", "ddp" if k == 1 else f"dd{k - 1}jp"]
+    else:
+        variants = [f":m-{k + 1}<CR>", f":m{row - k}<CR>", f"dd{k}kP" if k > 1 else "ddkP"]
     yield Draft(
-        template="move_line", skill=skill, kind="ex",
+        template="move_line", skill=skill, kind="edit",
         task=f"Move this line {'below' if down else 'above'} `{_clip(lines[other].strip())}`",
         lines=lines, cursor=[row + 1, _indent(lines[row])], expect={"lines": expect},
         variants=sorted(variants, key=len), alternates=[v.replace(":m", ":move ") for v in variants],
         target=[_range(row, 0, row, len(lines[row]) - 1), _range(other, 0, other, len(lines[other]) - 1)],
         window=win, tags=["line", "move"],
         hints=[
-            {"trigger": "^\"?[a-z]?dd", "text": ":m moves the line without touching any register; this drill wants the Ex command."},
+            {"trigger": "^\"?[a-z]?dd\\d*[jk]", "text": ":m+N / :m-N moves the line without touching a register, and the count does not change the key count."},
             {"trigger": None, "text": ":m+N moves the line below the line N lines down; :m-N moves it up N-1 lines."},
         ],
     )
 
 
 def copy_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
-    """``:t.<CR>`` / ``:t+k<CR>`` / ``:t-k<CR>``: copy a one-line statement (ex kind)."""
+    """``:t.<CR>`` / ``:t+k<CR>`` / ``:t-k<CR>`` or ``yyp``: copy a one-line statement."""
     _prime(win)
     plan = _line_move(win, node, "copy")
     if plan is None:
@@ -531,21 +550,23 @@ def copy_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
     other = row + k if down else row - k
     dest = other + 1 if down else other
     expect = lines[:dest] + [lines[row]] + lines[dest:]
+    # Normal-mode yank/put is a legitimate idiom here (yyp is 3 keys to :t.'s 4), so the
+    # kind is "edit" and the shortest variant becomes the par, as in templates.copy_line.
     if k == 0:
-        variants, task = [":t.<CR>", f":t{row + 1}<CR>"], "Duplicate this line (the copy goes right below it)"
+        variants, task = [":t.<CR>", f":t{row + 1}<CR>", "yyp"], "Duplicate this line (the copy goes right below it)"
     elif down:
-        variants, task = [f":t+{k}<CR>", f":t{row + k + 1}<CR>"], f"Copy this line to just below `{_clip(lines[other].strip())}`"
+        variants, task = [f":t+{k}<CR>", f":t{row + k + 1}<CR>", "yyjp" if k == 1 else f"yy{k}jp"], f"Copy this line to just below `{_clip(lines[other].strip())}`"
     else:
-        variants, task = [f":t-{k + 1}<CR>", f":t{row - k}<CR>"], f"Copy this line to just above `{_clip(lines[other].strip())}`"
+        variants, task = [f":t-{k + 1}<CR>", f":t{row - k}<CR>", "yykP" if k == 1 else f"yy{k}kP"], f"Copy this line to just above `{_clip(lines[other].strip())}`"
     yield Draft(
-        template="copy_line", skill=skill, kind="ex", task=task,
+        template="copy_line", skill=skill, kind="edit", task=task,
         lines=lines, cursor=[row + 1, _indent(lines[row])], expect={"lines": expect},
         variants=sorted(variants, key=len), alternates=[v.replace(":t", ":copy ") for v in variants],
         target=[_range(row, 0, row, len(lines[row]) - 1)]
         + ([_range(other, 0, other, len(lines[other]) - 1)] if k else []),
         window=win, tags=["line", "copy"],
         hints=[
-            {"trigger": "^(yy|Y)", "text": ":t copies a line without yank and put; :t. duplicates it in place."},
+            {"trigger": "^(yy|Y)\\d*[jk]", "text": ":t+N / :t-N copies a line without touching a register; yy{N}jp ties it on keys."},
             {"trigger": None, "text": ":t. duplicates the line; :t+N puts the copy below the line N lines down."},
         ],
     )
@@ -649,6 +670,80 @@ def rename_all_subst(win: Window, node: tree_sitter.Node, skill: str, lang: Lang
         yield from templates.rename_all_subst(win, node, skill, lang)
 
 
+def prefix_each_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
+    """``V{n}j:norm I{prefix}<CR>`` over 3-8 consecutive one-line declarations or statements
+    (x.normal): put back a prefix they all share (``const ``, ``static ``, ``this->``), or, when
+    they share none, comment them out with ``// ``."""
+    _prime(win)
+    for run in _statement_runs(win, node, templates.EX_MIN_LINES):
+        rows = [item.start_point.row for item in run[:8]]
+        if templates._seen(win, f"prefix:{skill}", str(rows[0])):
+            continue
+        col = _indent(win.lines[rows[0]])
+        prefix = next((p for p in _PREFIXES if all(win.lines[r][col:].startswith(p) for r in rows)), None)
+        n = len(rows)
+        if prefix is not None:
+            start = [ln[:col] + ln[col + len(prefix):] if r in rows else ln for r, ln in enumerate(win.lines)]
+            expect, tags = win.lines, ["declaration", "normal", "insert"]
+            task = f"Put `{prefix.strip()}` back at the start of each of these {n} lines"
+            target = [_range(r, col, r, col + min(len(prefix), len(start[r]) - col) - 1) for r in rows]
+        else:
+            prefix, start = "// ", win.lines
+            expect = [ln[:col] + prefix + ln[col:] if r in rows else ln for r, ln in enumerate(win.lines)]
+            tags = ["comment", "normal", "insert"]
+            task = f"Comment out these {n} lines: put `// ` at the start of each"
+            target = [_range(r, col, r, len(start[r]) - 1) for r in rows]
+        draft = templates.normal_prefix(win, skill, rows, prefix, start, expect, task, target, tags)
+        if _worth_it(draft, lang):
+            yield draft
+
+
+def upper_constants(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
+    """``V{n}j:norm ^gUiw<CR>`` over one-per-line enumerators, ``V{n}j:norm f=bgUiw<CR>`` over
+    consecutive ``const`` / ``constexpr`` declarations: uppercase 3+ lower_snake names (x.normal)."""
+    _prime(win)
+    if node.type == "enumerator_list":
+        items = [c for c in node.named_children if c.type == "enumerator"]
+        names = [c.child_by_field_name("name") for c in items]
+        rows = [c.start_point.row for c in items]
+        one_per_line = rows and rows == list(range(rows[0], rows[0] + len(rows))) and _enum_lines(win, items)
+        runs = [(rows, names, "^")] if one_per_line else []
+    else:
+        runs = [([d.start_point.row for d in run], [_const_name(win, d) for d in run], "f=b")
+                for run in _statement_runs(win, node, templates.EX_MIN_LINES)]
+    for rows, names, go in runs:
+        if len(rows) < templates.EX_MIN_LINES or not all(n is not None and _SNAKE.fullmatch(_text(n)) for n in names):
+            continue  # ex kind: gUiwj.j. on fewer lines would be the better drill
+        rows, names = rows[:8], names[:8]
+        if templates._seen(win, "constants", rows[0]):
+            continue
+        k = len(rows) - 1
+        down = f"{k}j" if k > 1 else "j"
+        go = "" if go == "^" and not _indent(win.lines[rows[0]]) else go  # :norm starts each line in column 0
+        expect = list(win.lines)
+        for r, name in zip(rows, names):
+            c0, c1 = name.start_point.column, name.end_point.column
+            expect[r] = expect[r][:c0] + expect[r][c0:c1].upper() + expect[r][c1:]
+        what = "enumerators" if node.type == "enumerator_list" else "constants"
+        yield Draft(
+            template="upper_constants", skill=skill, kind="ex",
+            task=f"Uppercase the names of these {k + 1} {what}",
+            lines=win.lines, cursor=[rows[0] + 1, _indent(win.lines[rows[0]])], expect={"lines": expect},
+            variants=[f"V{down}:norm {go}gUiw<CR>", f"V{down}:norm {go}gUe<CR>", f":.,+{k}norm {go}gUiw<CR>",
+                      f":{rows[0] + 1},{rows[-1] + 1}norm {go}gUiw<CR>"],
+            alternates=[f":.,+{k}normal {go}gUiw<CR>", f"V{down}:normal {go}gUiw<CR>"],
+            idioms=[f"V{down}:s/\\<\\l\\w*\\>/\\U&/<CR>", "gUiwj." + "j." * (k - 1)],
+            params={"n": k + 1},
+            target=[_range(r, n.start_point.column, r, n.end_point.column - 1) for r, n in zip(rows, names)],
+            window=win, tags=[node.type, "normal", "case"],
+            hints=[
+                {"trigger": "^gU|j\\.", "text": f":norm runs {go}gUiw on every line of the range; V{down} selects the {k + 1} lines."},
+                {"trigger": ":[^n]*s/", "text": "A substitute works too, but this drill is about :normal."},
+                {"trigger": None, "text": f"V{down}:norm {go}gUiw<CR>: select the lines, then run {go}gUiw on each."},
+            ],
+        )
+
+
 # Line templates ===================================================================================
 
 
@@ -706,6 +801,7 @@ CPP_NODE_TEMPLATES: Final = {
     "cpp_find_member": find_member, "cpp_jump_match": jump_match, "cpp_jump_block_end": jump_block_end,
     "cpp_delete_trailing_comment": delete_trailing_comment, "cpp_delete_lines": delete_lines,
     "cpp_upper_word": upper_word, "cpp_rename_here": rename_here, "cpp_rename_all_subst": rename_all_subst,
+    "cpp_prefix_each_line": prefix_each_line, "cpp_upper_constants": upper_constants,
 }
 CPP_LINE_TEMPLATES: Final = {"cpp_goto_line_rel": goto_line_rel, "cpp_find_char": find_char}
 
@@ -1054,6 +1150,43 @@ def _occurrences(line: str, tok: str, start: int) -> list[int]:
         out.append(i)
         i = line.find(tok, i + len(tok))
     return out
+
+
+def _statement_runs(win: Window, node: tree_sitter.Node, min_len: int) -> Iterator[list[tree_sitter.Node]]:
+    """Runs of >= min_len one-line items (``_RUN_ITEMS``) on consecutive rows at one indent, each alone on its line."""
+    run: list[tree_sitter.Node] = []
+    for kid in [*node.named_children, None]:
+        item = None
+        if kid is not None and kid.type in _RUN_ITEMS and _end_row(kid) == kid.start_point.row:
+            if win.lines[kid.start_point.row].strip() == _text(kid).strip():
+                item = kid
+        if item is not None and (not run or (item.start_point.row == run[-1].start_point.row + 1
+                                             and item.start_point.column == run[0].start_point.column)):
+            run.append(item)
+            continue
+        if len(run) >= min_len:
+            yield run
+        run = [item] if item is not None else []
+
+
+def _const_name(win: Window, node: tree_sitter.Node) -> tree_sitter.Node | None:
+    """The name of a one-line ``const``/``constexpr T name = value;``, when it sits right
+    before the line's only ``=`` (so ``f=b`` lands on it), else None."""
+    line = win.lines[node.start_point.row]
+    if node.type not in ("declaration", "field_declaration") or line.count("=") != 1:
+        return None
+    if not any(c.type == "type_qualifier" and _text(c) in ("const", "constexpr") for c in node.children):
+        return None
+    inits = [c for c in node.named_children if c.type == "init_declarator"]
+    name = inits[0].child_by_field_name("declarator") if len(inits) == 1 else None
+    if name is None or name.type not in ("identifier", "field_identifier"):
+        return None
+    return name if line[name.end_point.column:].lstrip().startswith("=") else None
+
+
+def _enum_lines(win: Window, items: list[tree_sitter.Node]) -> bool:
+    """True when every enumerator is alone on its line (``name,`` or ``name = value,``)."""
+    return all(win.lines[c.start_point.row].strip().rstrip(",") == _text(c) for c in items)
 
 
 def _qualified(node: tree_sitter.Node) -> bool:

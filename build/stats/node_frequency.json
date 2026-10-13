@@ -476,6 +476,8 @@
       "compound_statement": 14.417,
       "condition_clause": 5.326,
       "declaration": 9.587,
+      "declaration_list": 3.636,
+      "enumerator_list": 0.275,
       "expression_statement": 7.493,
       "field_declaration": 2.975,
       "field_declaration_list": 0.606,
@@ -496,6 +498,7 @@
       "subscript_argument_list": 2.296,
       "template_argument_list": 5.399,
       "template_parameter_list": 0.606,
+      "translation_unit": 3.343,
       "using_declaration": 0.459,
       "while_statement": 0.349
     }

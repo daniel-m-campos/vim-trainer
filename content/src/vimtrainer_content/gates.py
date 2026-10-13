@@ -17,6 +17,16 @@ a line strategy (``S`` + retyped line + ``<Esc>``); deleted lines cost ``dd`` ea
 inserted lines ``o`` + text + ``<Esc>``. Text that every solution must type (the new
 string, the new name) is subtracted from both sides, so a long replacement does not hide
 a pointless drill. The gate is the doc's ``par.count < retype_cost / 3``.
+
+Multi-line drafts. When the same text goes onto every changed line (``:norm Iself.``,
+``<C-v>3jA,``), the naive baseline types it once per line while par types it once. A
+template declares this with ``typed_per_line`` (``Draft.exercise`` passes it on). The
+honest subtraction (``typed`` once from par, ``typed * changed lines`` from naive) rejects
+every such drill: a 3-line ``:norm`` drill is par 16 vs naive 23, and ``16-5 < (23-15)/3``
+fails, because the drill's whole payoff is the retyping it avoids, which the ratio over
+untyped keys cannot see. So these drafts use a different rule on purpose: par must beat
+the naive cost outright, ``par.count < naive`` (``16 < 23`` passes; a 1-line ``:norm``
+drill, par 12 vs naive 7, still fails).
 """
 
 from __future__ import annotations
@@ -68,8 +78,14 @@ def naive_cost(exercise: dict[str, Any]) -> int:
 
 
 def anti_shortcut_problem(exercise: dict[str, Any], par_count: int, typed: int) -> str | None:
-    """Gate 5: why the drill is not worth it against the naive baseline, or None."""
+    """Gate 5: why the drill is not worth it against the naive baseline, or None.
+
+    With ``exercise["typed_per_line"]`` set, the rule is ``par_count < naive`` instead
+    (see the module docstring).
+    """
     naive = naive_cost(exercise)
+    if exercise.get("typed_per_line"):
+        return None if par_count < naive else f"par {par_count} vs naive {naive}: per-line text needs par < naive"
     if par_count - typed < (naive - typed) / RATIO:
         return None
     return f"par {par_count} vs naive {naive} (typed {typed}): needs par-typed < (naive-typed)/{RATIO:g}"

@@ -2,7 +2,7 @@
   "id": "cpp/x.copymove/099dc65d08",
   "skill": "x.copymove",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Duplicate this line (the copy goes right below it)",
   "start": {
     "lines": [
@@ -96,19 +96,20 @@
     ]
   },
   "par": {
-    "keys": ":t.<CR>",
-    "count": 4,
+    "keys": "yyp",
+    "count": 3,
     "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
+    ":t.<CR>",
     ":t16<CR>",
     ":copy .<CR>",
     ":copy 16<CR>"
   ],
   "hints": [
     {
-      "trigger": "^(yy|Y)",
-      "text": ":t copies a line without yank and put; :t. duplicates it in place."
+      "trigger": "^(yy|Y)\\d*[jk]",
+      "text": ":t+N / :t-N copies a line without touching a register; yy{N}jp ties it on keys."
     },
     {
       "trigger": null,

@@ -17,12 +17,13 @@ import { loadIndex, loadExercise, skillsWithContent, contentBase } from "./conte
 import { baseGraph, drillGraph, graphNodes } from "./graph.ts";
 import { mountEditor, type EditorHandle } from "./editor.ts";
 import {
-  tokenize, displayKeys, checkPass, isGiveUp, armsGiveUp, GIVE_UP_MS, band, BAND_LABEL, chooseHint, diffLines, linesEqual, exerciseHints,
+  tokenize, displayKeys, replayKeys, checkPass, isGiveUp, armsGiveUp, GIVE_UP_MS, band, BAND_LABEL, chooseHint, diffLines, linesEqual, exerciseHints,
   type Band, type DiffLine, type Mode, type Snapshot, type Token,
 } from "./grading.ts";
 import { load, save, clear, exportJson, parseImport, type Saved } from "./storage.ts";
 import { skillInfo, EDITOR_TIPS } from "./skills.ts";
 import { $, esc, code, taskHtml, confidenceBar, fmtSeconds } from "./dom.ts";
+import { issueUrl, FLAG_REASONS, ISSUES_URL, REPO, type FlagReason } from "./feedback.ts";
 import { renderStatsView, type StatsTab, type StatsViewHandle } from "./stats/statsView.ts";
 import type { ContentIndex, EditorProfile, EscapePref, Exercise, Settings } from "./types.ts";
 
@@ -77,6 +78,13 @@ interface Current {
   result: Result | null;
   showAllHints: boolean;
   proNote: boolean;
+  /** The attempt record finish() built; the "!" flag finds it in the log by identity. */
+  record: AttemptRecord | null;
+  flagging: boolean; // the "!" picker is open in #foot
+  flagReason: FlagReason | null;
+  flagged: FlagReason | null; // sent: the strip says so
+  flagUrl: string; // the issue form URL, linked on the strip in case the new tab did not open
+  flagBlocked: boolean; // window.open returned null: a popup blocker stopped the new tab
 }
 
 let graph: SkillGraph;
@@ -339,6 +347,7 @@ function renderResult(): void {
     : `<span class="you dim">no keys</span>`;
   const prominent = !r.ok || r.band === "over";
   const par = `<span class="par${prominent ? " prominent" : ""}">par ${code(ex.par.keys)} <span class="dim">${ex.par.count}</span></span>`;
+  const beat = r.ok && r.band === "beat" ? `<span class="beat">you beat par: ${r.keys} vs ${ex.par.count}</span>` : "";
   let extra = "";
   if (r.hint) extra += `<div class="hint">${esc(r.hint)}</div>`;
   if (!r.ok && r.diff) {
@@ -360,14 +369,100 @@ function renderResult(): void {
   if (cur.role !== "placement" && (Date.now() - session.startMs >= STOP_MS || session.count >= STOP_COUNT))
     extra += `<div class="stopline">good place to stop: ${session.count} exercises in ${Math.round((Date.now() - session.startMs) / 60000)} min. <kbd>q</kbd> ends the session.</div>`;
   const nextLabel = cur.role === "placement" && placement && placement.i >= placement.queue.length ? "finish placement" : "next";
+  if (cur.flagged) {
+    const link = `<a href="${esc(cur.flagUrl)}" target="_blank" rel="noopener">issue form</a>`;
+    extra += cur.flagBlocked
+      ? `<div class="note flagged">flagged: ${esc(cur.flagged)}. Popup blocked: open the ${link} and submit it there.</div>`
+      : `<div class="note flagged">flagged: ${esc(cur.flagged)}. The ${link} opened in a new tab; submit it there.</div>`;
+  }
   const src = sourceLine(ex);
+  const keys = cur.flagging
+    ? flagPickerHtml()
+    : `<div class="keys"><span><kbd>space</kbd> ${nextLabel}</span><span><kbd>r</kbd> retry</span><span><kbd>?</kbd> hint</span><span class="off"><kbd>p</kbd> replay par <span class="dim">(pro)</span></span><span><kbd>!</kbd> flag</span><span><kbd>q</kbd> end session</span></div>`;
   $("#foot").innerHTML = `
     <div class="result" id="result">
-      <div class="row1">${status}${you}${par}</div>
+      <div class="row1">${status}${beat}${you}${par}</div>
       ${extra}
       <div class="src" id="src"${src.title ? ` title="${esc(src.title)}"` : ""}>${src.html}</div>
-      <div class="keys"><span><kbd>space</kbd> ${nextLabel}</span><span><kbd>r</kbd> retry</span><span><kbd>?</kbd> hint</span><span class="off"><kbd>p</kbd> replay par <span class="dim">(pro)</span></span><span><kbd>q</kbd> end session</span></div>
+      ${keys}
     </div>`;
+  if (cur.flagging) wireFlagPicker();
+}
+
+// --- the "!" flag ------------------------------------------------------------------
+// onKey "!" -> openFlagPicker; 1-4 -> pickFlagReason; enter -> confirmFlag (saves the
+// flag on the logged record, opens the issue form); Esc -> closeFlagPicker.
+
+/** The picker row that replaces the key legend while flagging; rendered by renderResult. */
+function flagPickerHtml(): string {
+  const opts = FLAG_REASONS.map(([r, label], i) =>
+    `<span class="flag-opt${cur?.flagReason === r ? " sel" : ""}" data-r="${r}"><kbd>${i + 1}</kbd> ${esc(label)}</span>`).join("");
+  return `<div class="keys flagpick" id="flagpick"><span>flag:</span>${opts}
+    <input type="text" id="flag-note" maxlength="300" placeholder="optional note" autocomplete="off">
+    <span><kbd>enter</kbd> open issue</span><span><kbd>Esc</kbd> cancel</span></div>`;
+}
+
+/** Click and enter handlers for the picker's DOM; called by renderResult after it renders the picker. */
+function wireFlagPicker(): void {
+  document.querySelectorAll<HTMLElement>("#flagpick .flag-opt").forEach((el) =>
+    el.addEventListener("click", () => pickFlagReason(el.dataset.r as FlagReason)));
+  // onKey ignores keys aimed at an <input>, so the note field handles its own enter.
+  $("#flag-note").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") e.preventDefault(), confirmFlag();
+  });
+}
+
+/** "!" on the result strip: show the reason picker; called by onKey. */
+function openFlagPicker(): void {
+  if (!cur) return;
+  cur.flagging = true;
+  cur.flagReason = null;
+  renderResult();
+}
+
+/** 1-4 (or a click) in the picker: mark the reason and move focus to the note; called by onKey and the click handlers. */
+function pickFlagReason(reason: FlagReason): void {
+  if (!cur?.flagging) return;
+  cur.flagReason = reason;
+  document.querySelectorAll<HTMLElement>("#flagpick .flag-opt").forEach((el) => el.classList.toggle("sel", el.dataset.r === reason));
+  $("#flag-note").focus();
+}
+
+/** Esc in the picker: back to the plain strip; called by onKey and confirmFlag. */
+function closeFlagPicker(): void {
+  if (!cur) return;
+  cur.flagging = false;
+  renderResult();
+  $("#foot").focus();
+}
+
+/**
+ * Enter in the picker: store the flag on the logged copy of this attempt (practice
+ * records are in the model log; a first placement attempt waits in placement.records
+ * until placement ends; warm-ups and placement retries are not logged), save, and open
+ * the prefilled issue form. Called by onKey and the note field's enter handler.
+ */
+function confirmFlag(): void {
+  if (!cur?.flagging || !cur.result) return;
+  if (!cur.flagReason) {
+    $("#flag-note").setAttribute("placeholder", "pick a reason first: 1-4 or click");
+    return;
+  }
+  const note = ($("#flag-note") as HTMLInputElement).value.trim();
+  const flag = note ? { reason: cur.flagReason, note } : { reason: cur.flagReason };
+  const rec = cur.record;
+  const logged = rec ? [...saved.model.log, ...(placement?.records ?? [])].find((r) => r === rec) : undefined;
+  if (logged) logged.flag = flag;
+  persist();
+  const r = cur.result;
+  cur.flagUrl = issueUrl({ ex: cur.ex, seq: replayKeys(r.tokens), keys: r.keys, ok: r.ok, reason: cur.flagReason, note, profile: S().profile });
+  // No "noopener" feature: with it window.open always returns null, so a blocked popup
+  // could not be told apart. The opener link is cut by hand instead.
+  const w = window.open(cur.flagUrl, "_blank");
+  if (w) w.opener = null;
+  cur.flagBlocked = !w;
+  cur.flagged = cur.flagReason;
+  closeFlagPicker();
 }
 
 // --- the exercise loop -------------------------------------------------------------
@@ -379,7 +474,7 @@ function mountExercise(ex: Exercise, skill: string, role: Role, retry: boolean):
   $("#task").innerHTML = taskHtml(ex.task) + (ex.kind === "ex" ? ` <span class="req">using an Ex <kbd>:</kbd> command</span>` : "");
   show("practice");
   const editor = mountEditor($("#code"), ex, { relativeNumbers: S().relativeNumbers, escape: S().escape });
-  const me: Current = { ex, skill, role, retry, hintUsed: false, editor, phase: "solving", result: null, showAllHints: false, proNote: false };
+  const me: Current = { ex, skill, role, retry, hintUsed: false, editor, phase: "solving", result: null, showAllHints: false, proNote: false, record: null, flagging: false, flagReason: null, flagged: null, flagUrl: "", flagBlocked: false };
   cur = me;
   session.seen.add(ex.id);
   renderHeader();
@@ -414,7 +509,9 @@ function finish(me: Current, ok: boolean, snap: Snapshot): void {
   const record: AttemptRecord = {
     t: nowSec(), ex: me.ex.id, skill: me.skill, lang, ok, ms, keys, par: me.ex.par.count,
     hint: me.hintUsed, retry: me.retry, undo: rec.undoCount(),
+    seq: replayKeys(tokens), beatPar: ok && keys < me.ex.par.count,
   };
+  me.record = record;
   const wantLines = me.ex.expect.lines;
   const matched = !!wantLines && linesEqual(snap.lines, wantLines);
   me.result = {
@@ -685,6 +782,10 @@ function renderSettings(): void {
         <button type="button" id="btn-import">import JSON</button>
         <input type="file" id="file-import" accept="application/json,.json" hidden>
         <button type="button" class="danger" id="btn-reset">${resetArmed ? "press again to erase everything" : "reset"}</button>
+        <p class="note" id="share-log">Share your log: export writes one JSON file with your settings, each skill's
+          model state, your sessions and every attempt (exercise id, the keys you typed, time, par, hints, flags).
+          Nothing leaves this browser unless you attach that file to an issue at
+          <a href="${ISSUES_URL}" target="_blank" rel="noopener" id="issues-link">github.com/${esc(REPO)}/issues</a>.</p>
       </fieldset>
       <div class="msg" id="settings-msg">${esc(settingsMsg)}</div>
     </form>
@@ -853,7 +954,16 @@ function onKey(e: KeyboardEvent): void {
         // A double press or key repeat must not skip an exercise: the strip is inert
         // from the first advance until the next exercise has rendered.
         if (advancing || e.repeat) return handled();
-        if (k === " " || k === "Enter") handled(), advance();
+        if (cur.flagging) {
+          // The picker owns the strip: digits pick, enter sends, Esc cancels, the rest is ignored.
+          const opt = FLAG_REASONS[Number(k) - 1];
+          if (/^[1-4]$/.test(k) && opt) pickFlagReason(opt[0]);
+          else if (k === "Enter") confirmFlag();
+          else if (k === "Escape") closeFlagPicker();
+          return handled();
+        }
+        if (k === "!") handled(), openFlagPicker();
+        else if (k === " "|| k === "Enter") handled(), advance();
         else if (k === "r") handled(), mountExercise(cur.ex, cur.skill, cur.role, true);
         else if (k === "q") handled(), endSession();
         else if (k === "?") handled(), (cur.showAllHints = !cur.showAllHints), renderResult();

@@ -48,13 +48,19 @@ most common Vim customisation.
 
 | band | eff | shown as |
 |---|---|---|
-| at par | ≤ 1.0 | par |
+| beat par | < 1.0 | beat par; the result strip says "you beat par: 3 vs 4" |
+| at par | = 1.0 | par |
 | close | ≤ 1.25 | close |
 | pass | ≤ 2.0 | passed, with hint |
 | over | > 2.0 | passed, result strip shows par prominently |
 
 A pass at any efficiency updates the model; the efficiency EMA does the discriminating.
 There is no "fail for being slow" or "fail for too many keys".
+
+The `beat` band was added in round 3a (2026-10-13). A pass below par means the shipped
+par is wrong, so the attempt is recorded with `beatPar: true` and its key sequence, and
+`ingest` verifies it in Neovim before any par changes (11, ADR 0009). The model treats
+it like any other pass at or under par.
 
 ## Time
 

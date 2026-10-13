@@ -2,7 +2,7 @@
   "id": "cpp/x.copymove/0341454de2",
   "skill": "x.copymove",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Move this line above `#include <map>`",
   "start": {
     "lines": [
@@ -37,20 +37,17 @@
     ]
   },
   "par": {
-    "keys": ":m2<CR>",
+    "keys": "ddkP",
     "count": 4,
     "verified": "nvim 0.12.5 2026-10-12"
   },
   "alternates": [
+    ":m2<CR>",
     ":m-2<CR>",
     ":move -2<CR>",
     ":move 2<CR>"
   ],
   "hints": [
-    {
-      "trigger": "^\"?[a-z]?dd",
-      "text": ":m moves the line without touching any register; this drill wants the Ex command."
-    },
     {
       "trigger": null,
       "text": ":m+N moves the line below the line N lines down; :m-N moves it up N-1 lines."

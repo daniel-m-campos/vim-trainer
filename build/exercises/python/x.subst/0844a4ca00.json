@@ -2,7 +2,7 @@
   "id": "py/x.subst/0844a4ca00",
   "skill": "x.subst",
   "lang": "python",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `ukrainian` to `item` (3 occurrences)",
   "start": {
     "lines": [
@@ -90,7 +90,8 @@
     ":%s/\\<ukrainian\\>/item<CR>",
     ":%s/ukrainian\\>/item/g<CR>",
     ":%s/\\<ukrainian/item/g<CR>",
-    ":%s/\\<ukrainian\\>/item/g<CR>"
+    ":%s/\\<ukrainian\\>/item/g<CR>",
+    "/\\<ukrainian\\><CR>cgnitem<Esc>.."
   ],
   "hints": [
     {

@@ -71,6 +71,14 @@ something extra, and why:
 - **Optional trailing arguments.** `chooseFocus` takes an optional `seed`, which defaults
   to `deriveSeed(log.length, now)`. `chooseExercise` and `projection` take an optional
   `graph`, used for language weights and per-skill targets.
+- **`AttemptRecord.seq?`, `beatPar?`, `flag?`** (optional, written by the app). `seq` is
+  the player's key sequence, normalised and replayable in Neovim (a `jk` escape is
+  written as `<Esc>`). `beatPar` is true when the attempt
+  was ok with fewer keys than par. `flag` is `{reason, note?}`, set when the player
+  reports the exercise with `!`; `reason` is one of `wrong-par`, `wording`, `emulator`,
+  `other`. The model ignores all three and logs the record unchanged, so the fields reach
+  `ingest` through the exported log. `digest` does not read record contents, so the
+  vectors do not change.
 - **Composite records.** `AttemptRecord.skill` stays a string. A composite names its
   skills joined by `+`, for example `"m.find+o.change"`, and every named skill is credited.
 - **`focusHistory`** holds the primary skill of the last 20 attempts and drives the

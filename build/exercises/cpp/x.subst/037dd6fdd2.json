@@ -2,7 +2,7 @@
   "id": "cpp/x.subst/037dd6fdd2",
   "skill": "x.subst",
   "lang": "cpp",
-  "kind": "ex",
+  "kind": "edit",
   "task": "Rename every `left` to `result` (3 occurrences)",
   "start": {
     "lines": [
@@ -66,7 +66,8 @@
     ":%s/\\<left\\>/result<CR>",
     ":%s/left\\>/result/g<CR>",
     ":%s/\\<left/result/g<CR>",
-    ":%s/\\<left\\>/result/g<CR>"
+    ":%s/\\<left\\>/result/g<CR>",
+    "/\\<left\\><CR>cgnresult<Esc>.."
   ],
   "hints": [
     {
