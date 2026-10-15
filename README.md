@@ -29,9 +29,10 @@ Not yet: TypeScript content, VSCodeVim and IdeaVim verification, accounts or pay
 On macOS, from a fresh clone:
 
 ```sh
-brew install uv node neovim     # node >= 23 (tested on 26); neovim is only needed for `make content`
+brew install uv node neovim     # node >= 23 (tested on 26); neovim verifies every par in `make content`
 git clone <this repo> vim-trainer && cd vim-trainer
 make setup                      # uv sync for content/ and model/, npm ci and Playwright Chromium for app/
+make content                    # generate build/ (~5 min: fetches the pinned sources, pars in nvim, replay in Chromium)
 make dev                        # open http://localhost:5173/
 ```
 
@@ -52,20 +53,21 @@ make test       # unit tests: content (pytest), model (pytest), app grading + TS
 make e2e        # Playwright in Chromium: the bundled-sample flow, placement + a 15-exercise session on build/
                 #   (with a switch to C++), the stats-view demo page, and editor key sequences checked against nvim
 make e2e-all    # the same in Chromium, Firefox and WebKit (first: make setup BROWSERS="chromium firefox webkit")
-make content    # rebuild build/ from scratch (needs nvim; fetches the pinned exercism/python and exercism/cpp), then replay every par in the browser
-make content-check  # what CI runs: rebuild into content/.cache/build-check and diff it against build/
+make content    # (re)generate build/ (needs nvim; fetches the pinned exercism/python and exercism/cpp), then replay every par in the browser
+make content-check  # determinism check (CI): rebuild into content/.cache/build-check and diff it against build/
 make emulator   # report-only: replay every par and alternate in the browser
 make build      # static site in app/dist/
 ```
 
-`build/` is committed, so `make dev` works without Neovim. CI (`.github/workflows/ci.yml`)
-rebuilds it and fails if the result differs from the committed copy. After changing the
-pipeline, run `make content` and commit `build/`.
+`build/` is generated, not committed (ADR 0010): `make test`, `make e2e`, `make difftest` and
+`make build` refuse to run until `make content` has produced it. CI (`.github/workflows/ci.yml`)
+generates it on every run and then rebuilds it a second time to prove the pipeline is
+deterministic. After changing anything under `content/`, run `make content` again.
 
 ## Layout
 
 - `content/` — the content pipeline (Python, uv): snippets from real code, templates, Neovim par oracle. Writes `build/`.
-- `build/` — generated exercises, `index.json`, `ATTRIBUTION.md` (committed).
+- `build/` — generated exercises, `index.json`, `ATTRIBUTION.md` (gitignored; `make content` writes it).
 - `model/` — the adaptive model (Python, uv), scenario vectors, the skill graph generator and learner simulations.
 - `app/` — the browser app (TypeScript, Vite, CodeMirror 6 + codemirror-vim). `app/src/model/` is the TS mirror of the model.
 - `docs/plan/` — the product plan, one file per topic. Start with `00-overview.md`.

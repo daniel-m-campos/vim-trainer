@@ -22,10 +22,10 @@ the model depend on:
   `par.best` when an alternative wins by exactly 1 key.
 - **Cursor columns are byte offsets**, as in Neovim. Windows are ASCII-only and
   tab-free, so bytes and UTF-16 units agree. Non-ASCII needs a conversion first.
-- **`build/` is committed** (593 files, 2.7 MB), so `make dev` works without Neovim. The
-  repo `.gitignore` adds `!/build/` because the author's global ignore excludes it. CI
-  rebuilds into a scratch directory and diffs against the committed copy, ignoring the
-  `generated` and `verified` date lines.
+- **`build/` was committed** (593 files, 2.7 MB at the time) so `make dev` worked without
+  Neovim; CI rebuilt it and diffed against the committed copy. Superseded 2026-10-14 by
+  ADR 0010: `build/` is generated and gitignored, CI and the deploy pipeline run
+  `make content`, and `make content-check` remains as the determinism check.
 - **`build/all.json`** is written into `dist/build/` by `vite.config.ts` at build time:
   every exercise in one file, keyed `<lang>/<skill>/<leaf>`. Static hosts with a file
   count cap serve it, and the app reads exercises from it when present. Dev and CI keep

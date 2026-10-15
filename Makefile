@@ -4,7 +4,9 @@
 #   app/      TypeScript (npm + Vite): the trainer in the browser
 #
 #   make setup    install everything (uv projects, npm packages, Playwright Chromium)
-#   make content  rebuild build/ (needs nvim) and replay every par in the browser
+#   make content  generate build/ (needs nvim) and replay every par in the browser.
+#                 build/ is NOT committed (ADR 0010): run this once after setup, and again
+#                 after any change under content/. test, e2e and difftest need it.
 #   make dev      run the app at http://localhost:5173/
 #   make test     unit tests: content, model (Python and TS mirror), app grading, typecheck
 #   make e2e      Playwright: the sample flow, a 15-exercise session on build/, the stats demo,
@@ -18,7 +20,7 @@ export PLAYWRIGHT_BROWSERS_PATH := 0
 BROWSERS ?= chromium
 CHECK_DIR := content/.cache/build-check
 
-.PHONY: setup content content-check dev test test-content test-model test-app e2e e2e-all emulator difftest build clean help
+.PHONY: setup content need-content content-check dev test test-content test-model test-app e2e e2e-all emulator difftest build clean help
 
 help:
 	@sed -n '1,17p' Makefile
@@ -26,7 +28,7 @@ help:
 setup:
 	@command -v uv >/dev/null || { echo "uv is missing: brew install uv"; exit 1; }
 	@command -v node >/dev/null || { echo "node is missing: brew install node (>= 23)"; exit 1; }
-	@command -v nvim >/dev/null || echo "note: nvim is missing (brew install neovim); only 'make content' needs it, build/ is committed"
+	@command -v nvim >/dev/null || echo "note: nvim is missing (brew install neovim); 'make content' needs it, and test/e2e need build/"
 	cd content && uv sync
 	cd model && uv sync
 	cd app && npm ci
@@ -38,12 +40,16 @@ content:
 	cd content && uv run vimtrainer-content build
 	cd app && node e2e/emulator.mjs --write
 
-# CI: rebuild into a scratch directory and require it to be byte-identical to the committed
-# build/. Fails when someone changes the pipeline without `make content`, or builds with an
-# nvim other than the pinned one (par.verified names the version). The build date is the
-# only input that changes from day to day, so it is pinned to the committed one:
-# SOURCE_DATE_EPOCH = UTC midnight of build/index.json "generated" (see build.py).
-content-check:
+# Guard for the targets that read build/: a clear message instead of 50 confusing failures.
+need-content:
+	@test -f build/index.json || { echo "build/ is missing: run 'make content' first (needs nvim)"; exit 1; }
+
+# Determinism check: rebuild into a scratch directory and require it to be byte-identical to
+# build/ from the previous `make content`. Fails when the pipeline is not deterministic (sort
+# order, dates) or when the nvim differs from the one that built build/ (par.verified names
+# the version). The build date is the only input that changes from day to day, so it is
+# pinned: SOURCE_DATE_EPOCH = UTC midnight of build/index.json "generated" (see build.py).
+content-check: need-content
 	rm -rf $(CHECK_DIR)
 	cd content && SOURCE_DATE_EPOCH=$$(node -e 'process.stdout.write(String(Date.parse(require("../build/index.json").generated) / 1000))') \
 		uv run vimtrainer-content build --out .cache/build-check
@@ -53,7 +59,7 @@ content-check:
 dev:
 	cd app && npm run dev
 
-test: test-content test-model test-app
+test: need-content test-content test-model test-app
 
 test-content:
 	cd content && uv run pytest -q
@@ -68,7 +74,7 @@ test-app:
 	cd app && npm run test:e2e-helpers
 	cd app && npm run typecheck
 
-e2e:
+e2e: need-content
 	cd app && npm run e2e
 	cd app && npm run e2e:session
 	cd app && npm run e2e:stats
@@ -91,11 +97,11 @@ COUNT ?= 2000
 # STRICT= (empty) makes it report-only: the nightly job runs that way while the class-a
 # backlog in known.jsonl is being fixed, because every fresh seed still finds new shapes.
 STRICT ?= --strict
-difftest:
+difftest: need-content
 	cd content && uv run vimtrainer-content difftest --seed $(SEED) --count $(COUNT) $(STRICT)
 
 # Static site in app/dist/ (build/ copied in).
-build:
+build: need-content
 	cd app && npm run build
 
 clean:

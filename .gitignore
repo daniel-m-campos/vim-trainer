@@ -16,6 +16,6 @@ __pycache__/
 # Content pipeline: pinned source checkouts and CI scratch builds.
 content/.cache/
 
-# build/ IS committed (the app runs from a fresh clone without Neovim; CI checks it is
-# reproducible). Re-included explicitly because global gitignores often exclude build/.
-!/build/
+# Generated exercise data (make content). Not committed since round 3 (ADR 0010): CI and
+# the deploy pipeline generate it; `make content` is the first step after `make setup`.
+/build/
