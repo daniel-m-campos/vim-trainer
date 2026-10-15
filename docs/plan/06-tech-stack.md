@@ -27,7 +27,7 @@ novelty is in the model and content, not the stack.
 app/          TypeScript: practice screen, stats, settings, model (ts)
 content/      Python: sources allowlist, lang mappings, templates, oracle, review CLI
 model/        Python mirror of the model + simulators + shared test vectors
-build/        generated exercises, stats, ATTRIBUTION.md (committed; CI checks it)
+build/        generated exercises, stats, ATTRIBUTION.md (gitignored; `make content` writes it, CI regenerates and checks determinism — ADR 0010)
 docs/         this plan
 ```
 

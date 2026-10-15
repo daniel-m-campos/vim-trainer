@@ -18,8 +18,9 @@ N_SEQUENCES = 10_000
 
 @pytest.fixture(scope="module")
 def buffers():
-    """Adversarial buffers plus 30 sampled built exercises; build/ is committed, so a missing
-    sample fails here instead of quietly shrinking the 10k property population."""
+    """Adversarial buffers plus 30 sampled built exercises; `make content` must have run (the
+    Makefile guards this), so a missing sample fails here instead of quietly shrinking the
+    10k property population."""
     bufs = generate.load_buffers(BUILD, "python", 30, 1)
     sampled = [b for b in bufs if not b.id.startswith("adv/")]
     assert len(sampled) == 30, f"expected 30 sampled exercise buffers from {BUILD}, got {len(sampled)}"

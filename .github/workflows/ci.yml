@@ -26,10 +26,15 @@ jobs:
       # Neovim, uv, Node, source cache, uv sync, npm ci, Playwright Chromium.
       - uses: ./.github/actions/setup
 
+      # build/ is not committed (ADR 0010): generate it here, then prove the pipeline is
+      # deterministic by rebuilding and diffing.
+      - name: Generate content (nvim pars + browser replay)
+        run: make content
+
       - name: Unit tests (content, model, app + TS model mirror, typecheck)
         run: make test
 
-      - name: Content build matches the committed build/
+      - name: Content build is deterministic
         run: make content-check
 
       - name: End-to-end (Playwright, Chromium)
