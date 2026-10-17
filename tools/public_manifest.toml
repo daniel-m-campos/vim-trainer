@@ -1,0 +1,71 @@
+# What tools/export_public.py leaves out of the public source tree, and which words must
+# not appear in what it keeps. Paths are relative to the repo root. A glob ending in "/"
+# excludes everything under that directory; any other glob is an fnmatch pattern.
+
+[exclude]
+paths = [
+    ".claude/",
+    # Planning material kept in the private planning repo.
+    "docs/plan/",
+    "docs/research/",
+    "docs/qa/",
+    "docs/mocks/",
+    "docs/decisions/0001-*",
+    "docs/decisions/0006-*",
+    "docs/decisions/0007-*",
+    # The export tooling itself: its word list and exclude list describe the private repo.
+    "tools/export_public.py",
+    "tools/public_manifest.toml",
+    "tools/README.md",
+    # Local editor and OS litter, in case it is ever added by mistake.
+    "**/.DS_Store",
+    ".DS_Store",
+]
+
+# Case-insensitive Python regexes. (?-i:...) makes a part case-sensitive.
+[forbidden]
+words = [
+    'monetiz',
+    'pricing',
+    'revenue',
+    'premium',
+    'lifetime pro',
+    '\bpro\b',
+    'paywall',
+    'customer',
+    'persona',
+    'addressable market',
+    '(?-i:\bTAM\b)',
+    'competitor',
+    'competitive landscape',
+    'roadmap',
+    'milestone',
+    '(?-i:\bM[0-7]\b)',
+    'first customer',
+    'stability gate',
+    'hacker news',
+    'reddit',
+    'launch',
+    'soft launch',
+    'pilot',
+    'portfolio',
+    'Claude-Session',
+    'dogfood',
+    '\bmvp\b',
+    'switcher',
+    # Links to private planning docs would dangle in the public tree.
+    'docs/(plan|research|qa|mocks)/',
+]
+
+# Each entry lets the listed forbidden words (exactly as written above) appear in files
+# matching path. Keep this list short; every entry needs a reason.
+
+[[allow]]
+path = "app/e2e/*"
+words = ['launch']
+reason = "Playwright API: chromium.launch() starts the test browser."
+
+[[allow]]
+path = "app/src/spike/verify.mjs"
+words = ['launch']
+reason = "Playwright API: type.launch() starts each browser in the key-logger spike check."
