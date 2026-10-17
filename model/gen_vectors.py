@@ -67,7 +67,7 @@ def scenarios(graph: dict) -> dict[str, dict]:
     builders = [
         _rng_and_seeds, _fresh_state, _mastery_and_unlock, _interleave_streak, _fast_sloppy_gate,
         _accuracy_gate, _slow_precise_gate, _retry_hint_not_counted, _review_pass_cycle, _review_fail_drop,
-        _introduced_pull_in, _placement_advanced, _placement_switcher, _composite_credit_and_choice,
+        _introduced_pull_in, _placement_high, _placement_low, _composite_credit_and_choice,
         _exercise_recent_and_weights, _projection_fits, _cross_language, _profile_vscodevim,
         _simulated_fast_sloppy, _simulated_quitter, _forced_locked_skill, _placement_hinted,
         _cross_language_after_placement, _share_cap, _starvation_guard, _second_language_placement,
@@ -226,24 +226,24 @@ def _introduced_pull_in(graph: dict) -> dict:
             "graph": mini, "ops": ops}
 
 
-def _placement_advanced(graph: dict) -> dict:
+def _placement_high(graph: dict) -> dict:
     learner = simulate.LEARNERS["plateaued_expert"]
     records = simulate.placement_records(learner, random.Random(11), Counter(), graph, T0)
     ops = [{"op": "applyPlacement", "records": records}, {"op": "digest"}]
     ops += [{"op": "chooseFocus", "lang": PY, "now": T0 + 600, "seed": s} for s in range(4)]
     ops += [{"op": "sessionSummary", "since": T0}, {"op": "rebuildMatches"}]
-    return {"description": "Advanced placement: passes through tier 7 infer prerequisites and tier 0 mastered.",
+    return {"description": "High placement: passes through tier 7 infer prerequisites and tier 0 mastered.",
             "ops": ops}
 
 
-def _placement_switcher(graph: dict) -> dict:
-    learner = simulate.Learner("switcher", "", 5, 1.3, 1.0, 10, 1.2, 1.0, 0.0, 1, 1, placement_tiers=1)
+def _placement_low(graph: dict) -> dict:
+    learner = simulate.Learner("tier1_only", "", 5, 1.3, 1.0, 10, 1.2, 1.0, 0.0, 1, 1, placement_tiers=1)
     records = simulate.placement_records(learner, random.Random(12), Counter(), graph, T0)
     ops = [{"op": "applyPlacement", "records": records}, {"op": "digest"},
            {"op": "chooseFocus", "lang": PY, "now": T0 + 600, "seed": 3}]
     ops += attempts("m.word", 3, T0 + 700, keys=3, par=3, ms=1600)
     ops += [{"op": "digest"}, {"op": "rebuildMatches"}]
-    return {"description": "Switcher placement: tier 1 passes, everything else failed.", "ops": ops}
+    return {"description": "Low placement: tier 1 passes, everything else failed.", "ops": ops}
 
 
 def _composite_credit_and_choice(graph: dict) -> dict:

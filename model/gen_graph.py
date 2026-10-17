@@ -1,4 +1,4 @@
-"""Generate model/skill-graph.json from the tables in docs/plan/02-skill-graph.md.
+"""Generate model/skill-graph.json from the tables in docs/design/skill-graph.md.
 
 The plan doc is the source of truth for skill ids, keys, tiers, prerequisites, emulator
 flags and per-language weights. This script parses its Markdown tables, attaches the
@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Final
 
 ROOT: Final = Path(__file__).resolve().parent.parent
-DOC: Final = ROOT / "docs" / "plan" / "02-skill-graph.md"
+DOC: Final = ROOT / "docs" / "design" / "skill-graph.md"
 TIPS: Final = ROOT / "model" / "tips.json"
 OUTPUTS: Final = (ROOT / "model" / "skill-graph.json", ROOT / "app" / "src" / "model" / "skill-graph.json")
 
@@ -58,7 +58,7 @@ def build_graph(doc_text: str, tips: dict[str, str]) -> dict:
     Parameters
     ----------
     doc_text : str
-        Contents of docs/plan/02-skill-graph.md.
+        Contents of docs/design/skill-graph.md.
     tips : dict[str, str]
         Real-editor tip per skill id.
 
@@ -81,7 +81,7 @@ def build_graph(doc_text: str, tips: dict[str, str]) -> dict:
         raise ValueError(f"tips.json names unknown skills: {unknown}")
     return {
         "version": 1,
-        "source": "docs/plan/02-skill-graph.md",
+        "source": "docs/design/skill-graph.md",
         "targetBase": TARGET_BASE,
         "perKey": PER_KEY,
         "langs": list(LANGS),

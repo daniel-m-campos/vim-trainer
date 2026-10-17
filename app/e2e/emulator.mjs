@@ -59,7 +59,7 @@ async function tryKeys(ex, keys, attempt = 1) {
   await typeKeys(keys);
   // Commands finish synchronously, so a pass resolves within a frame; the long timeout
   // only matters on a failure. CI run 38337241533 marked one of 1589 pars as a web fail
-  // with a 400 ms wait on a slow runner, which flipped the committed build/.
+  // with a 400 ms wait on a slow runner, which made build/ nondeterministic.
   await page.waitForFunction(() => window.emu.status().passed, null, { timeout: 3000 }).catch(() => {});
   const status = await page.evaluate(() => window.emu.status());
   // One retry: keys typed before the remounted editor settled can be dropped on a slow runner.

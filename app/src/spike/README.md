@@ -1,7 +1,7 @@
-# Spike: codemirror-vim key logger (M1)
+# Spike: codemirror-vim key logger
 
 Throwaway. It answers the "To research" items about key capture in
-`docs/plan/05-grading.md`, `06-tech-stack.md` and `10-ux.md`. Keep it until the
+`docs/design/grading.md`, `tech-stack.md` and `ux.md`. Keep it until the
 real attempt recorder exists, then delete it.
 
 ## Run
@@ -116,7 +116,7 @@ All checks pass in Chromium, Firefox and WebKit (Playwright builds, headless).
    - the doc (`Text.eq`) or the cursor changed since the last emission.
 
    Grading checks the pass condition on this event only. That gives exactly
-   the 05-grading semantics: `ci"ret` is not a pass, and the `<Esc>` that
+   the grading.md semantics: `ci"ret` is not a pass, and the `<Esc>` that
    finishes it is.
 3. **Mode.** Derive the mode from state inside the same check, and emit a mode
    event only when it changes. Ignore the signal's payload.
@@ -142,7 +142,7 @@ All checks pass in Chromium, Firefox and WebKit (Playwright builds, headless).
     cannot stop that.
   - Safari has its own handling of `Cmd`-chords.
 - IME and dead-key input in normal mode. The emulator reads these from the
-  text input path, and this spike skips logging them (`TODO(mvp)` in
+  text input path, and this spike skips logging them (`TODO` in
   `keylogger.ts`).
 - Long or recursive macros, which are the subject of the #177 hang. Only a
   one-key macro was tested.

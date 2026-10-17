@@ -1,6 +1,5 @@
 // Round 4 emulator fixes: macros, auto-indent, Insert-mode <C-w> and ex commands, where
-// codemirror-vim 6.4.0 differs from Neovim (docs/qa/2026-10-13-mock-users.md #2 and the
-// class a entries of content/difftest/known.jsonl). Every expected result was taken
+// codemirror-vim 6.4.0 differs from Neovim (the class a entries of content/difftest/known.jsonl). Every expected result was taken
 // from nvim 0.12; the cases live in e2e/cases/macros-indent.json, checked against nvim.
 // Installed once by installVimFixes() (vimfixes.ts), through the public Vim API and the
 // CodeMirror adapter's prototype, so the vendored package is untouched.
@@ -451,7 +450,7 @@ function countErrorMessages(): void {
  */
 function exNormal(cm: CM, params: ExParams): void {
   let keys = params.argString ?? "";
-  if (keys.startsWith("!")) keys = keys.slice(1); // TODO(mvp): :normal! still applies the jk map
+  if (keys.startsWith("!")) keys = keys.slice(1); // TODO: :normal! still applies the jk map
   keys = keys.trimStart();
   if (!keys) return reportError(cm, "E471: Argument required");
   if (params.line === undefined) return runNormalKeys(cm, keys);

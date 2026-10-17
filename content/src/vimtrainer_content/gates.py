@@ -1,4 +1,4 @@
-"""Quality gates from 03-content-pipeline.md ("Quality gates (all automated)").
+"""Quality gates from docs/design/content-pipeline.md ("Quality gates (all automated)").
 
 Gates 1 (licence), 2 (size) and 7 (secrets) live next to the data they check, in
 ``sources`` and ``snippets``. This module holds the per-exercise gates:

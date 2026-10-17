@@ -1,4 +1,4 @@
-"""Simulated learners for validating the adaptive model (04-adaptive-model.md, Validation plan).
+"""Simulated learners for validating the adaptive model (docs/design/adaptive-model.md, Validation plan).
 
 Four learners from the plan: a fast sloppy one, a slow precise one, a plateaued expert and
 a quitter who returns after 60 days. Each practises daily sessions driven by the model

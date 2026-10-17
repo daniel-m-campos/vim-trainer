@@ -1,4 +1,4 @@
-// Hand-rolled SVG charts for the stats screen (docs/plan/10-ux.md, 04 "Projection").
+// Hand-rolled SVG charts for the stats screen (docs/design/ux.md; adaptive-model.md "Projection").
 // No dependency: two small chart forms, returned as SVG strings.
 //
 // Dataviz rules applied: one y axis per chart (time and keys/par are separate charts),
@@ -171,7 +171,7 @@ export function timeChart(input: TimeChartInput): string {
 }
 
 /**
- * keys/par as a step chart (discrete, so no fit, 04): each attempt holds its value until
+ * keys/par as a step chart (discrete, so no fit, adaptive-model.md): each attempt holds its value until
  * the next one. References at 1.0 (par) and the mastery limit.
  */
 export function stepChart(input: StepChartInput): string {

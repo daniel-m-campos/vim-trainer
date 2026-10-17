@@ -1,5 +1,5 @@
 // vim-trainer app: first visit, placement, the practice loop with its result
-// strip, stats, settings and the session summary (docs/plan/10-ux.md).
+// strip, stats, settings and the session summary (docs/design/ux.md).
 //
 // Keyboard ownership: while the editor has focus every key goes to Vim. The
 // trainer's own keys are only live when focus is elsewhere: on the result strip
@@ -83,7 +83,6 @@ interface Current {
   phase: "solving" | "result";
   result: Result | null;
   showAllHints: boolean;
-  proNote: boolean;
   /** The attempt record finish() built; the "!" flag finds it in the log by identity. */
   record: AttemptRecord | null;
   flagging: boolean; // the "!" picker is open in #foot
@@ -163,7 +162,7 @@ function skillState(skill: string, lang = S().lang): SkillState | null {
 }
 
 const STATUS_RANK: Record<string, number> = { mastered: 4, review: 3, active: 2, introduced: 1, locked: 0 };
-/** Unlocking is shared across languages (04): best status over all languages. */
+/** Unlocking is shared across languages (adaptive-model.md): best status over all languages. */
 function skillStatus(skill: string): string {
   let best = "locked";
   for (const s of Object.values(saved.model.skills[skill] ?? {})) if ((STATUS_RANK[s.status] ?? 0) > (STATUS_RANK[best] ?? 0)) best = s.status;
@@ -202,7 +201,7 @@ function focusSkill(): string {
     console.error("chooseFocus failed", err);
   }
   if (avail.has(s)) return s;
-  // TODO(mvp): chooseFocus does not know which skills have content; fall back to
+  // TODO: chooseFocus does not know which skills have content; fall back to
   // the weakest unlocked skill that does, then the lowest tier with content.
   const tiers = new Map(graphNodes(graph).map((n) => [n.id, n.tier]));
   const list = [...avail].sort((a, b) => (tiers.get(a) ?? 99) - (tiers.get(b) ?? 99));
@@ -260,7 +259,7 @@ function placementQueue(): { skill: string; id: string }[] {
   const tierOf = new Map(nodes.map((n) => [n.id, n.tier]));
   const skills = avail.sort((a, b) => (tierOf.get(a) ?? 99) - (tierOf.get(b) ?? 99));
   const picks: string[] = [];
-  // One per tier 1-9, then three more from tiers 3-4, then anything left (04).
+  // One per tier 1-9, then three more from tiers 3-4, then anything left (adaptive-model.md).
   // A second language (some skills mastered elsewhere) fills after the tier pass with
   // the skills that weigh most in this language instead.
   for (let tier = 1; tier <= 9; tier++) {
@@ -394,7 +393,7 @@ function revealMidHint(): void {
   if (!cur || cur.phase !== "solving") return;
   const hints = exerciseHints(cur.ex);
   const text = hints[0]?.text ?? `the target is highlighted; ${skillInfo(cur.skill).keys} is the skill being drilled.`;
-  cur.hintUsed = true; // logged: a hinted attempt does not move confidence (04)
+  cur.hintUsed = true; // logged: a hinted attempt does not move confidence (adaptive-model.md)
   const el = $("#midhint");
   el.textContent = text;
   el.hidden = false;
@@ -436,7 +435,6 @@ function renderResult(): void {
     const all = [...exerciseHints(ex).map((h) => h.text), ...(ex.alternates ?? []).map((a) => `also accepted by the oracle: ${a}`)];
     extra += all.length ? `<ul class="allhints">${all.map((h) => `<li>${esc(h)}</li>`).join("")}</ul>` : `<div class="note">no more hints for this exercise.</div>`;
   }
-  if (cur.proNote) extra += `<div class="note">replaying the par keystroke by keystroke is planned for pro; it is not available yet.</div>`;
   if (cur.role !== "placement" && (Date.now() - session.startMs >= STOP_MS || session.count >= STOP_COUNT))
     extra += `<div class="stopline">good place to stop: ${session.count} exercises in ${Math.round((Date.now() - session.startMs) / 60000)} min. <kbd>q</kbd> ends the session.</div>`;
   const nextLabel = cur.role === "placement" && placement && placement.i >= placement.queue.length ? "finish placement" : "next";
@@ -449,7 +447,7 @@ function renderResult(): void {
   const src = sourceLine(ex);
   const keys = cur.flagging
     ? flagPickerHtml()
-    : `<div class="keys"><span><kbd>space</kbd> ${nextLabel}</span><span><kbd>r</kbd> retry</span><span><kbd>?</kbd> hint</span><span class="off"><kbd>p</kbd> replay par <span class="dim">(pro)</span></span><span><kbd>!</kbd> flag</span><span><kbd>q</kbd> end session</span></div>`;
+    : `<div class="keys"><span><kbd>space</kbd> ${nextLabel}</span><span><kbd>r</kbd> retry</span><span><kbd>?</kbd> hint</span><span><kbd>!</kbd> flag</span><span><kbd>q</kbd> end session</span></div>`;
   $("#foot").innerHTML = `
     <div class="result" id="result">
       <div class="row1">${status}${beat}${you}${par}</div>
@@ -542,13 +540,13 @@ function mountExercise(ex: Exercise, skill: string, role: Role, retry: boolean):
   cur?.editor.destroy();
   setEscCue(false);
   if (broke === "yes" && document.getElementById("broke")) broke = "seen"; // the note was shown on the last exercise
-  // kind=ex only passes through a ':' command (05), which the task text does not say.
+  // kind=ex only passes through a ':' command (grading.md), which the task text does not say.
   $("#task").innerHTML = taskHtml(ex.task) + (ex.kind === "ex" ? ` <span class="req">using an Ex <kbd>:</kbd> command</span>` : "");
   const want: Route = role === "placement" ? "placement" : "practice";
   if (hashRoute() !== want) history.replaceState(null, "", `#${want}`); // a load that finished after a route change
   show("practice");
   const editor = mountEditor($("#code"), ex, { relativeNumbers: S().relativeNumbers, escape: S().escape });
-  const me: Current = { ex, skill, role, retry, hintUsed: false, editor, phase: "solving", result: null, showAllHints: false, proNote: false, record: null, flagging: false, flagReason: null, flagged: null, flagUrl: "", flagBlocked: false, nudged: false };
+  const me: Current = { ex, skill, role, retry, hintUsed: false, editor, phase: "solving", result: null, showAllHints: false, record: null, flagging: false, flagReason: null, flagged: null, flagUrl: "", flagBlocked: false, nudged: false };
   cur = me;
   session.seen.add(ex.id);
   renderHeader();
@@ -628,7 +626,7 @@ function finish(me: Current, ok: boolean, snap: Snapshot): void {
     } catch (err) {
       console.error("applyAttempt failed", err);
     }
-  } // warm-ups are not counted (04)
+  } // warm-ups are not counted (adaptive-model.md)
   if (me.role !== "placement") {
     if (!me.retry) session.count++; // a retry is another attempt at the same exercise
     recordSession();
@@ -869,7 +867,7 @@ function renderStats(): void {
     },
     onTab: (t) => (statsTab = t),
     // "Drill this": the skill becomes the next exercise; the attempt goes through
-    // M.applyAttempt, which activates a locked skill (04, Unlocking).
+    // M.applyAttempt, which activates a locked skill (adaptive-model.md, Unlocking).
     onForce: (id) => {
       afterPlacement = false;
       forceSkill(id);
@@ -909,7 +907,7 @@ function renderSettings(): void {
       <fieldset><legend>Line numbers</legend>${radio("rel", [["yes", "relative (default)"], ["no", "absolute"]], s.relativeNumbers ? "yes" : "no")}</fieldset>
       <fieldset><legend>Escape key (counted as one keystroke either way)</legend>${radio("escape", ESCAPES, s.escape)}</fieldset>
       <p class="note">Keyboard layout: pars count keystrokes, not physical keys, so they are the same on every layout.</p>
-      <p class="note">Theme: dark (the only theme in v1).</p>
+      <p class="note">Theme: dark (the only theme so far).</p>
       <p class="note">Exercise snippets are cut from open-source code under its licence; each result shows its source.
         <a href="${esc(contentBase())}ATTRIBUTION.md" target="_blank" rel="noopener" id="attribution-link">Sources &amp; attribution</a></p>
       <fieldset><legend>Your data (stored only in this browser)</legend>
@@ -917,9 +915,15 @@ function renderSettings(): void {
         <button type="button" id="btn-import">import JSON</button>
         <input type="file" id="file-import" accept="application/json,.json" hidden>
         <button type="button" class="danger" id="btn-reset">${resetArmed ? "press again to erase everything" : "reset"}</button>
+        <p class="note" id="your-data">Your progress lives only in this browser's storage. Nothing you do
+          here is sent anywhere: there is no account, no server and no analytics (the page only downloads
+          its fonts and exercises). Export and import move your
+          progress between browsers. The <kbd>!</kbd> flag opens a GitHub issue form prefilled with the
+          exercise, your keys, recent errors and the app version (${esc(VERSION)}); you can edit or discard
+          it before submitting.</p>
         <p class="note" id="share-log">Share your log: export writes one JSON file with your settings, each skill's
           model state, your sessions and every attempt (exercise id, the keys you typed, time, par, hints, flags).
-          Nothing leaves this browser unless you attach that file to an issue at
+          It reaches us only if you attach that file to an issue at
           <a href="${ISSUES_URL}" target="_blank" rel="noopener" id="issues-link">github.com/${esc(REPO)}/issues</a>.</p>
       </fieldset>
       <div class="msg" id="settings-msg">${esc(settingsMsg)}</div>
@@ -1192,7 +1196,6 @@ function onKey(e: KeyboardEvent): void {
         else if (k === "r") handled(), mountExercise(cur.ex, cur.skill, cur.role, true);
         else if (k === "q") handled(), endSession();
         else if (k === "?") handled(), (cur.showAllHints = !cur.showAllHints), renderResult();
-        else if (k === "p") handled(), (cur.proNote = true), renderResult();
         else if (k === "s") handled(), navigate("stats");
         else if (k === ",") handled(), navigate("settings");
       } else {

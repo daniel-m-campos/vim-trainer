@@ -1,6 +1,6 @@
 // Attempt recorder: keys, mode, completed commands, undo count and an active
 // clock, on top of CodeMirror 6 + @replit/codemirror-vim. Production version of
-// the M1 spike (src/spike/keylogger.ts; findings in src/spike/README.md):
+// the key-logger spike (src/spike/keylogger.ts; findings in src/spike/README.md):
 //   keys          capture-phase keydown on a wrapper around view.dom, normalised
 //                 with Vim.vimKeyFromEvent (what Vim itself sees);
 //   mode          read from vim state, never from the vim-mode-change payload;
@@ -180,7 +180,7 @@ export function attachRecorder(view: EditorView, wrapper: HTMLElement): Recorder
       return;
     }
     // IME / dead keys: the emulator reads these via the text-input path.
-    // TODO(mvp): log the composed text instead of skipping it.
+    // TODO: log the composed text instead of skipping it.
     if (e.isComposing || e.keyCode === 229 || e.key === "Process" || e.key === "Unidentified") return;
     const key = Vim.vimKeyFromEvent(e, (cm.state.vim ?? undefined) as any);
     if (!key) return;

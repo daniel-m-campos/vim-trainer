@@ -20,7 +20,7 @@ import { caseSensitiveSearch, installVimFixes, lastEditorKey } from "./vimfixes.
 import { insertUndoSteps } from "./vimfixes-macros-indent.ts";
 import type { EscapePref, Exercise, Pos } from "./types.ts";
 
-// Mock palette (docs/mocks/practice-screen.html).
+// Syntax colours for the dark palette in style.css.
 const highlight = HighlightStyle.define([
   { tag: [t.keyword, t.controlKeyword, t.definitionKeyword, t.moduleKeyword, t.operatorKeyword, t.bool, t.null, t.self], color: "#c792ea" },
   { tag: [t.function(t.variableName), t.function(t.propertyName), t.function(t.definition(t.variableName))], color: "#82aaff" },
@@ -120,7 +120,7 @@ function langExt(lang: string): Extension {
     case "cpp":
       return cpp();
     default:
-      return []; // TODO(mvp): grammars for typescript and the rest when their content exists.
+      return []; // TODO: grammars for typescript and the rest when their content exists.
   }
 }
 
@@ -154,7 +154,7 @@ interface BlockCM {
  * <C-v> I / A: nvim ends the block insert with the cursor on the block's top-left
  * corner; codemirror-vim leaves it after the text typed on the first line. A block
  * `c` keeps codemirror-vim's place, which is nvim's too (end of the typed text).
- * TODO(mvp): <BS> and <CR> in a block insert still differ. codemirror-vim applies <BS>
+ * TODO: <BS> and <CR> in a block insert still differ. codemirror-vim applies <BS>
  * on the first line only (`IXZ<BS>Y` gives XY there and XZ…Y below; nvim copies XY to
  * every line and ends after it) and <CR> on every line (nvim then changes only the
  * first line). No shipped par types either inside a block insert.

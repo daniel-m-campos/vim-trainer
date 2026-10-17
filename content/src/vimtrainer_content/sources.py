@@ -2,7 +2,7 @@
 
 ``content/sources.toml`` lists every source. Each one is cloned at its pinned commit into
 ``content/.cache/<name>`` and its LICENSE file is checked at that commit (quality gate 1
-in 03-content-pipeline.md). A source whose licence does not match is a hard build error.
+in docs/design/content-pipeline.md). A source whose licence does not match is a hard build error.
 """
 
 from __future__ import annotations

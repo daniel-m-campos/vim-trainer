@@ -98,7 +98,7 @@ e2e-all:
 emulator:
 	cd app && node e2e/emulator.mjs --alternates
 
-# Differential test of the browser emulator against nvim (docs/plan/12-differential-testing.md).
+# Differential test of the browser emulator against nvim (docs/design/differential-testing.md).
 SEED ?= $(shell date +%Y%m%d)
 COUNT ?= 2000
 # STRICT= (empty) makes it report-only: the nightly job runs that way while the class-a

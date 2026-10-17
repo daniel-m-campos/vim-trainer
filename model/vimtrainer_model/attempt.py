@@ -118,7 +118,7 @@ def _credit(state: dict, graph: dict, skill_id: str, record: dict):
     st = ensure_skill(state, graph, skill_id, record["lang"])
     if st["status"] == Status.LOCKED:
         # Only a skill the user forced from the stats screen is drilled while locked;
-        # forcing a skill makes it active (04, Unlocking).
+        # forcing a skill makes it active (adaptive-model.md, Unlocking).
         st["status"] = Status.ACTIVE
     was_review = st["status"] == Status.REVIEW
     update_stats(state, graph, skill_id, record, st)

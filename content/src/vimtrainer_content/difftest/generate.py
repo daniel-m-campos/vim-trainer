@@ -1,7 +1,7 @@
 """Seeded key sequences for the differential fuzzer, and the buffers they start from.
 
 A sequence is a list of statements drawn from a weighted grammar over the drilled command
-set (docs/plan/02-skill-graph.md tiers 0-9)::
+set (docs/design/skill-graph.md tiers 0-9)::
 
     stmt := edit 45 | motion 20 | visual 10 | ex 8 | insert 7 | undo 4 | dot 3 | macro 2 | register 1
 

@@ -3,7 +3,7 @@
 The Lua side (``oracle.lua``) loads ``start.lines``, places the cursor, feeds the keys with
 ``nvim_feedkeys(keys, "mtx")`` and reports the buffer, cursor, mode and whether a ``:``
 command line was entered. This module drives it and grades the outcome per exercise kind
-(see docs/plan/03-content-pipeline.md and 05-grading.md).
+(see docs/design/content-pipeline.md and docs/design/grading.md).
 
 Neovim is started as ``nvim --headless --clean -u NONE``. ``oracle.lua`` then applies the
 documented option set ``ORACLE_OPTIONS`` on top of the filetype plugin for ``lang``:
@@ -66,7 +66,7 @@ Job = tuple[Exercise, str]
 
 
 class Kind:
-    """Exercise kinds from 03-content-pipeline.md."""
+    """Exercise kinds from docs/design/content-pipeline.md."""
 
     EDIT: Final = "edit"
     CURSOR: Final = "cursor"
@@ -134,7 +134,7 @@ def tokenize_keys(keys: str) -> list[str]:
 
 
 def count_keys(keys: str) -> int:
-    """Keystroke count after normalisation (05-grading.md: each notation token is one key)."""
+    """Keystroke count after normalisation (docs/design/grading.md: each notation token is one key)."""
     return len(tokenize_keys(keys))
 
 
@@ -194,7 +194,7 @@ class PynvimSession:
         self.close()
 
     def run(self, jobs: Sequence[Job]) -> list[Outcome]:
-        """Replay jobs in order. TODO(mvp): no timeout; a looping key string hangs the session."""
+        """Replay jobs in order. TODO: no timeout; a looping key string hangs the session."""
         return [_outcome(self._nvim.exec_lua("return Oracle.run(...)", ex, keys)) for ex, keys in jobs]
 
     def close(self):

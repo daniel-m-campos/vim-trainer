@@ -1,7 +1,7 @@
-// Player feedback (docs/plan/11-feedback-loop.md): the "!" flag on the result strip
+// Player feedback (docs/design/feedback-loop.md): the "!" flag on the result strip
 // opens a prefilled GitHub issue. No server: the player's browser opens the
 // new-issue form and the player decides whether to submit it. REPO is the single
-// place that names the tracker, so moving it (09: revisit at soft launch) is one line.
+// place that names the tracker, so moving it is one line.
 
 import type { AttemptRecord } from "./modelApi.ts";
 import type { ErrorEntry } from "./storage.ts";

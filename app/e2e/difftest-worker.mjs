@@ -1,4 +1,4 @@
-// Browser side of the differential fuzzer (docs/plan/12-differential-testing.md):
+// Browser side of the differential fuzzer (docs/design/differential-testing.md):
 // a long-lived worker that replays key sequences in the practice editor
 // (emulator-check.html, as e2e/emulator.mjs does) and reports the editor state.
 // content/src/vimtrainer_content/difftest/web.py spawns it and talks JSON lines:

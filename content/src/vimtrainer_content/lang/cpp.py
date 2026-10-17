@@ -36,7 +36,7 @@ from vimtrainer_content.lang import Language, Use
 from vimtrainer_content.snippets import Window, pick
 from vimtrainer_content.templates import Draft
 
-# Per-language weights, C/C++ column of the 02-skill-graph.md table (also in skill-graph.json).
+# Per-language weights, C/C++ column of the docs/design/skill-graph.md table (also in skill-graph.json).
 WEIGHTS: Final = {
     "m.match": 1.5, "t.brace": 1.5, "n.unmatched": 1.5, "t.paren": 1.5, "t.bracket": 1.2, "t.quote": 1.0,
     "t.angle": 1.5, "o.indent": 1.0, "m.find": 1.5, "x.subst": 1.0, "o.delete": 1.0, "t.word": 1.0,

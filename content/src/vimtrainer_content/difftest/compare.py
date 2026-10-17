@@ -5,7 +5,7 @@ UTF-8 bytes and CodeMirror in UTF-16 code units, so ``nvim_side`` converts. A si
 is in ``INCOMPLETE`` (operator pending, command line open, timeout, harness error ...) is
 not comparable and never yields a finding.
 
-Classes (docs/plan/12-differential-testing.md): ``a`` emulator bug to fix in vimfixes.ts,
+Classes (docs/design/differential-testing.md): ``a`` emulator bug to fix in vimfixes.ts,
 ``b`` emulator limitation, ``c`` oracle or harness artefact, ``d`` Neovim-specific
 behaviour we accept. ``classify`` only guesses; a human confirms.
 

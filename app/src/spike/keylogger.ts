@@ -1,7 +1,7 @@
 // Spike: attempt recorder on top of CodeMirror 6 + @replit/codemirror-vim.
 //
 // Throwaway code. It exists to find out which codemirror-vim hooks are usable
-// for grading (docs/plan/05-grading.md). Findings are in ./README.md.
+// for grading (docs/design/grading.md). Findings are in ./README.md.
 //
 // Design under test:
 //   keys          capture-phase `keydown` on a wrapper element around the
@@ -202,7 +202,7 @@ export function attachRecorder(view: EditorView, wrapper: HTMLElement): Recorder
     "keydown",
     (e) => {
       // IME composition and dead keys: the emulator re-reads these from the
-      // text input path; skip here. TODO(mvp): log the composed text instead.
+      // text input path; skip here. TODO: log the composed text instead.
       if (e.isComposing || e.keyCode === 229 || e.key === "Process" || e.key === "Unidentified") return;
       const key = Vim.vimKeyFromEvent(e, (cm.state.vim ?? undefined) as any);
       if (!key) return; // bare modifier
@@ -227,7 +227,7 @@ export function attachRecorder(view: EditorView, wrapper: HTMLElement): Recorder
   //   <Esc> in normal mode: Vim returns "unhandled"; prevent it anyway.
   //   <Tab>: CM6 deliberately leaves Tab to the browser, which moves focus out
   //          of the editor (Chromium, WebKit). Insert a tab in insert mode.
-  //          TODO(mvp): follow the oracle's option set (expandtab/sw) instead
+  //          TODO: follow the oracle's option set (expandtab/sw) instead
   //          of a literal tab, which is what `nvim --clean` inserts.
   wrapper.addEventListener("keydown", (e) => {
     if (e.defaultPrevented) return;

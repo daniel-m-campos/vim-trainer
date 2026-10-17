@@ -160,8 +160,8 @@ for (const [engine, type] of Object.entries(engines)) {
     check(engine, "result strip shows par ci\"retrying<Esc> 12", par.includes('ci"retrying<Esc>') && /\b12\b/.test(par), par);
     const you = await text(page, "#result .you");
     check(engine, "result strip shows your 12 keys and at par", you.includes('ci"retrying<Esc>') && you.includes("12 keys") && you.includes("at par"), you);
-    check(engine, "strip lists space / r / ? / p (pro) / q",
-      ["next", "retry", "hint", "replay par", "end session"].every((s) => strip.includes(s)), strip);
+    check(engine, "strip lists space / r / ? / q and no replay key",
+      ["next", "retry", "hint", "end session"].every((s) => strip.includes(s)) && !strip.includes("replay"), strip);
     check(engine, "editor is locked and the strip has focus", await page.evaluate(() => document.activeElement?.id === "foot"));
     const src = await text(page, "#result #src");
     check(engine, "strip shows the snippet source 'from exercism/python \u00b7 MIT'", src.trim() === "from exercism/python \u00b7 MIT", JSON.stringify(src));
@@ -370,6 +370,9 @@ for (const [engine, type] of Object.entries(engines)) {
     const pkgVersion = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
     const shown = await text(page, "#app-version").catch(() => "");
     check(engine, "settings footer shows the package.json version (+ git sha)", new RegExp(`^vim-trainer ${pkgVersion.replace(/\./g, "\\.")}(\\+[0-9a-f]{4,})?$`).test(shown.trim()), shown);
+    const data = await text(page, "#your-data").catch(() => "");
+    check(engine, "settings 'Your data' says storage is local and names the version",
+      data.includes("only in this browser") && data.includes("sent anywhere") && data.includes(pkgVersion), data);
     const issues = await page.locator("#issues-link").getAttribute("href").catch(() => null);
     check(engine, "settings 'share your log' links the issues page", issues === "https://github.com/daniel-m-campos/vim-trainer/issues", String(issues));
     const onPage = (s) => page.waitForFunction((s) => document.querySelector("#page")?.textContent?.includes(s), s, { timeout: 3000 }).then(() => true, () => false);

@@ -1,4 +1,4 @@
-# Source allowlist for the content pipeline (docs/plan/03-content-pipeline.md, "Sources").
+# Source allowlist for the content pipeline (docs/design/content-pipeline.md, "Sources").
 #
 # Every source is pinned to a commit. The build clones it into content/.cache/<name>
 # (gitignored) and refuses to run if the LICENSE file at that commit is not the licence

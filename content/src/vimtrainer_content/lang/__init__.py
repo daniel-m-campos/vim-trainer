@@ -1,4 +1,4 @@
-"""Per-language node -> skill mappings (03-content-pipeline.md, "Node -> skill mapping")."""
+"""Per-language node -> skill mappings (docs/design/content-pipeline.md, "Node -> skill mapping")."""
 
 from __future__ import annotations
 

@@ -1,10 +1,10 @@
 # Task wording review (Python corpus)
 
 Sample: 150 exercises drawn with `random.seed(1)` from the 587 in
-`build/exercises/python` (committed build, before this change). Every template that
-produced an exercise is in the sample. "After" is what the fixed template now writes for
-the same window and target (`content/.cache/scratch-templates/beforeafter.py` regenerates
-the table).
+`build/exercises/python` (a local build made before the template fixes). Every template
+that produced an exercise is in the sample. "After" is what the fixed template now writes
+for the same window and target. The table was produced once with a local scratch script,
+which is not kept.
 
 The fixes are in `content/src/vimtrainer_content/templates.py`. They change the
 generators, not individual exercises, so every rebuilt exercise gets them.
@@ -189,7 +189,7 @@ Python x.normal exercises.
 
 ## Round 4: targets and wording from the mock-user QA
 
-The QA ids are from `docs/qa/2026-10-13-mock-users.md`. Before and after are two scratch
+The QA ids are from `docs/design/qa-findings.md`. Before and after are two scratch
 builds of all skills, `content/.cache/scratch-4-base` (main) and `content/.cache/scratch-4`
 (this change), each 1644 exercises. Every (lang, skill) count is the same in both: 40 for
 all skills except py t.brace 25, py v.blockedit 29, py x.normal 23, py a.macro 20 and cpp

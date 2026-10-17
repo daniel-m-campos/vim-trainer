@@ -13,7 +13,7 @@ idiom's ``{{k}}`` stands for a count and expands to 1-9, the same count at every
 
 The canonical solution and its alternates are always candidates. If a candidate beats
 the canonical by more than ``FLAG_MARGIN`` keystrokes, the result is flagged for review
-(quality gate 4 in 03-content-pipeline.md); the canonical is never replaced silently.
+(quality gate 4 in docs/design/content-pipeline.md); the canonical is never replaced silently.
 
 Examples
 --------

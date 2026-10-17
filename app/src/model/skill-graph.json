@@ -1,6 +1,6 @@
 {
  "version": 1,
- "source": "docs/plan/02-skill-graph.md",
+ "source": "docs/design/skill-graph.md",
  "targetBase": 1200,
  "perKey": 180,
  "langs": [
@@ -3180,7 +3180,7 @@
   "w.split": {
    "id": "w.split",
    "tier": 11,
-   "tierName": "Buffers, windows and files (Advanced track; editor-dependent)",
+   "tierName": "Buffers, windows and files (editor-dependent)",
    "keys": "`:sp :vs Ctrl-w s v`",
    "what": "split windows",
    "prereqs": [
@@ -3218,7 +3218,7 @@
   "w.move": {
    "id": "w.move",
    "tier": 11,
-   "tierName": "Buffers, windows and files (Advanced track; editor-dependent)",
+   "tierName": "Buffers, windows and files (editor-dependent)",
    "keys": "`Ctrl-w h j k l w p c o`",
    "what": "move between / close windows",
    "prereqs": [
@@ -3256,7 +3256,7 @@
   "w.buffers": {
    "id": "w.buffers",
    "tier": 11,
-   "tierName": "Buffers, windows and files (Advanced track; editor-dependent)",
+   "tierName": "Buffers, windows and files (editor-dependent)",
    "keys": "`:ls :b N :bn :bp :bd Ctrl-^`",
    "what": "buffer list and switching",
    "prereqs": [
@@ -3294,7 +3294,7 @@
   "w.tabs": {
    "id": "w.tabs",
    "tier": 11,
-   "tierName": "Buffers, windows and files (Advanced track; editor-dependent)",
+   "tierName": "Buffers, windows and files (editor-dependent)",
    "keys": "`:tabnew gt gT`",
    "what": "tab pages",
    "prereqs": [
@@ -3332,7 +3332,7 @@
   "w.args": {
    "id": "w.args",
    "tier": 11,
-   "tierName": "Buffers, windows and files (Advanced track; editor-dependent)",
+   "tierName": "Buffers, windows and files (editor-dependent)",
    "keys": "`:args :argdo`",
    "what": "multi-file operations",
    "prereqs": [
@@ -3370,7 +3370,7 @@
   "w.quickfix": {
    "id": "w.quickfix",
    "tier": 11,
-   "tierName": "Buffers, windows and files (Advanced track; editor-dependent)",
+   "tierName": "Buffers, windows and files (editor-dependent)",
    "keys": "`:copen ]q [q :cdo`",
    "what": "quickfix navigation",
    "prereqs": [
@@ -3408,7 +3408,7 @@
   "nv.lsp": {
    "id": "nv.lsp",
    "tier": 12,
-   "tierName": "Neovim-native (Advanced track only, real Neovim)",
+   "tierName": "Neovim-native (real Neovim only)",
    "keys": "`grn gra grr gri gd K Ctrl-]`",
    "what": "default LSP maps (0.11+)",
    "prereqs": [
@@ -3446,7 +3446,7 @@
   "nv.diag": {
    "id": "nv.diag",
    "tier": 12,
-   "tierName": "Neovim-native (Advanced track only, real Neovim)",
+   "tierName": "Neovim-native (real Neovim only)",
    "keys": "`]d [d Ctrl-w d`",
    "what": "diagnostics",
    "prereqs": [
@@ -3484,7 +3484,7 @@
   "nv.comment": {
    "id": "nv.comment",
    "tier": 12,
-   "tierName": "Neovim-native (Advanced track only, real Neovim)",
+   "tierName": "Neovim-native (real Neovim only)",
    "keys": "`gcc gc{motion}`",
    "what": "built-in commenting (0.10+)",
    "prereqs": [
@@ -3522,7 +3522,7 @@
   "nv.treesitter": {
    "id": "nv.treesitter",
    "tier": 12,
-   "tierName": "Neovim-native (Advanced track only, real Neovim)",
+   "tierName": "Neovim-native (real Neovim only)",
    "keys": "`af if ac ic` via mini.ai / textobjects",
    "what": "syntax-aware text objects (plugin)",
    "prereqs": [

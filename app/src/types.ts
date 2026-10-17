@@ -1,4 +1,4 @@
-// App-side types: exercises and the content index (docs/plan/03-content-pipeline.md),
+// App-side types: exercises and the content index (docs/design/content-pipeline.md),
 // settings and persisted app state. Model types live in ./model (via modelApi.ts).
 
 /** [line 1-based, column 0-based], the nvim_win_get_cursor convention used by the oracle. */

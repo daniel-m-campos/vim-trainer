@@ -1,4 +1,4 @@
-// Tiny DOM helpers. No framework (06): the screens are a few regions and a key handler.
+// Tiny DOM helpers. No framework (tech-stack.md): the screens are a few regions and a key handler.
 
 export function esc(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);

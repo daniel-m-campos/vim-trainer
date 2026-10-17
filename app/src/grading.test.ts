@@ -1,4 +1,4 @@
-// Unit tests for grading (05). Run: npm test (node --test, native TS type stripping).
+// Unit tests for grading (grading.md). Run: npm test (node --test, native TS type stripping).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {

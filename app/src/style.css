@@ -1,4 +1,4 @@
-/* Palette, fonts and layout from docs/mocks/practice-screen.html. Dark only (v1). */
+/* Palette, fonts and layout of the practice screen (docs/design/ux.md). Dark only. */
 :root {
   --bg: #0f1216;
   --panel: #151a20;
@@ -75,7 +75,6 @@ code { font-family: var(--mono); font-size: .93em; }
 .hint { color: var(--fg); }
 .hint::before { content: 'hint  '; color: var(--muted); letter-spacing: .08em; font-size: 12px; text-transform: uppercase; }
 .result .keys { display: flex; flex-wrap: wrap; gap: 14px; color: var(--muted); font-size: 13px; }
-.result .keys .off { opacity: .55; }
 .beat { color: var(--pass); font-weight: 600; }
 /* the "!" flag picker: replaces the key legend until enter or Esc */
 .flagpick { align-items: center; }

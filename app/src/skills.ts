@@ -1,4 +1,4 @@
-// Display data for skill ids (docs/plan/02-skill-graph.md): the keys drilled and a
+// Display data for skill ids (docs/design/skill-graph.md): the keys drilled and a
 // few plain words. The model's graph (model/skill-graph.json) is the source of truth
 // for tiers and prereqs; this table is only used for labels, and as a fallback graph
 // when model/skill-graph.json is not served (see graph.ts).

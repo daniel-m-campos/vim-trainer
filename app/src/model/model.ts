@@ -1,4 +1,4 @@
-// Adaptive model (docs/plan/04-adaptive-model.md), TypeScript mirror of model/vimtrainer_model.
+// Adaptive model (docs/design/adaptive-model.md), TypeScript mirror of model/vimtrainer_model.
 //
 // Pure functions, no dependencies, no clock or global randomness: time and seeds are
 // arguments. Both mirrors are checked against the shared vectors in model/.cache/vectors/ (make vectors)
@@ -303,7 +303,7 @@ function ensureSkill(state: ModelState, graph: SkillGraph, skillId: string, lang
   const langs = (state.skills[skillId] ??= {});
   const existing = langs[lang];
   if (existing) return existing;
-  // Unlocking uses the max across languages (04). A skill mastered elsewhere starts
+  // Unlocking uses the max across languages (adaptive-model.md). A skill mastered elsewhere starts
   // mastered with its first review due at once (not re-locked, not crowding the 4-7
   // active skills); one unlocked elsewhere is carried over only while a slot is free.
   if (isMasteredAnywhere(state, skillId)) {
@@ -565,7 +565,7 @@ export function reviewPassed(graph: SkillGraph, skillId: string, record: Attempt
 function credit(state: ModelState, graph: SkillGraph, skillId: string, record: AttemptRecord): void {
   const st = ensureSkill(state, graph, skillId, record.lang);
   // Only a skill the user forced from the stats screen is drilled while locked;
-  // forcing a skill makes it active (04, Unlocking).
+  // forcing a skill makes it active (adaptive-model.md, Unlocking).
   if (st.status === 'locked') st.status = 'active';
   const wasReview = st.status === 'review';
   updateStats(state, graph, skillId, record, st);

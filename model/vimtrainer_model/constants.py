@@ -1,7 +1,7 @@
 """Model constants shared with app/src/model/model.ts (keep the two in sync).
 
-Every number here comes from docs/plan/04-adaptive-model.md unless a comment in
-model/README.md records it as an MVP decision.
+Every number here comes from docs/design/adaptive-model.md unless a comment in
+model/README.md records it as a decision.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ RECENT_MAX: Final = 50
 FOCUS_HISTORY_MAX: Final = 20
 MAX_STREAK: Final = 3
 
-# Focus spreading (README "Choosing the next exercise" decision; 04-adaptive-model.md).
+# Focus spreading (README "Choosing the next exercise" decision; docs/design/adaptive-model.md).
 FOCUS_CANDIDATES: Final = 3
 FOCUS_FLOOR: Final = 0.1
 SHARE_WINDOW: Final = 10
