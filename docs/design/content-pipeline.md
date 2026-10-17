@@ -7,7 +7,7 @@ the site loads. Nothing here runs in the user's browser.
 ## Goals
 
 1. Exercises feel like real editing because they are cut from real code.
-2. Every skill node in `02-skill-graph.md` has exercises in every supported language
+2. Every skill node in `skill-graph.md` has exercises in every supported language
    where its weight is non-zero.
 3. Every exercise has a par (optimal keystroke count) proven against `nvim --headless`,
    not against the browser emulator.
@@ -52,7 +52,7 @@ build time listing every repo, path, commit and licence used.
 | source | licence | why | notes |
 |---|---|---|---|
 | Exercism exercise repos (`exercism/<lang>`) | MIT | small idiomatic files in 70+ languages, consistent style | example solutions and stubs; ideal first source |
-| Author's own Python and C++ code | own | realistic, zero licence risk | bootstraps the Python and C++ tracks |
+| Maintainer's own Python and C++ code | own | realistic, zero licence risk | candidate for the Python and C++ content; not used yet |
 | Selected MIT/Apache-2.0/BSD repos per language | permissive | realistic production code | keep an allowlist; check `LICENSE` at the pinned commit |
 | vimhjkl challenges (MIT, 230, skill-tagged) | MIT | ready-made drills, already verified against Vim | attribute; partially LLM-generated, so review before import |
 | Vimtutor Sequel, OpenVim, VimMaster content | MIT | motion drills | attribute |
@@ -71,8 +71,8 @@ wheels, e.g. `tree-sitter-python`, `tree-sitter-cpp`). For each snippet it parse
 file and walks the syntax tree, mapping node types to skill nodes. Neovim is only used
 as a subprocess oracle (below); no Lua is written beyond a ~50-line `oracle.lua`.
 
-The author writes Python and C++, so the pipeline, review CLI and oracle driver are
-Python. The browser app is necessarily TypeScript (see 06-tech-stack.md).
+The pipeline, review CLI and oracle driver are Python (ADR 0002). The browser app is
+necessarily TypeScript (see tech-stack.md).
 
 ### Node → skill mapping (per language, declarative)
 
@@ -101,8 +101,9 @@ LANG = Language(
 # namespace_definition, field_expression (`.`/`->` for m.find), comment_leader="//".
 ```
 
-Grammars for v1: python, cpp, c, typescript, javascript, tsx, java, go, rust, lua,
+Grammars in scope: python, cpp, c, typescript, javascript, tsx, java, go, rust, lua,
 html, json, yaml, markdown. All are published as `tree-sitter-<lang>` PyPI wheels.
+Python and C++ are built (`content/src/vimtrainer_content/lang/`).
 
 ### Templates
 
@@ -146,14 +147,14 @@ Templates that put the same text on every changed line (`typed_per_line`:
 naive cost`. The naive baseline types the text once per line and par types it once, so
 the drill's whole payoff is the retyping it avoids. The ratio over untyped keys cannot
 see that payoff: a 3-line `:norm Iself.` drill is par 16 vs naive 23, and `16-5 <
-(23-15)/3` fails. Before round 3a the gate rejected all 15 `prefix_each_line` drafts
-and `x.normal` stayed thin.
+(23-15)/3` fails. Under the ratio rule alone the gate rejected all 15
+`prefix_each_line` drafts and `x.normal` stayed thin.
 
 ### Template kind rule
 
 `ex` kind only where a normal-mode solution would be a repetition drill rather than
 the skill: `:g`, `:v`, `:normal` or `:s` over 3 or more lines. Everything else is
-`edit`, with the ex solution kept as a verified variant. Round 3a applied this to
+`edit`, with the ex solution kept as a verified variant. The rule covers
 `copy_line`, `move_line`, `prefix_each_line`, `upper_constants`, `rename_all_subst`,
 `delete_matching_lines` and `keep_matching_lines`; `rename_all_subst` makes no draft with
 3 or fewer occurrences (x.lastsearch and a.dot drill `cgn` + `.`), so every x.subst exercise
@@ -179,8 +180,9 @@ batch subprocess (see Resolved).
 
 The oracle also **searches for a better par**: it tries a small library of candidate
 idioms for the skill and keeps the shortest that passes. If a human-written canonical
-loses to a candidate, the build logs it for review. This is how we avoid shipping
-pars that an expert beats, which is the fastest way to lose persona B.
+loses to a candidate, the build logs it for review. This is how the build avoids
+shipping pars that an experienced Vim user beats: a wrong par is the first thing such a
+user notices, and it undermines every score the trainer shows.
 
 `--clean` matters: pars assume default settings plus a documented minimal set
 (`relativenumber` for m.rel drills). User mappings never affect par.
@@ -198,10 +200,10 @@ the emulator more widely. It generates random key sequences over exercise buffer
 an adversarial buffer set, runs each in Neovim and in the app's editor, and minimises
 every divergence to a few keys. Class-b findings (emulator limitations) feed the
 supported-command list and the web-unsupported flag; class-a findings become fixes in
-`app/src/vimfixes.ts`. It runs nightly in CI (12).
+`app/src/vimfixes.ts`. It runs nightly in CI (differential-testing.md).
 
-VSCodeVim and IdeaVim flags are initially copied from the skill graph's per-skill
-flags (see 02 To research for making them real).
+VSCodeVim and IdeaVim flags are copied from the skill graph's per-skill flags (see
+skill-graph.md, Open questions, for making them measured).
 
 ## Quality gates (all automated)
 
@@ -218,34 +220,37 @@ flags (see 02 To research for making them real).
 
 ## Player ingest
 
-The last stage takes player reports back in (11, ADR 0009).
+The last stage takes player reports back in (feedback-loop.md, ADR 0009).
 `vimtrainer-content ingest <export.json | issue.txt>` replays each beat-par or
 `wrong-par` sequence in Neovim. A shorter passing sequence becomes the canonical (the
 old one moves to `alternates`) and its generalised form is appended to
 `content/idioms_learned.toml`; an equal one becomes an alternate; a failing one goes to
 `content/review/emulator-divergences.md`. Wording flags go to
 `content/review/wording-queue.md`, and every run is logged in
-`content/review/ingest-log.md`.
+`content/review/ingest-log.md`. `ingest` creates each of these files the first time it
+writes to it, so a fresh checkout has none of them.
 
 `par_search.IDIOMS` merges `idioms_learned.toml` at import, so learned idioms stay data,
 separate from the hand-written list in code. The next `make content` re-pars every
 sibling exercise of the same skill with them, and `build.evaluate` adds the expanded
 learned idioms to the canonical variants (after the template's own), so a player's par
 survives the rebuild instead of failing gate 4. Entries with `status = "rejected"` are
-skipped. The author reviews the toml diff before committing.
+skipped. A maintainer reviews the toml diff before committing.
 
 ## Measured language weights
 
 The build emits `build/stats/node_frequency.json`: per language, how many nodes of each
-type occur per 100 lines across the corpus. `02-skill-graph.md`'s weight table is
-replaced by this once the corpus is in; weights = normalised frequency × a hand-set
-importance factor per skill.
+type occur per 100 lines across the corpus. The intent is to derive the weight table in
+`skill-graph.md` from it: weight = normalised frequency × a hand-set importance factor
+per skill. The table is still hand-set today.
 
 ## Human review
 
-Generated exercises are not shipped unreviewed. A Python review CLI (Textual or plain
-curses) shows start → expect → canonical, with accept / reject / edit. Accepted exercise ids go in a `reviewed.txt`
-allowlist. The author reviews the first corpus; this is also Vim practice.
+The design calls for a human to review generated exercises. A plain-text Python review
+CLI shows start → expect → canonical, with accept / reject. Accepted exercise ids go in
+a `reviewed.txt` allowlist, rejected ones in `rejected.txt`. Every shipped exercise is
+machine-verified (Neovim par, browser replay, quality gates), but none has been
+reviewed by a human yet.
 
 LLM assistance is allowed for writing task descriptions and hints only, never for
 generating code snippets or solutions, and its use is noted in the exercise's
@@ -263,24 +268,25 @@ build/
   ATTRIBUTION.md
 ```
 
-Static files, cacheable, loaded lazily per (language, skill). Target: ≥ 20 exercises
-per non-zero (language, skill) pair for the v1 languages, so roughly 10k exercises.
+Static files, cacheable, loaded lazily per (language, skill). The target is ≥ 20
+exercises per non-zero (language, skill) pair, roughly 10k exercises across all the
+grammars in scope.
 
-## Bootstrapping order
+## Languages
 
-1. Python from the author's own code and `exercism/python`, 10 skills, 5 templates,
-   Neovim oracle only. Proves the tree-sitter → template → oracle loop in the language
-   the author reads fastest, so review is cheap.
-2. C++ from the author's own code and `exercism/cpp`. Adds brace/angle/`%`-heavy
-   skills that Python lacks, which exercises the per-language weight machinery.
-3. TypeScript from `exercism/typescript` (the Switcher persona's main language); add
-   the emulator oracle.
-4. Expand templates to tiers 7–8. Import and review vimhjkl.
-5. Remaining languages are grammar + mapping + weights.
+Two languages are built:
 
-## Resolved
+- Python, from `exercism/python`. It proves the tree-sitter → template → oracle loop
+  in a language whose snippets are quick to review.
+- C++, from `exercism/cpp`. It adds the brace-, angle- and `%`-heavy skills that Python
+  lacks, which exercises the per-language weight machinery.
 
-Answers from the M1 spikes and the M2 build (2026-10-11). Decisions are in
+Not built yet: other languages (each is a grammar, a node mapping and a weight column),
+templates for tiers 7–8, and an import of the vimhjkl drills.
+
+## Design notes from the spikes
+
+Measured while building the pipeline (2026-10-11). The decisions are in
 `docs/decisions/` (0002 to 0005).
 
 - **`pynvim` or `subprocess`.** Both work. Per job, one subprocess per exercise took
@@ -308,7 +314,8 @@ Answers from the M1 spikes and the M2 build (2026-10-11). Decisions are in
   Python (0005).
 - **Node type names per grammar.** For Python they are taken from tree-sitter-python
   0.25 (`string`, `argument_list`, `interpolation`, `subscript`). The mapping is in
-  `content/src/vimtrainer_content/lang/python.py`. C++ and TypeScript are not done.
+  `content/src/vimtrainer_content/lang/python.py`; the C++ mapping is in `lang/cpp.py`
+  and described in `content/README.md`.
 - **Exercism layout and licence.** `exercism/python` at commit 6105f6d9 has 142
   `exercises/practice/*/.meta/example.py` and 21 `exercises/concept/*/.meta/exemplar.py`.
   Its LICENSE is MIT ("Copyright (c) 2021 Exercism"). The build reads it with
@@ -316,22 +323,21 @@ Answers from the M1 spikes and the M2 build (2026-10-11). Decisions are in
 - **vimhjkl par and buffer heuristics.** Not recorded. The pipeline computes par by
   replaying candidate variants, and does not reuse vimhjkl's code.
 
-## To research
+## Open questions
 
-- Playback UI for showing the canonical solution keystroke-by-keystroke (needed by
-  grading/replays, see 05).
+- Playback UI for showing the canonical solution keystroke-by-keystroke (see grading.md).
 - Policy for ties and 2-key motions in cursor drills (see Cursor-drill gate below).
 - Whether pars for `.` and `@:` need one Neovim process per job. Batch and pynvim
   replays carry `.` and `@:` over between jobs. No current template starts with them.
 
-## As built (Python, 2026-10-11 and 12)
+## As built
 
 `make content` builds `build/` from scratch in about 25 s, then replays every par in the
 browser (about 90 s more). It fetches `exercism/python` at the pinned commit, cuts 237
 snippet windows from 163 files, generates 6,807 drafts from 17 templates, and replays
-about 28k candidate key strings in Neovim. The result is 587 exercises, 40 for each of
-14 skills and 27 for `t.brace`. The corpus yields no more braces, so a second source
-is needed to grow it. No skill is thin.
+about 28k candidate key strings in Neovim. The first Python build gave 587 exercises,
+40 for each of 14 skills and 27 for `t.brace` (the Python corpus has few braces; C++
+supplies them).
 
 Details not in the sections above:
 - Snippets are runs of whole sibling statements, 8 to 40 lines and at most 100
@@ -357,10 +363,10 @@ Details not in the sections above:
   not built. Accepted ids go to `content/reviewed.txt`, rejected ids to
   `content/rejected.txt`. No exercise has been reviewed by a human yet.
 - Output also has `build/stats/gates.json` and `build/stats/emulator_web.json`.
-- Round 3a (2026-10-13): the `ingest` command and `idioms_learned.toml`, the
-  `par < naive` rule for per-line text in the anti-shortcut gate, the template kind rule (C++ `copy_line` and
-  `move_line` now match Python: edit kind with `yyp`/`ddp`-style variants), and `x.normal`
-  for C++ (see the sections above). The rebuild has 1,644 exercises; `x.normal` has 23 in
-  Python (18 `prefix_each_line`, 5 `upper_constants`) and 40 in C++ (37
-  `prefix_each_line`, 34 of them `// ` comment-outs, and 3 `upper_constants`). No skill is
-  thin in either language. All 1,644 pars pass in the browser.
+- C++ (`lang/cpp.py`, `content/README.md`) shares the templates, the gates and the
+  oracle. Its `copy_line` and `move_line` are edit kind with `yyp`/`ddp`-style variants,
+  as in Python, and its `x.normal` drills are mostly `prefix_each_line` `// `
+  comment-outs.
+- The current build has about 1,640 exercises: 26 Python skills and 17 C++ skills.
+  Python `x.normal` is the thinnest skill (18 exercises). Every par passes in the
+  browser.

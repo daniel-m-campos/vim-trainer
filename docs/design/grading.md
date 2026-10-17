@@ -9,7 +9,7 @@ The editor wrapper records, from the moment the exercise renders:
 - every key event delivered to the Vim emulator, normalised (below), with timestamps;
 - every mode change;
 - the buffer and cursor after each command completes (codemirror-vim exposes a
-  command-done hook; see 06 and the To research note);
+  command-done hook; see Design notes below);
 - undo count (`u` presses and `:undo`).
 
 The attempt ends when the pass condition is met, or the user skips or gives up (`Esc Esc` from
@@ -38,13 +38,13 @@ Each notation token counts as **one** keystroke. Shift is not counted separately
 is one key. Modifier chords count as one (`<C-v>` = 1).
 
 Escape alternatives: a user who has configured `jk` or `<C-[>` to escape still gets one
-keystroke counted for the escape (setting in 10-ux). Otherwise par would penalise the
+keystroke counted for the escape (a setting, see ux.md). Otherwise par would penalise the
 most common Vim customisation.
 
 ## Efficiency
 
 `eff = keys / par`, where `par` is the verified best count from the content pipeline
-(03). Bands used in the UI and the model:
+(content-pipeline.md). Bands used in the UI and the model:
 
 | band | eff | shown as |
 |---|---|---|
@@ -57,16 +57,16 @@ most common Vim customisation.
 A pass at any efficiency updates the model; the efficiency EMA does the discriminating.
 There is no "fail for being slow" or "fail for too many keys".
 
-The `beat` band was added in round 3a (2026-10-13). A pass below par means the shipped
-par is wrong, so the attempt is recorded with `beatPar: true` and its key sequence, and
-`ingest` verifies it in Neovim before any par changes (11, ADR 0009). The model treats
-it like any other pass at or under par.
+A pass below par means the shipped par is wrong, so the attempt is recorded with
+`beatPar: true` and its key sequence, and `ingest` verifies it in Neovim before any par
+changes (feedback-loop.md, ADR 0009). The model treats it like any other pass at or
+under par.
 
 ## Time
 
 `ms` = from the exercise render (task and code visible) to the passing command. It
 includes reading time by design; the model's `base` constant accounts for it. Time is
-not shown during the attempt (10-ux).
+not shown during the attempt (ux.md).
 
 ## Hint selection on the result strip
 
@@ -88,7 +88,7 @@ Undo is allowed and counted as keystrokes. An attempt with `undo > 0` still pass
 accuracy in the model only counts outright fails and skips. (An attempt that reaches
 the expected buffer by undoing a mistake is still a correct edit.)
 
-## The "not quite — u to undo" nudge (round 4)
+## The "not quite — u to undo" nudge
 
 There is still no general detection of "wrong", but one case is cheap and certain
 enough to name: the buffer can no longer reach the target without retyping deleted
@@ -132,9 +132,9 @@ stance is to let them.
 - Clipboard: `"+` and `"*` in the browser map to the emulator's internal register;
   system clipboard is out of scope.
 
-## Resolved
+## Design notes
 
-From the M1 key-logger spike and the M3 build (2026-10-11).
+From the key-logger spike and the practice-loop build (2026-10-11).
 
 - **Command-done hook.** `vim-command-done` fires on every insert-mode keystroke and
   when `ci"` enters insert mode, so it only means the input state was reset.
@@ -169,7 +169,7 @@ From the M1 key-logger spike and the M3 build (2026-10-11).
   matches without one, a note says only a `:` command counts, and does not mark the
   attempt as hinted.
 
-## To research
+## Open questions
 
 - Give-up by accident: `<Esc>` to cancel a pending `d`, then a second `<Esc>` within
   800 ms, ends the attempt. The recorder could ignore an Esc that cancelled a pending

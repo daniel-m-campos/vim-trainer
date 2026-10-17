@@ -26,8 +26,8 @@ at build time, and a deploy pipeline can run `make content` first.
   between two builds on the same runner instead of against a committed copy.
 - The nightly `difftest` workflow does the same before fuzzing (it samples buffers from
   `build/`).
-- The deploy pipeline (M5) runs `make content && make build` and publishes `app/dist/`.
-  Until then the author publishes `app/dist/` by hand, as before.
+- The deploy workflow (`.github/workflows/deploy.yml`) runs the two stages of
+  `make content`, then `make build`, and publishes `app/dist/` to GitHub Pages.
 
 ## Consequences
 

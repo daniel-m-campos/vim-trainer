@@ -24,14 +24,14 @@ keybr for Vim: adaptive drills on real code that find your weakest motion and fi
 
 ## Plan documents
 - 01-personas-and-jobs.md
-- 02-skill-graph.md
-- 03-content-pipeline.md
-- 04-adaptive-model.md
-- 05-grading.md
-- 06-tech-stack.md
+- ../design/skill-graph.md
+- ../design/content-pipeline.md
+- ../design/adaptive-model.md
+- ../design/grading.md
+- ../design/tech-stack.md
 - 07-monetization.md
 - 08-roadmap.md
 - 09-open-questions.md
-- 10-ux.md
-- 11-feedback-loop.md
-- 12-differential-testing.md
+- ../design/ux.md
+- ../design/feedback-loop.md
+- ../design/differential-testing.md

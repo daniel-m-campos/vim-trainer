@@ -1,4 +1,4 @@
-# vim-trainer app (M3 practice loop MVP)
+# vim-trainer app
 
 Vite + TypeScript, no framework. CodeMirror 6 + `@replit/codemirror-vim`.
 The repo-level `Makefile` wraps all of this (`make setup`, `make dev`, `make test`, `make e2e`).
@@ -26,7 +26,7 @@ to `public/build-sample/` (3 hand-written Python exercises) and logs a console w
 Model: `src/model/model.ts` (TypeScript mirror of `model/vimtrainer_model`, tested against the shared
 vectors that `make vectors` generates into `model/.cache/vectors/`), imported through `src/modelApi.ts`. The skill graph `src/model/skill-graph.json`
 is bundled; `src/graph.ts` applies the editor profile and disables skills that have no exercises
-in the current language, so the model only rotates through drillable skills (TODO(mvp)).
+in the current language, so the model only rotates through drillable skills (a TODO in `graph.ts`).
 
 Emulator: `src/vimfixes.ts` patches the places where codemirror-vim differs from `nvim --clean`
 (numbered fixes in its header: exclusive and linewise ranges, a failing motion aborting its
@@ -47,7 +47,7 @@ is reported but not counted).
 `make content` runs it with `--write`, which sets `emulator.web` and drops browser mismatches from the index.
 
 Keys: in the editor every key goes to Vim, except `F1` (hint). `Esc Esc` in normal mode gives up.
-On the result strip: `space` next, `r` retry, `?` hints, `p` replay (pro, disabled), `!` flag, `q` end session,
+On the result strip: `space` next, `r` retry, `?` hints, `!` flag, `q` end session,
 `s` stats, `,` settings. Stats (`src/stats/`): `tab` / `1` `2` `3` skills grid / progress / sessions,
 `h` `j` `k` `l` move, `enter` history chart, `f` drill this next, `Esc` back. Straight after placement
 `enter` starts the session. Browser Back and Forward move between the same views (see Reading note: routing). `stats-demo.html` renders the view on a simulated learner (`npm run e2e:stats`).

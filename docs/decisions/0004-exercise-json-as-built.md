@@ -2,7 +2,7 @@
 
 Date: 2026-10-11, amended 2026-10-12. Status: accepted.
 
-03 describes the exercise schema. The build settled these details, which the app and
+`docs/design/content-pipeline.md` describes the exercise schema. The build settled these details, which the app and
 the model depend on:
 
 - **Ids are content hashes.** `py/<skill>/<10 hex>`, a stable hash of window, template,

@@ -1,10 +1,14 @@
 # Skill graph
 
-The skill graph is the spine of the product. The placement test samples it, the
+The skill graph is the spine of the trainer. The placement test samples it, the
 adaptive model tracks confidence per node, the content pipeline generates exercises per
-node, and the two tracks (Switcher, Advanced) are orderings over it.
+node, and unlocking follows its prerequisite edges.
 
-This draft doubles as a study guide. If a skill below is unfamiliar, that is a sign it
+`model/gen_graph.py` parses the tier tables and the weight table in this file into
+`model/skill-graph.json` (and the app's copy), so the table layout is load-bearing: keep
+the tier headings, the column names and the per-language weights heading as they are.
+
+The tables double as a study guide. If a skill below is unfamiliar, that is a sign it
 belongs in the graph.
 
 ## The grammar everything hangs on
@@ -31,7 +35,7 @@ Each node has:
 - **tier** — rough ordering; tracks override it.
 - **lang weight** — how much the skill matters per language (see table).
 - **emulator** — support in VSCodeVim (VSC) and IdeaVim (IJ): full, partial, none, or
-  verify (unresearched; see To research).
+  verify (unresearched; see Open questions).
 
 ## Tier 0 — Foundations (assumed; placement test confirms)
 
@@ -43,7 +47,8 @@ Each node has:
 | f.xdd | `x dd yy p P` | delete char, delete line, yank line, paste after/before | full |
 | f.save | `:w :q :wq` | write, quit | full |
 
-Switcher track starts here but skips quickly. Advanced track never drills these.
+A placement pass on a tier 3 or higher skill infers all of tier 0 mastered, so a
+learner who places there is not drilled on these.
 
 ## Tier 1 — Horizontal motions
 
@@ -93,7 +98,7 @@ Why it matters: `m.rel` with relative numbers is the fastest way to reach a visi
 | o.filter | `!{motion}cmd` `:.!cmd` | pipe lines through a shell command | o.delete | none in VSC; IJ verify |
 
 Why it matters: `o.dot` is the single biggest speed multiplier and the most under-used
-command among intermediates. A whole Advanced track module is "make it dot-repeatable".
+command among intermediates. `a.dot` in tier 8 drills making edits dot-repeatable.
 
 ## Tier 4 — Text objects (the nouns)
 
@@ -156,8 +161,8 @@ classic intermediate complaint. `"0p` and `"_d` fix it.
 | x.copymove | `:t :m :t. :m+1 :m'<-2` | copy / move lines | x.substrange | full |
 | x.cmdline | `Ctrl-r Ctrl-w` `q:` `@:` `Ctrl-f` in `:` | insert word under cursor, command history, repeat last Ex | x.subst | partial |
 
-Why it matters: `:g` + `:normal` is the expert's bulk-edit tool and almost nobody
-drills it. Switcher track defers tier 7 past `x.subst` because VSCodeVim is weak here.
+Why it matters: `:g` + `:normal` is Vim's bulk-edit tool. VSCodeVim support is partial
+from `x.global` on (see the emulator column).
 
 ## Tier 8 — Repetition and automation
 
@@ -169,8 +174,8 @@ drills it. Switcher track defers tier 7 past `x.subst` because VSCodeVim is weak
 | a.macroedit | `"ap` edit `"ayy` | paste, fix and re-yank a macro | a.macro | full |
 | a.recursive | `qaq` then `qa ... @a q` | recursive macro to end of file | a.macro | full |
 
-Why it matters: this tier is what separates fluent from elite, and it is where every
-competitor stops. Advanced track spends most of its time here and in tier 7.
+Why it matters: this tier turns one edit into many, and with tier 7 it is where
+most of the time saved by fluent Vim use comes from.
 
 ## Tier 9 — Marks, jumps and structural navigation
 
@@ -197,7 +202,7 @@ competitor stops. Advanced track spends most of its time here and in tier 7.
 | i.escape | `Ctrl-[` `Ctrl-c` and `jk`-style maps | leave insert without reaching for Esc | f.modes | full |
 | i.last | `Ctrl-a` `Ctrl-@` | re-insert last inserted text | f.modes | verify |
 
-## Tier 11 — Buffers, windows and files (Advanced track; editor-dependent)
+## Tier 11 — Buffers, windows and files (editor-dependent)
 
 | id | keys | what it is | prereqs | emulator |
 |---|---|---|---|---|
@@ -208,7 +213,7 @@ competitor stops. Advanced track spends most of its time here and in tier 7.
 | w.args | `:args :argdo` | multi-file operations | x.global | none in VSC |
 | w.quickfix | `:copen ]q [q :cdo` | quickfix navigation | x.global | none in VSC |
 
-## Tier 12 — Neovim-native (Advanced track only, real Neovim)
+## Tier 12 — Neovim-native (real Neovim only)
 
 | id | keys | what it is | prereqs |
 |---|---|---|---|
@@ -217,7 +222,7 @@ competitor stops. Advanced track spends most of its time here and in tier 7.
 | nv.comment | `gcc gc{motion}` | built-in commenting (0.10+) | o.delete |
 | nv.treesitter | `af if ac ic` via mini.ai / textobjects | syntax-aware text objects (plugin) | t.compose |
 
-Only drilled when the user says they use Neovim; never in the Switcher track.
+Only drilled when the user says they use Neovim.
 
 ## Per-language weights
 
@@ -242,27 +247,18 @@ node types the content pipeline looks for. 1.0 = normal, 0 = skip, 1.5 = emphasi
 | n.section (`[[ ]]`) | 0.3 | 0 | 0.5 | 1.2 | 1.5 | 1.2 | 1.0 | 0 | 0 | 0 |
 | comment edits (`f-D`, `f#D`, `f/D`, `gc`) | 1.0 (`--`) | 1.0 (`#`) | 1.0 (`//`) | 1.0 | 1.0 | 1.0 | 1.0 | 0.5 | 0.5 (`#`) | 0 |
 
-These are first guesses. Replace with measured data once the content pipeline reports
-node frequencies per language (the pipeline should emit this table automatically).
-
-## Tracks
-
-**Switcher**: tiers 0 → 1 → 3 (delete/change/yank/put/dot) → 4 (word, quote, paren,
-brace) → 2 → 5 (char, line) → 6 (named, yank0, system) → 10 → then merge into Advanced.
-Skips anything marked VSC none; defers VSC partial until the end.
-
-**Advanced**: placement test, then weakest-first across tiers 3–9 with emphasis on
-o.dot, t.compose, a.*, x.global, x.normal, r.*. Tier 11–12 enabled on request.
+These are hand-set estimates. The content pipeline reports measured node frequencies
+per language in `build/stats/node_frequency.json`; the intent is to derive this table
+from that data times a per-skill importance factor (see content-pipeline.md).
 
 ## Placement test
 
 Twelve exercises in five minutes, sampled one per tier 1–9 plus three from tier 3–4,
 in the selected language. Placement is per language; the first switch to a new
 language opens its placement, which skips skills mastered in another language. Scores
-seed per-skill confidence. A learner who passes at par
-on tiers 1–5 starts the Advanced track; otherwise Switcher. Learner can override.
+seed per-skill confidence; after placement the model unlocks skills by prerequisite.
 
-## Measurement per node (summary; details in 04-adaptive-model.md)
+## Measurement per node (summary; details in adaptive-model.md)
 
 - **time**: ms from exercise shown to correct buffer, EMA per node.
 - **accuracy**: fraction of attempts correct without undo.
@@ -270,12 +266,11 @@ on tiers 1–5 starts the Advanced track; otherwise Switcher. Learner can overri
 - **confidence** = f(target_time / EMA_time, accuracy, efficiency); a node is mastered
   at confidence ≥ 1.0 with ≥ N samples.
 
-## To research
+## Open questions
 
 - VSCodeVim and IdeaVim support for every row marked verify/partial. Build a test
   script that runs each command in both and records the result; publish the matrix.
 - Whether emulator differences (e.g. `gn`, `:g`, numbered registers) are worth a
-  per-emulator profile or just a Switcher-track exclusion list.
+  per-emulator profile or just a per-emulator exclusion list.
 - Per-language node frequencies from real code, to replace the guessed weights.
-- Whether to include Emacs evil-mode as a third emulator later.
 - Which plugin-dependent skills (surround, treesitter objects) belong in tier 12.

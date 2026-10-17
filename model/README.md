@@ -1,7 +1,7 @@
 # model/ - adaptive model (Python mirror, simulators, shared vectors)
 
 This directory holds the Python half of the adaptive model from
-`docs/plan/04-adaptive-model.md` and `05-grading.md`. The TypeScript half lives in
+`docs/design/adaptive-model.md` and `docs/design/grading.md`. The TypeScript half lives in
 `app/src/model/model.ts`. The two halves are kept identical by 26 JSON scenarios (vectors) that both test suites
 replay. The vectors are generated, not committed: `gen_vectors.py` runs each scenario through
 the Python model in a few seconds and stores the outputs as `expect`.
@@ -10,7 +10,7 @@ the Python model in a few seconds and stores the outputs as `expect`.
 
 | path | what |
 |---|---|
-| `gen_graph.py` | parses the tables in `docs/plan/02-skill-graph.md` and writes `skill-graph.json` (plus the copy at `app/src/model/skill-graph.json`) |
+| `gen_graph.py` | parses the tables in `docs/design/skill-graph.md` and writes `skill-graph.json` (plus the copy at `app/src/model/skill-graph.json`) |
 | `skill-graph.json` | 93 skills: id, tier, keys, prereqs, emulator flags, `targetBase` 1200, `perKey` 180, `langWeights` for 16 language ids, `enabled`, and `tips` |
 | `tips.json` | "try in your editor today" lines for 53 skills (source for `graph.tips`) |
 | `vimtrainer_model/` | the model: `state`, `attempt`, `placement`, `selection`, `projection`, `summary`, `rng`, `graph`, `vectors` (shared runner) |
@@ -94,7 +94,7 @@ something extra, and why:
   "max 3 in a row" rule, the share cap and the starvation guard (decision 18). Retries are not appended: a retry repeats the exercise just
   shown and is not another pick of the skill.
 - **Forced skills.** The stats screen can force a locked skill. Its first counted attempt
-  sets it active (04: forcing makes a skill active), so it can be mastered.
+  sets it active (adaptive-model.md: forcing makes a skill active), so it can be mastered.
 - **New language.** A skill mastered in another language starts mastered in the new one
   with its first review due at once; a skill only unlocked elsewhere is carried over as
   active while fewer than 7 are in rotation. This keeps the "no re-lock" rule without
@@ -120,7 +120,7 @@ composite. The pipeline should list composites under each skill they tag (it emi
 
 1. **target_ms per skill.** See `parEma` above. Every skill uses `base` 1200 ms and
    `per_key` 180 ms, as the spec asked. Recalibration means changing one value in the graph.
-2. **Alpha.** Kept at 0.1 as specified. The doc's To-research item suggests trying 0.15;
+2. **Alpha.** Kept at 0.1 as specified. The design doc's open questions suggest trying 0.15;
    that is `ALPHA` in both mirrors.
 3. **Accuracy window.** `acc` is computed from the log over the last 20 counted attempts
    of (skill, lang). Retries and hinted attempts are excluded. Undo does not lower accuracy.
@@ -157,7 +157,7 @@ composite. The pipeline should list composites under each skill they tag (it emi
 12. **Placement.** A pass is `ok`. A pass infers every transitive prerequisite mastered
     (confidence 1.0, n = 8, acc 1.0), except prerequisites that were sampled and failed.
     A pass on a tier 3 or higher skill also infers all of tier 0, because the doc says tier
-    0 is "assumed; placement test confirms" and the Advanced track "never drills these".
+    0 is "assumed; placement test confirms".
     Inferred skills get their first review after 4 days (`reviewsPassed = 2`), so 10-20 of
     them do not all come due the next morning. A sampled skill becomes active when its
     confidence is above 0.6 or its prerequisites hold. An unsampled skill whose
@@ -233,7 +233,7 @@ One 40-pick session of the plateaued expert after 5 days
 x.subst 4, and 10 other skills once each (mostly reviews in the 0.2 slot). No skill
 has more than 4 of any 10 consecutive picks.
 
-### What the simulation suggests changing (for the author to decide)
+### What the simulation suggests changing (for a maintainer to decide)
 
 1. **Done (decision 18).** *One weak skill can take over a session.* The interleave rule only breaks runs of 3,
    so the plateaued expert spends about 70% of every session on o.dot. Option: cap any
@@ -242,11 +242,10 @@ has more than 4 of any 10 consecutive picks.
    above 1.25 never unlocks anything, because 5 tier-0 skills stay active and the
    `introduced` pull-in only runs below 4 active. Option: let an efficiency-only failure
    after n >= 30 unlock the next skill anyway, or show the par more prominently.
-3. **Unlocking ignores tracks.** Mastering `f.modes` unlocks tier 10 (`i.*`) before tier 1
-   (which needs `f.hjkl`), because unlocking follows prerequisites and the Switcher /
-   Advanced track orderings in 02 are not part of the model yet. Option: add a track
-   order to the graph and fill free slots in track order.
+3. **Unlocking ignores tier order.** Mastering `f.modes` unlocks tier 10 (`i.*`) before tier 1
+   (which needs `f.hjkl`), because unlocking follows prerequisites only. Option: add an
+   ordering to the graph and fill free slots in that order.
 4. **Reviews are lenient for mild rust.** A first quitter run with 75% forgetting passed
    every review on return. The 1.3x target-time bar only catches large decay.
-5. **Constants still need data.** `base`/`per_key` (09-open-questions) must come from the
-   author's first week of dogfooding.
+5. **Constants still need data.** `base`/`per_key` (adaptive-model.md, Open questions) must come from
+   real practice logs.

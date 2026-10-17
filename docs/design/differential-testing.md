@@ -43,7 +43,7 @@ Each case uses its own `random.Random(seed * 1_000_003 + index)`, so `--only-ind
 replays case N of a seed without generating the others. A case is a list of
 statements drawn with these weights: edit 45, motion 20, visual 10, ex 8, insert 7,
 undo 4, dot 3, macro 2, register 1. Statements cover the tier 0-9 alphabet of
-02-skill-graph: counts, text objects, `f{c}` with characters taken from the buffer,
+skill-graph.md: counts, text objects, `f{c}` with characters taken from the buffer,
 insert text with `<CR> <BS> <Tab> <C-w>`, `:s :%s :g :v :m :t :norm`, `q{a}...q @{a}`
 without recursion, and `.` only after a change. Screen motions (`H M L <C-d>` and so on)
 are off unless `--include screen` is given, because the two window heights differ.
@@ -94,14 +94,14 @@ Three settings keep the Neovim side comparable:
 
 ## Classes and what each triggers
 
-`classify()` guesses a class; the author confirms it during triage.
+`classify()` guesses a class; a maintainer confirms it during triage.
 
 | class | meaning | guessed when | action |
 |---|---|---|---|
 | a | emulator bug | a browser page error, or nothing below matches | fix in `app/src/vimfixes.ts`; add a regression case to `app/e2e/editor.mjs` |
 | b | emulator limitation | the keys use a `LIMITATIONS` token (`U`, `g@`, `gn`, `"1`-`"9`, `vi{`, `<BS>`/`<CR>` in block insert) | record it in `build/supported_commands.md`; keep it out of drills; the content gate marks dependent exercises web-unsupported |
 | c | harness artefact | either side errored, or only leading whitespace differs after `o`, `O` or `<CR>` (filetype indent vs CodeMirror indent), or the case is flaky | fix the harness or accept in `known.jsonl` |
-| d | Neovim-specific behaviour we accept | never guessed; set by the author | accept in `known.jsonl` with a note |
+| d | Neovim-specific behaviour we accept | never guessed; set during triage | accept in `known.jsonl` with a note |
 
 Findings are deduplicated by `shape(keys)`, which writes digits as `N`, character
 arguments as `{c}`, insert text as `{text}` and words as `{word}`. Only one finding per
@@ -158,12 +158,11 @@ pruning with the fix it follows.
 `seed` (empty means today) and `count` (2000). It uses the shared setup action
 `.github/actions/setup`, runs `make difftest STRICT=` under a 25-minute limit, writes the
 head of `summary.md` to the job summary and always uploads `content/.cache/difftest/` as an
-artifact. It is report-only for now: the first runs (2026-10-13) found ~130–160 minimised
-shapes per 2,000 cases, overwhelmingly class a, and every fresh seed still adds ~20–30 new
-shapes. After round 4 a fresh seed still adds ~35–45 new shapes (below), so the nightly
-stays report-only. The rule: when a fresh seed passes `make difftest` (strict) clean
-locally, drop `STRICT=` from the workflow so the nightly fails on new shapes again. To reproduce a night locally, run
-`make difftest SEED=<that date>` and read `summary.md`.
+artifact. It is report-only for now, because a fresh seed still adds ~35–45 new shapes
+(see "Measurement after the vimfixes rewrite" below). The rule: when a fresh seed passes
+`make difftest` (strict) clean locally, drop `STRICT=` from the workflow so the nightly
+fails on new shapes again. To reproduce a night locally, run `make difftest SEED=<that
+date>` and read `summary.md`.
 
 ## From a class-a finding to a fix
 
@@ -231,12 +230,13 @@ The class-d entries are Neovim defaults: Visual `*`/`#` mappings, `smarttab` `<B
 `ib` searching forward. `startofline` is handled in `run.py` (see Comparison).
 
 A fresh seed (3, 2,000 cases) still gave 27 new shapes out of 136. The nightly job will
-stay red until round-4 fixes or further triage shrink the families. Small Neovim-verified
+stay red until fixes or further triage shrink the families. Small Neovim-verified
 cases for the main families are commented in `app/e2e/editor.mjs`.
 
-## Round 4 measurement (2026-10-14)
+## Measurement after the vimfixes rewrite (2026-10-14)
 
-Round 4 rewrote `vimfixes.ts` and added `vimfixes-macros-indent.ts`. Pruning followed the
+The rewrite fixed the class-a findings of the first triage in the editor's Vim patches
+(`app/src/vimfixes.ts`). It reworked `vimfixes.ts` and added `vimfixes-macros-indent.ts`. Pruning followed the
 rule above: the 80 class-a entries whose shapes the builders reported fixed were removed,
 seeds 7 and 20261101 (2,000 cases each) were run against the rest, and the 14 entries
 whose shape or `match` still covered a judged finding there were put back (`c}`,
@@ -246,15 +246,15 @@ indent engine) and `Y` (class d, Neovim's `Y` is `y$`).
 
 | seed | diverging | minimised shapes | class a | new vs known |
 |---|---|---|---|---|
-| 20261013 (before round 4) | 1,026 | 152 | 131 | 29 |
-| 20261015 nightly (before round 4) | 1,028 | 142 | 119 | 28 |
+| 20261013 (before the rewrite) | 1,026 | 152 | 131 | 29 |
+| 20261015 nightly (before the rewrite) | 1,028 | 142 | 119 | 28 |
 | 7 | 534 | 145 | 107 | 72 against the pruned file; 43 after the re-adds |
 | 20261101 | 546 | 137 | 105 | 71 against the pruned file; 34 after the re-adds |
 | 20261014 (`make difftest`, strict) | 527 | 126 | 96 | 36 (exit 1) |
 
 Diverging cases halved. The shape counts are capped by the 240 s minimisation budget:
-each round-4 run left 319–335 findings unminimised and unjudged, so they understate the
-shapes, and the build the runs sampled from is the round-4 one. The new class-a shapes
+each run after the rewrite left 319–335 findings unminimised and unjudged, so they
+understate the shapes, and the runs sampled buffers from the build of that date. The new class-a shapes
 are the next backlog: undo cursor (`Ju`, `ddu`), `:d`/`:t`/`:m` with ranges or patterns,
 `:s` with an empty pattern (a page error in codemirror-vim), Visual `i"`/`i'` staying
 charwise in `V`, `v$d`, `*` on punctuation, `<BS>` at column 0, `y_` cursor, and error-path
@@ -264,4 +264,4 @@ the end, `:.,2d` on a one-line buffer). These stay out of `known.jsonl`.
 ## What it will not catch
 
 Rendering (how it looks), timing, registers' contents, and anything outside the drilled
-command set. Those stay with the player feedback loop (11).
+command set. Those stay with the player feedback loop (feedback-loop.md).

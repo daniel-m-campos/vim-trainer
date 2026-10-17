@@ -10,10 +10,10 @@ drill, reports like an instrument. Decisions taken 2026-10-11:
 | pages | practice, stats, settings; nothing else | the loop is the product |
 | during an exercise | task, editor, mode indicator only; no par, no live count | solve, don't reverse-engineer |
 | timing | invisible; reported after each exercise | keybr-style calm; no arcade pressure |
-| theme | dark only in v1, colourblind-safe target highlights | audience, time |
+| theme | dark only, colourblind-safe target highlights | audience, time |
 | mobile | unsupported, say so plainly | modal editing needs a keyboard |
-| replay | static par shown after; animated replay later (pro) | cheap first, learn-value later |
-| gamification | none; no streaks, badges or leaderboards in v1 | persona B wants data, not Duolingo |
+| replay | static par shown after; no animated replay yet | cheap first, learn-value later |
+| gamification | none; no streaks, badges or leaderboards | learners who already use Vim want data, not Duolingo |
 | input | keyboard only; mouse never required | reaching for the mouse is a design failure |
 | feedback | hints after the exercise, never blocking mid-exercise | hardtime.nvim's blocking is resented |
 
@@ -50,7 +50,7 @@ One screen, four regions, no chrome. Text wireframe (desktop, ~100 columns):
   default (toggle in settings). The target node gets a background highlight that is
   distinguishable by shape as well as colour (underline + tint). Cursor is a block in
   normal mode, a bar in insert, matching real Vim. The mode line is large and always
-  visible; switchers lose track of mode constantly.
+  visible, because losing track of the mode is a common source of errors.
 - **Footer**: the skill being drilled with its confidence and sample count. `?` reveals
   one hint (costs nothing, but is logged). `Esc Esc` skips (logged as a miss).
 
@@ -74,7 +74,7 @@ Replaces the footer for as long as the user wants; any key continues.
   used `f"` before `ci"`, pressed `j` seven times, used `x` repeatedly).
 - `space` for next, `r` to retry the same exercise (retry does not count toward
   confidence). If the result was a fail, the expected buffer is shown as a diff.
-- Later (pro): `p` plays the par keystroke by keystroke in the editor.
+- Not built: an animated replay that plays the par keystroke by keystroke in the editor.
 
 The strip is where learning happens. It must appear instantly (no network) and be
 readable in under two seconds.
@@ -106,10 +106,10 @@ No account, no email. Three questions and a test, under six minutes:
 
 Then the first stats screen (below), with the focus skill named and a single line:
 "We'll start with `ci"`. Press enter." That chart, showing a few skills strong and
-several weak, is the moment that sells the product. Everything is in `localStorage`
-until the user chooses to create an account (sync + history are the pro reasons to).
+several weak, is the moment the trainer's point becomes clear. Everything stays in
+`localStorage`; there are no accounts (ADR 0012).
 
-### Onboarding copy rules (round 4)
+### Onboarding copy rules
 
 - No skill ids (`m.rel`, `o.ciquote`) on any screen before the first exercise. Name
   the thing in words or show the keys (`ci"`); ids belong on the stats screen.
@@ -120,11 +120,11 @@ until the user chooses to create an account (sync + history are the pro reasons 
 
 When the last sample lands, the stats screen opens with one line on top:
 "placement complete: N skills placed, M mastered." (or "placement skipped."), and the
-focus skill is computed once there, so `Enter` drills exactly the skill it names. Before
-round 4 placement ended by dropping straight into the chart, which QA testers read as
-an error.
+focus skill is computed once there, so `Enter` drills exactly the skill it names.
+Without that line, placement ended by dropping straight into the chart, which QA testers
+read as an error (qa-findings.md, #36).
 
-## Routes, Back and reload (round 4)
+## Routes, Back and reload
 
 The URL hash is the single source of truth for which screen is showing: `#practice`,
 `#stats`, `#settings`, `#placement` and `#placement-intro` (`ROUTES` in `main.ts`; an
@@ -137,7 +137,7 @@ so every hash is safe to load directly. Consequences:
   when the app pushed the current entry, else to practice; after a language change it
   always goes to practice.
 - Reload shows the same screen. Mid-placement it resumes at the next unanswered
-  sample (04); mid-practice it starts a new session.
+  sample (adaptive-model.md); mid-practice it starts a new session.
 - On a first visit every hash except `#settings` shows the setup questions (settings
   stays open so a save can be imported). `#practice` or `#placement` for a language
   that has not been placed goes to `#placement-intro`, and `#placement-intro` for a
@@ -173,31 +173,28 @@ from drills to real work and is generated from the session's most-improved skill
 
 Language; editor profile; relative numbers; `jk`/`Ctrl-[` escape preference (affects
 par counting for `<Esc>`); keyboard layout note (par counts are layout-independent);
-theme (dark only in v1, placeholder); data export (JSON) and import; reset.
+theme (dark only, placeholder); data export (JSON) and import; reset.
 
 ## Accessibility and comfort
 
-- Target highlight uses tint + underline; never colour alone. Check with a
-  deuteranopia simulator before launch.
+- Target highlight uses tint + underline; never colour alone. Check with a deuteranopia
+  simulator whenever the palette changes.
 - All text ≥ 14 px; editor font configurable, default a system monospace.
-- No animation except the optional par replay. No layout shift when the result strip
-  appears (reserve its height).
-- Works offline after first load (static assets, localStorage).
-- Screen-reader support is out of scope for v1; the product is visual-spatial by
-  nature. Say so in the FAQ.
+- No animation. No layout shift when the result strip appears (reserve its height).
+- Works offline once loaded (static assets, localStorage). There is no service worker
+  yet, so a reload needs the network.
+- Screen-reader support is out of scope; the trainer is visual-spatial by nature, and
+  the docs say so.
 
-## Explicitly not in v1
+## Explicitly not built
 
 Accounts, sync, leaderboards, streaks, social sharing, custom exercise authoring,
 animated replay, light theme, mobile layout, an in-page tutorial (link to `:Tutor`).
 
-## To research / decide
+## Open questions
 
-- CodeMirror 6 details: can the mode line be read from codemirror-vim's state
-  reliably (issue #251 says the mode-change event is flaky); block cursor rendering.
-- How to keep `<Esc>` from also blurring the editor or triggering browser behaviour.
-- Normalisation of keystrokes for display (`<Esc>`, `<CR>`, `<C-v>`), shared with
-  grading (05).
+The mode line, `<Esc>` handling, key normalisation and fonts are settled; see the Design
+notes in grading.md and tech-stack.md.
+
+- Block cursor rendering in every browser.
 - Whether the result strip should show a diff for passes too (probably not).
-- Fonts: bundle one monospace (licence-permitting) or rely on system fonts.
-- A static HTML mock of the practice screen to validate layout before any code.

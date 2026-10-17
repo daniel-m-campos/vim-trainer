@@ -2,7 +2,7 @@
 
 Date: 2026-10-13. Status: accepted.
 
-Considered after the author's first practice sessions: replace codemirror-vim with real
+Considered after the first practice sessions: replace codemirror-vim with real
 Neovim on a server behind a WebSocket (perfect fidelity, all logic in Python) versus
 keep the static browser app (zero hosting cost, offline, instant keystrokes, but a
 JavaScript reimplementation of Vim that can disagree with the real thing).
@@ -13,7 +13,7 @@ latency; and divergences are a bounded, testable problem. The author will learn 
 TypeScript to review app/.
 
 Consequences:
-- Divergences are found by differential testing (docs/plan/12-differential-testing.md):
+- Divergences are found by differential testing (docs/design/differential-testing.md):
   generate key sequences, run them in headless Neovim and in the emulator from identical
   buffers, compare buffer, cursor and mode, minimise failures, fix in vimfixes.ts or
   record in supported_commands.md.

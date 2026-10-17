@@ -3,22 +3,21 @@
 Date: 2026-10-13. Status: accepted.
 
 The par search tries a fixed idiom list per skill plus each template's own variants.
-It finds shorter known idioms and never unknown ones, and the author beat several pars
-in the first practice sessions. Writing more idioms by hand scales with the author's
-Vim knowledge; players collectively know more.
+It finds shorter known idioms and never unknown ones, and the first practice sessions
+beat several pars. Writing more idioms by hand scales with one person's Vim knowledge; players collectively know more.
 
 Decided:
 - Every attempt records its normalised key sequence (`seq`) and whether it beat par
   (`beatPar`). A player can flag an attempt with `!` (wrong-par / wording / emulator /
-  other); the flag opens a prefilled GitHub issue. See docs/plan/11-feedback-loop.md.
+  other); the flag opens a prefilled GitHub issue. See docs/design/feedback-loop.md.
 - `vimtrainer-content ingest` replays each beat-par or wrong-par sequence in headless
   Neovim. No par changes without that check. A shorter passing sequence becomes the
   canonical, an equal one an alternate, a failing one an emulator-divergence entry.
 - Learned idioms are generalised and stored as data in `content/idioms_learned.toml`,
   which `par_search.IDIOMS` merges at import, so the next build re-pars every sibling
   exercise.
-- The feedback link targets the main repo `daniel-m-campos/vim-trainer` until soft
-  launch (M5), when a public place for outside testers is decided.
+- The feedback link targets the public repo `daniel-m-campos/vim-trainer`, whose
+  issue tracker is open to every player.
 
 Consequences:
 - Pars get shorter over time without new code; each ingest run is a reviewable diff of

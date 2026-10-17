@@ -10,7 +10,7 @@ the log, so it can be recomputed from an export and unit-tested offline in Pytho
 
 ## Inputs
 
-Each attempt produces one record (see 05-grading.md for how fields are computed):
+Each attempt produces one record (see grading.md for how fields are computed):
 
 ```json
 { "t": 1760200000, "ex": "py/t.quote/0193", "skill": "t.quote", "lang": "python",
@@ -47,16 +47,16 @@ mastered   = speed >= 1.0 and eff_ema <= 1.25 and acc >= 0.9 and n >= 8
 
 - **target_ms** is per skill, derived from par: `target_ms = base + per_key * par`,
   with `base` ≈ 1200 ms (read the task, find the target) and `per_key` ≈ 180 ms. These
-  are first guesses; recalibrate from the author's own data, then from the first users'
-  distributions (target = roughly the 70th percentile of mastered users).
-- **Efficiency** matters as much as speed for persona B. An expert who types `f"ci"` is
+  are first estimates, to be recalibrated from real practice logs (target = roughly
+  the 70th percentile of attempts by learners who mastered the skill).
+- **Efficiency** matters as much as speed for experienced Vim users. An expert who types `f"ci"` is
   fast but inefficient, and the model should keep nudging toward `ci"`.
 - `n >= 8` and `acc >= 0.9` close keybr's known exploit, where a single lucky fast
   attempt unlocks the next key.
 
 ## Unlocking
 
-The skill graph (02) gives each skill prerequisites. A skill is **active** when every
+The skill graph (skill-graph.md) gives each skill prerequisites. A skill is **active** when every
 prerequisite is mastered, or when the placement test scored it above 0.6, or when the
 user forces it from the stats screen. Tier 0 is active from the start.
 
@@ -69,7 +69,7 @@ explainer on first appearance.
 ## Choosing the next exercise
 
 1. **Pick the focus skill**: weakest first, but spread across the active skills. Each
-   skill's priority is `1 - (1 - confidence) * weight`, using the language weight from 02.
+   skill's priority is `1 - (1 - confidence) * weight`, using the language weight from skill-graph.md.
    The steps run in order, and each filter is skipped when it would leave no candidate:
    1. **Review slot.** With probability 0.2, pick the most overdue `review` skill (below).
    2. **Starvation guard.** A skill with weight 0.3 or less that has not been picked in the
@@ -94,7 +94,7 @@ explainer on first appearance.
    8-11 of 30 and four other operators master alongside it.
 2. **Pick the exercise**: from the focus skill's pool for the current language, prefer
    exercises not seen in the last 50 attempts, then weight by the language's node
-   weights (02), then random. Never repeat the same exercise twice in a session unless
+   weights (skill-graph.md), then random. Never repeat the same exercise twice in a session unless
    the pool is exhausted.
 3. **Composite exercises**: when 2+ active skills have confidence > 0.8, 1 in 5
    exercises is a composite that requires both (e.g. `m.find` + `o.change`:
@@ -118,9 +118,9 @@ A due skill moves to `review` status and competes for the 0.2 review slot. Passi
 review (ok, ≤ 1.5× par, ≤ 1.3× target time) doubles the interval; failing resets it to
 1 day and drops confidence by 20% so the skill re-enters normal rotation.
 
-This is SM-2-shaped. FSRS was considered (see research/02) and rejected for v1: it needs
-per-user parameter fitting and far more data than a Vim trainer will have per skill.
-Revisit when there are 10k+ sessions to fit against.
+This is SM-2-shaped. FSRS was considered and not used: it needs per-user parameter
+fitting and far more data than a Vim trainer has per skill. It becomes an option once
+there are 10k+ sessions to fit against.
 
 ## Placement test
 
@@ -131,8 +131,9 @@ prerequisites mastered with confidence 1.0 and `n = 8` (we assume you can `w` if
 can `ci"`); a fail leaves prerequisites untouched. Skills not sampled start locked
 unless all prerequisites were inferred mastered, in which case they start active at 0.5.
 
-Result: an Advanced-track user sees 10–20 skills inferred mastered and 4–7 active in
-tiers 4–7; a Switcher sees tiers 0–1 mastered and 3–4 active in tiers 1–3.
+Result: a learner who passes through tier 7 sees 10–20 skills inferred mastered and
+4–7 active in tiers 4–7; one who passes only tier 1 sees tiers 0–1 mastered and 3–4
+active in tiers 1–3.
 
 Placement is per language. `placementDone` in the saved state is a map
 `{lang: true}`; an old save's single `true` migrates to `{<saved language>: true}`. The
@@ -142,10 +143,10 @@ skill already mastered (or due for review) in another language, since those carr
 (see Per-language state). It keeps one skill per tier 1–9 among the rest and fills the
 remaining slots with the skills that weigh most in the new language (`langWeights`).
 
-Placement samples have an efficiency gate (round 4, ADR 0011). A sample counts as a
+Placement samples have an efficiency gate (ADR 0011). A sample counts as a
 pass only when the target was reached within `max(2 * par, par + 6)` keys
-(`placementPass` in `grading.ts`). Before the gate, QA finding #8 showed brute force
-passing: eleven presses of `l` on a par-2 cursor exercise marked the skill and all its
+(`placementPass` in `grading.ts`). Without the gate, brute force passed (qa-findings.md,
+#8): eleven presses of `l` on a par-2 cursor exercise marked the skill and all its
 prerequisites mastered. A sample over the cap is recorded as a fail for seeding.
 
 Placement progress persists. Each answered sample is saved as it lands, so a reload or
@@ -167,7 +168,7 @@ No fixed length. Within a session:
   re-establish rhythm). Not counted.
 - After 15 minutes or 40 exercises, the result strip adds a quiet "good place to stop"
   line. Nothing blocks.
-- The session summary (10-ux) reports: skills whose confidence rose ≥ 0.1, any new
+- The session summary (ux.md) reports: skills whose confidence rose ≥ 0.1, any new
   mastery, any new unlock, and the "try in your editor today" line, chosen as the skill
   with the largest confidence gain that has a real-editor tip attached.
 
@@ -186,7 +187,7 @@ one batch.
 ## Emulator profile
 
 The editor profile (Neovim / VSCodeVim / IdeaVim) filters which skills can ever become
-active, from the emulator flags in 02. Skills marked `none` for the profile are hidden;
+active, from the emulator flags in skill-graph.md. Skills marked `none` for the profile are hidden;
 `partial` skills are active but exercises are limited to the supported subset.
 
 ## What the model does not do
@@ -194,20 +195,21 @@ active, from the emulator flags in 02. Skills marked `none` for the profile are 
 - No ELO or leaderboards: confidence is against a fixed target, not other users.
 - No hidden adjustment of target to flatter the user. Targets are global constants per
   skill (until recalibrated from data, which is a published change).
-- No mid-exercise intervention. Everything is post-hoc (10-ux).
+- No mid-exercise intervention. Everything is post-hoc (ux.md).
 
-## Validation plan
+## Validation
 
-1. Implement as a pure Python module with the JSON log as input, before any UI.
-2. Simulate learners: a "fast sloppy", a "slow precise", a "plateaued expert" and a
-   "quitter who returns after 60 days". Check that each is diagnosed correctly and that
-   the focus skill moves sensibly.
-3. Dogfood on the author for 4 weeks; recalibrate `base`, `per_key` and the unlock
-   count from that log before any external user sees it.
+1. The model is a pure Python module with the JSON log as input, mirrored in TypeScript
+   and kept identical by shared scenario vectors (`model/README.md`).
+2. `model/simulate.py` simulates four learners: a "fast sloppy", a "slow precise", a
+   "plateaued expert" and a "quitter who returns after 60 days". Each is diagnosed
+   correctly and the focus skill moves sensibly (results in `model/README.md`).
+3. `base`, `per_key` and the unlock count are recalibrated from real practice logs
+   (exported by players who choose to share them).
 
-## To research
+## Open questions
 
-- Reasonable `target_ms` constants: measure the author's times across 20 skills first.
+- Reasonable `target_ms` constants: measure real practice times across 20 skills.
 - Whether `alpha = 0.1` is too slow for Vim, where a user may do 40 attempts per
   session (keybr lessons are longer). Try 0.15.
 - How vimhjkl's Leitner implementation and 25-rep mastery compare in practice.
