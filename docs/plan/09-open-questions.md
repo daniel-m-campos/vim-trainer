@@ -12,7 +12,7 @@ All four resolved; see Resolved below.
 | EMA alpha 0.1 vs 0.15 for shorter Vim sessions (kept at 0.1) | 04 | compare on the dogfood log |
 | Active-skill count 4–7: variety or noise? | 04 | author judgement after 2 weeks |
 | Implicit skill detection (credit `a.dot` when `.` is used well anywhere)? | 04 | decide after dogfood; default off |
-| Focus domination: one weak skill takes about 70% of a session (m.find and m.rel took 13 to 14 of 15 exercises in every e2e run), and skills with weight 0.3 are almost never chosen. The interleave rule only breaks runs of 3 | 04, model README | change both model mirrors and regenerate `model/vectors`; decide after dogfood |
+| Focus domination: one weak skill takes about 70% of a session (m.find and m.rel took 13 to 14 of 15 exercises in every e2e run), and skills with weight 0.3 are almost never chosen. The interleave rule only breaks runs of 3 | 04, model README | change both model mirrors and re-run `make vectors`; decide after dogfood |
 | A learner above 1.25x par never unlocks anything new (5 tier-0 skills stay active) | 04, model README | same change as above |
 | Unlocking follows prerequisites, not the Switcher/Advanced track order, so tier 10 opens before tier 1 | 04, 02 | decide with the focus change |
 | The review pass bar of 1.3x target time only catches large decay | 04 | dogfood log |

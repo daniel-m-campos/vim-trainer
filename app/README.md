@@ -9,6 +9,8 @@ npm ci
 PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium   # once; add firefox webkit for --all
 npm run dev            # http://localhost:5173/
 npm test               # node --test: grading, the build/ contract, the TS model mirror
+                       #   (needs ../build from `make content` and ../model/.cache/vectors from `make vectors`;
+                       #    `make test-app` from the repo root runs both first)
 npm run typecheck
 npm run e2e            # Playwright on the bundled sample (forces /build/ to 404); `-- --all` for Firefox + WebKit
 npm run e2e:session    # Playwright on the real ../build: placement + a 15-exercise session, export/import
@@ -22,7 +24,7 @@ from the repo's `build/` (served at `/build/` by `vite.config.ts`). If it is mis
 to `public/build-sample/` (3 hand-written Python exercises) and logs a console warning.
 
 Model: `src/model/model.ts` (TypeScript mirror of `model/vimtrainer_model`, tested against the shared
-`model/vectors/`), imported through `src/modelApi.ts`. The skill graph `src/model/skill-graph.json`
+vectors that `make vectors` generates into `model/.cache/vectors/`), imported through `src/modelApi.ts`. The skill graph `src/model/skill-graph.json`
 is bundled; `src/graph.ts` applies the editor profile and disables skills that have no exercises
 in the current language, so the model only rotates through drillable skills (TODO(mvp)).
 
@@ -33,9 +35,14 @@ operator, `>`/`<` on empty lines, cursor placement after `y`/`g~`/`p`, `J`, coun
 operator and action tables through `grabTable()` and wraps entries. `src/vimfixes-macros-indent.ts`
 (installed by `installVimFixes()`) handles macros and `:normal` (a failing command aborts them,
 with a recursion guard), Python/C++ auto-indent, Insert-mode `<C-w>`, `:j` and ex errors. Pure
-helpers are unit-tested in `src/vimfixes.test.ts`; `e2e/editor.mjs` (plus
-`e2e/cases-macros-indent.mjs`) types Neovim-verified key sequences, and a case may carry
-`xfailIn: ["firefox"]` for an engine-specific failure that is reported but not counted.
+helpers are unit-tested in `src/vimfixes.test.ts`. `e2e/editor.mjs` types the key sequences in
+`e2e/cases/*.json` and compares the result with Neovim's. The cases are inputs only: a buffer, a
+start cursor and keys. Before the browser starts, the harness runs `uv run vimtrainer-content
+expect` in `content/` once (about 3 s), which replays every case in headless Neovim. So
+`npm run e2e:editor` needs `nvim` and `uv` on PATH, as `make content` does. A case may carry
+`oracle: "typed"` (replay as typed keys, so a failing motion aborts a macro), `skip: ["cursor"]`
+with a `why` (an open divergence), or `xfailIn: ["firefox"]` (an engine-specific failure that
+is reported but not counted).
 `e2e/emulator.mjs` + `emulator-check.html` replay every par in the browser;
 `make content` runs it with `--write`, which sets `emulator.web` and drops browser mismatches from the index.
 

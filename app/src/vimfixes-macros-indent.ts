@@ -1,7 +1,7 @@
 // Round 4 emulator fixes: macros, auto-indent, Insert-mode <C-w> and ex commands, where
 // codemirror-vim 6.4.0 differs from Neovim (docs/qa/2026-10-13-mock-users.md #2 and the
 // class a entries of content/difftest/known.jsonl). Every expected result was taken
-// from nvim 0.12, not from memory; the cases live in e2e/cases-macros-indent.mjs.
+// from nvim 0.12; the cases live in e2e/cases/macros-indent.json, checked against nvim.
 // Installed once by installVimFixes() (vimfixes.ts), through the public Vim API and the
 // CodeMirror adapter's prototype, so the vendored package is untouched.
 //

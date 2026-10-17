@@ -126,9 +126,11 @@ never counts as new. The budget is 120 runs per case and 240 s per run of the to
 ## known.jsonl
 
 `content/difftest/known.jsonl` holds accepted findings, one per line:
-`{"shape", "class", "note", "added", "match"?}`. A finding is known when an entry's
+`{"shape", "class", "note", "added", "match"?, "fields"?}`. A finding is known when an entry's
 `shape` equals its minimised shape (its original shape if it was not minimised), or
-when the entry's `match` regex is found in that shape. `--strict` makes the run exit 1
+when the entry's `match` regex is found in that shape. An entry with `fields` (for example
+`["cursor"]`) covers a finding only when every differing field is in that list, so a
+cursor-only entry cannot hide a lines or mode divergence. `--strict` makes the run exit 1
 when a judged finding is neither known nor flaky; nothing else fails it. The file was
 seeded from the known divergences below, then extended by the first triage (seed
 20261012, see below). Class-a entries are open emulator bugs; their notes start with
@@ -168,12 +170,22 @@ locally, drop `STRICT=` from the workflow so the nightly fails on new shapes aga
 1. Replay it: `uv run vimtrainer-content difftest --seed S --only-index N`.
 2. Print regression cases:
    `uv run vimtrainer-content difftest --to-editor-case .cache/difftest/S/findings.jsonl`.
-   It prints one `CASES` literal per finding for `app/e2e/editor.mjs` (minimised keys
-   when there are some), with Neovim's result as the expected lines and cursor. Keep
+   It prints one JSON line per finding (name, lang, lines, cursor, keys; minimised keys
+   when there are some), with no expected result: Neovim gives that at test time. Keep
    the ones you need.
-3. Paste it into `app/e2e/editor.mjs` and watch it fail with `make e2e`.
+3. Add the line to `app/e2e/cases/editor.json` (or `macros-indent.json`; mark macro and
+   `:normal` cases `"oracle": "typed"`) and watch it fail with `make e2e`.
 4. Fix the behaviour in `app/src/vimfixes.ts` until the case passes.
 5. Rerun the seed; the shape should no longer appear.
+
+The editor regression cases are inputs, not answers. Each case in `app/e2e/cases/*.json` holds a
+buffer, a start cursor and keys, and nothing about the result. Neovim is the oracle at test
+time: `app/e2e/editor.mjs` runs `vimtrainer-content expect` once over all cases (about 3 s for
+346) and compares the browser's lines, cursor and mode with Neovim's. `expect` replays through this
+page's batch oracle (`run.nvim_sides`, `startofline` on). A case marked `oracle: "typed"` is
+replayed as typed keys instead, because the batch oracle runs the keys under `silent!`, and
+`silent!` stops a failing motion from aborting a macro or a `:normal` line (Vim's `beep_flush`
+is skipped). The same blind spot applies to difftest's own macro sequences.
 
 ## Budget
 

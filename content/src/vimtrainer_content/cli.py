@@ -1,4 +1,4 @@
-"""``vimtrainer-content``: fetch sources, build the corpus, review exercises, ingest player logs, difftest."""
+"""``vimtrainer-content``: fetch sources, build the corpus, review exercises, ingest player logs, difftest, expect."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import sys
 import time
 from collections.abc import Sequence
 
-from vimtrainer_content import build, ingest, review, sources
+from vimtrainer_content import build, expect, ingest, review, sources
 from vimtrainer_content.difftest import run as difftest
 
 
@@ -89,6 +89,7 @@ def _parser() -> argparse.ArgumentParser:
     p.set_defaults(func=_ingest)
 
     difftest.add_parser(sub)
+    expect.add_parser(sub)
     return parser
 
 
