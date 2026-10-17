@@ -40,6 +40,12 @@ label the research warned about. So pro is gated on measured stability, not on a
 - Every `wording` flag older than 2 weeks is resolved or deliberately closed.
 - At least 200 monthly active users, so the rates mean something.
 
+How the gate is measured: the flag rate is a count over `model.log` (attempt records
+with `flag` set, divided by counted attempts, over 4 weeks), read from exported logs;
+alongside it, the count of entries in the error ring buffer that each export carries
+(11). Both must be read together: a low flag rate with a growing error count means the
+app is failing silently, not that it is stable.
+
 Until then: free, no ads, GitHub Sponsors link only. The "tell me when pro exists" email
 field stays. This supersedes the "price-test after a few hundred MAU" line below where
 they conflict.

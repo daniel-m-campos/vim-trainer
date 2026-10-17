@@ -155,9 +155,9 @@ and `x.normal` stayed thin.
 the skill: `:g`, `:v`, `:normal` or `:s` over 3 or more lines. Everything else is
 `edit`, with the ex solution kept as a verified variant. Round 3a applied this to
 `copy_line`, `move_line`, `prefix_each_line`, `upper_constants`, `rename_all_subst`,
-`delete_matching_lines` and `keep_matching_lines`; `rename_all_subst` with 3 or fewer
-occurrences is `edit` with `cgn` + `.` as a variant. One pytest per template checks the
-kind against the draft's line count.
+`delete_matching_lines` and `keep_matching_lines`; `rename_all_subst` makes no draft with
+3 or fewer occurrences (x.lastsearch and a.dot drill `cgn` + `.`), so every x.subst exercise
+is `ex`. One pytest per template checks the kind against the draft's line count.
 
 ## Par verification: Neovim as the oracle
 

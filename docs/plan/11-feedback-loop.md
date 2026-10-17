@@ -76,6 +76,19 @@ Outside testers at soft launch (M5) need a public place to file, so the decision
 revisited then (09). The repo URL is one constant in `app/src/feedback.ts`, so moving
 it is a one-line change.
 
+## Error ring buffer (round 4)
+
+The app keeps the last 20 uncaught errors and unhandled rejections (`ERRORS_MAX` in
+`app/src/storage.ts`) in `saved.errors`: timestamp, app version, route, message and the
+first 5 stack lines, nothing typed by the player. The footer then says "something broke —
+export your data and flag it with !" until the next exercise opens. The export includes
+the buffer, and the prefilled issue body appends the newest 3 entries after the flag
+fields, one line at a time and only while the body stays under the 6000-character
+encoded limit, so the par and version lines are never pushed out. The version field is
+a real version string, `package.json` version plus the short commit (`0.4.0+5b58f38`,
+`__APP_VERSION__` in `vite.config.ts`), so a report can be matched to the code that
+produced it. The buffer's count feeds the stability gate in 07.
+
 ## What the pipeline does with it
 
 `uv run vimtrainer-content ingest <path>` takes an exported `Saved` JSON or a GitHub
