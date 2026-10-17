@@ -11,9 +11,6 @@ from vimtrainer_model.selection import choose_exercise, choose_focus, exercise_p
 from vimtrainer_model.state import new_state
 
 
-VECTORS = Path(__file__).resolve().parents[1] / "vectors"
-
-
 def test_choose_focus_prefers_lowest_confidence(graph):
     state = new_state(graph)
     for t, skill in enumerate(("f.modes", "f.hjkl", "f.undo", "f.save")):
@@ -42,14 +39,14 @@ def test_choose_focus_spreads_two_weak_skills(graph):
     assert _max_window_share(picks, 10) <= 4
 
 
-def test_share_cap_vector_holds():
-    picks = _vector_picks("24_share_cap")
+def test_share_cap_vector_holds(vector_dir):
+    picks = _vector_picks(vector_dir, "24_share_cap")
     assert _max_window_share(picks, 10) <= 4
     assert Counter(picks).most_common(1)[0][0] == "f.xdd"
 
 
-def test_starvation_guard_vector_holds():
-    picks = _vector_picks("25_starvation_guard")
+def test_starvation_guard_vector_holds(vector_dir):
+    picks = _vector_picks(vector_dir, "25_starvation_guard")
     assert all("d0" in picks[start:start + 12] for start in range(0, len(picks) - 11))
 
 
@@ -74,8 +71,8 @@ def test_choose_focus_interleaves_after_three(graph):
     assert choose_focus(state, "python", graph, 30, seed=1) != "f.modes"
 
 
-def _vector_picks(name: str) -> list[str]:
-    vector = json.loads((VECTORS / f"{name}.json").read_text())
+def _vector_picks(vector_dir: Path, name: str) -> list[str]:
+    vector = json.loads((vector_dir / f"{name}.json").read_text())
     return [op["expect"] for op in vector["ops"] if op["op"] == "chooseFocus"]
 
 

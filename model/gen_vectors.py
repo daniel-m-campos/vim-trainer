@@ -1,16 +1,18 @@
-"""Generate model/vectors/*.json: shared scenarios whose expected outputs come from Python.
+"""Generate the shared scenarios whose expected outputs come from Python (not committed).
 
 Each scenario lists ops (see vimtrainer_model.vectors); this script runs them through the
-Python model and stores every output as ``expect``. pytest re-runs the ops and compares;
-app/src/model/model.test.ts runs the same ops through the TypeScript mirror.
+Python model and stores every output as ``expect``. pytest generates its own copy into a
+temporary directory and replays it; app/src/model/model.test.ts replays the copy in
+model/.cache/vectors/ (``make vectors``) through the TypeScript mirror.
 
 Example
 -------
-    uv run --project model python model/gen_vectors.py
+    cd model && uv run python gen_vectors.py --out .cache/vectors
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import random
 import sys
@@ -24,7 +26,7 @@ from vimtrainer_model.vectors import run_vector
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import simulate  # noqa: E402
 
-OUT_DIR: Final = Path(__file__).resolve().parent / "vectors"
+OUT_DIR: Final = Path(__file__).resolve().parent / ".cache" / "vectors"
 T0: Final = 1760200000
 DAY: Final = 86400
 PY: Final = "python"
@@ -78,19 +80,30 @@ def scenarios(graph: dict) -> dict[str, dict]:
     return result
 
 
-def main():
-    """Write every scenario with its expected outputs."""
-    graph = load_graph()
-    OUT_DIR.mkdir(exist_ok=True)
-    for old in OUT_DIR.glob("*.json"):
+def write_vectors(out_dir: Path, graph: dict) -> list[Path]:
+    """Write every scenario with its expected outputs into ``out_dir``; return the files written."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for old in out_dir.glob("*.json"):
         old.unlink()
+    written = []
     for file_name, vector in scenarios(graph).items():
         outputs = run_vector(vector, graph)
         for op, output in zip(vector["ops"], outputs):
             if output is not None or _has_output(op):
                 op["expect"] = output
-        (OUT_DIR / f"{file_name}.json").write_text(json.dumps(vector, indent=1, ensure_ascii=True) + "\n")
-        print(f"wrote vectors/{file_name}.json ({len(vector['ops'])} ops)", file=sys.stderr)
+        path = out_dir / f"{file_name}.json"
+        path.write_text(json.dumps(vector, indent=1, ensure_ascii=True) + "\n")
+        written.append(path)
+    return written
+
+
+def main():
+    """Parse --out and write the vectors there."""
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--out", type=Path, default=OUT_DIR, help=f"output directory (default {OUT_DIR})")
+    args = parser.parse_args()
+    written = write_vectors(args.out, load_graph())
+    print(f"wrote {len(written)} vectors to {args.out}", file=sys.stderr)
 
 
 # Scenarios ========================================================================================

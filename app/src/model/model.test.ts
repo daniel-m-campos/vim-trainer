@@ -3,12 +3,13 @@
 //
 // Run (Node >= 23, zero install):   node --test app/src/model/model.test.ts
 //
-// Replays every model/vectors/*.json scenario through the TypeScript mirror and compares
-// each output with the Python-generated expectation (relative tolerance 1e-9).
+// Replays every model/.cache/vectors/*.json scenario (generated, not committed: `make vectors`)
+// through the TypeScript mirror and compares each output with the Python-generated
+// expectation (relative tolerance 1e-9).
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -31,7 +32,7 @@ import {
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const MODEL_DIR = join(HERE, '..', '..', '..', 'model');
-const VECTOR_DIR = join(MODEL_DIR, 'vectors');
+const VECTOR_DIR = join(MODEL_DIR, '.cache', 'vectors');
 const DEFAULT_GRAPH = JSON.parse(readFileSync(join(MODEL_DIR, 'skill-graph.json'), 'utf8'));
 const DIGEST_TAIL = 5;
 const REL_TOL = 1e-9;
@@ -105,7 +106,14 @@ function runOp(op, state, graph, index) {
   }
 }
 
-const files = readdirSync(VECTOR_DIR).filter((name) => name.endsWith('.json')).sort();
+// The generated vector files, sorted; stops the run with "run make vectors" when there are none.
+function vectorFiles() {
+  const found = existsSync(VECTOR_DIR) ? readdirSync(VECTOR_DIR).filter((name) => name.endsWith('.json')).sort() : [];
+  if (found.length === 0) throw new Error(`no vectors in ${VECTOR_DIR}: run make vectors`);
+  return found;
+}
+
+const files = vectorFiles();
 
 test('at least 12 shared vectors exist', () => {
   assert.ok(files.length >= 12, `only ${files.length} vectors`);

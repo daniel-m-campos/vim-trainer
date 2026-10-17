@@ -1,5 +1,5 @@
 // Single import point for the adaptive model (app/src/model/model.ts, the TypeScript
-// mirror of model/vimtrainer_model; both are checked against model/vectors/*.json).
+// mirror of model/vimtrainer_model; both are checked against model/.cache/vectors/, from make vectors).
 // Thin wrappers only: null "no choice" results become "" so callers can test truthiness.
 
 import * as model from "./model/model.ts";

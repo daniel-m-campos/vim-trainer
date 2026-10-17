@@ -2,8 +2,9 @@
 
 This directory holds the Python half of the adaptive model from
 `docs/plan/04-adaptive-model.md` and `05-grading.md`. The TypeScript half lives in
-`app/src/model/model.ts`. The two halves are kept identical by the JSON scenarios in
-`vectors/`, which both test suites replay.
+`app/src/model/model.ts`. The two halves are kept identical by 26 JSON scenarios (vectors) that both test suites
+replay. The vectors are generated, not committed: `gen_vectors.py` runs each scenario through
+the Python model in a few seconds and stores the outputs as `expect`.
 
 ## Layout
 
@@ -13,8 +14,8 @@ This directory holds the Python half of the adaptive model from
 | `skill-graph.json` | 93 skills: id, tier, keys, prereqs, emulator flags, `targetBase` 1200, `perKey` 180, `langWeights` for 16 language ids, `enabled`, and `tips` |
 | `tips.json` | "try in your editor today" lines for 53 skills (source for `graph.tips`) |
 | `vimtrainer_model/` | the model: `state`, `attempt`, `placement`, `selection`, `projection`, `summary`, `rng`, `graph`, `vectors` (shared runner) |
-| `gen_vectors.py` | builds the 26 scenarios and stores the Python outputs as `expect` |
-| `vectors/*.json` | the shared scenarios |
+| `gen_vectors.py` | builds the 26 scenarios and stores the Python outputs as `expect` (`--out DIR`, default `.cache/vectors/`) |
+| `.cache/vectors/*.json` | the generated scenarios (gitignored; `make vectors`) |
 | `simulate.py` | the four simulated learners from the validation plan |
 | `tests/` | pytest suite (vectors, gates, unlocking, placement, selection, projection, summary, purity) |
 
@@ -23,15 +24,23 @@ This directory holds the Python half of the adaptive model from
 ```sh
 # from the repo root
 uv run --project model python model/gen_graph.py     # regenerate skill-graph.json (both copies)
-uv run --project model python model/gen_vectors.py   # regenerate vectors/*.json from Python
-uv run --project model pytest model                  # 80 tests incl. doctests and every vector
-node --test app/src/model/model.test.ts              # TS mirror against the same vectors (Node >= 23, zero install)
+make vectors                                         # write model/.cache/vectors/*.json from Python
+make test-model                                      # pytest; generates its own copy in a temp dir and replays it
+make test-app                                        # includes the TS mirror against model/.cache/vectors (Node >= 23)
 uv run --project model python model/simulate.py      # all four learners; or name one: fast_sloppy, slow_precise, plateaued_expert, quitter
 uv run --project model python model/simulate.py picks plateaued_expert 40 5   # 40 focus picks after 5 days, with their distribution
 ```
 
-After any change to model behaviour, regenerate the vectors and run both suites.
-`tests/test_vectors.py` fails when the scenario inputs drift from the stored files.
+After any change to model behaviour, run both suites; `make test-model` and `make test-app`
+regenerate the vectors first, so the TS mirror is always checked against the current Python
+model. `tests/test_vectors.py` also generates the vectors twice and requires identical bytes.
+
+To inspect a vector, generate them and read the file:
+
+```sh
+make vectors
+cat model/.cache/vectors/24_share_cap.json
+```
 
 ## Interface
 
