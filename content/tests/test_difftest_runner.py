@@ -263,14 +263,14 @@ def test_run_page_error_is_a_class_a_finding(tmp_path, monkeypatch):
     assert f.fields == ["error"] and f.cls == "a"
 
 
-def test_to_editor_case_prints_literal(tmp_path, capsys):
+def test_to_editor_case_prints_inputs_only(tmp_path, capsys):
     f = compare.Finding(_case("x"), compare.Side(("bc def",), (1, 0), "normal"),
                         compare.Side(("c def",), (1, 0), "normal"), ["lines"], "a", "x", None)
     path = tmp_path / "findings.jsonl"
     path.write_text(json.dumps(f.to_json()) + "\n")
     assert run.run(_args(tmp_path, to_editor_case=path), nvim=_fake_sides({"x": ["bc def"]})) == 0
-    printed = capsys.readouterr().out
-    assert 'keys: "x"' in printed and 'expect: ["bc def"]' in printed and "cursorAfter: [1, 0]" in printed
+    entry = json.loads(capsys.readouterr().out)
+    assert entry["keys"] == "x" and set(entry) == {"name", "lang", "lines", "cursor", "keys"}
 
 
 def test_cli_registers_difftest():

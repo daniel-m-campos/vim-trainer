@@ -229,7 +229,8 @@ def is_known(finding: Finding, known: list[dict[str, Any]]) -> bool:
 
     An entry matches when its ``shape`` equals the shape of the finding's keys (the
     minimised keys when there are some, else the original), or when its optional ``match``
-    regex is found in that shape.
+    regex is found in that shape. An entry with a ``fields`` list covers only findings whose
+    differing fields are all in it, so a cursor-only entry cannot hide a lines or mode diff.
     """
     # Once minimised, the original keys no longer matter: they may contain a known shape
     # (a `U` somewhere) that has nothing to do with the divergence the minimiser isolated.
@@ -238,6 +239,8 @@ def is_known(finding: Finding, known: list[dict[str, Any]]) -> bool:
     else:
         shapes = {finding.shape, shape(finding.case.keys)}
     for entry in known:
+        if "fields" in entry and not set(finding.fields) <= set(entry["fields"]):
+            continue
         if entry.get("shape") in shapes:
             return True
         pattern = entry.get("match")

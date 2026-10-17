@@ -84,7 +84,7 @@ def run(args: argparse.Namespace, nvim: NvimRunner | None = None, web_runner: We
     if args.accept:
         return _accept(args)
     if args.to_editor_case:
-        return _to_editor_case(args.to_editor_case, nvim or nvim_sides)
+        return _to_editor_case(args.to_editor_case)
     nvim = nvim or nvim_sides
     if web_runner is not None:
         return _fuzz(args, nvim, web_runner)
@@ -121,7 +121,7 @@ def _add_arguments(p: argparse.ArgumentParser):
     p.add_argument("--note", default="", help="note for --accept")
     p.add_argument("--include", nargs="*", default=[], choices=["screen"], help="extra key families")
     p.add_argument("--to-editor-case", type=pathlib.Path, metavar="FILE",
-                   help="print app/e2e/editor.mjs CASES entries for the findings in FILE and exit")
+                   help="print app/e2e/cases/*.json lines for the findings in FILE and exit")
 
 
 def _fuzz(args: argparse.Namespace, nvim: NvimRunner, web_runner: WebRunner) -> int:
@@ -310,26 +310,22 @@ def _accept(args: argparse.Namespace) -> int:
     return 0
 
 
-def _to_editor_case(path: pathlib.Path, nvim: NvimRunner) -> int:
-    """Print editor.mjs CASES entries: start buffer, keys and nvim's result as the expectation."""
-    findings = _load_findings(path)
-    cases = [_with_keys(f.case, f.minimised) if f.minimised else f.case for f in findings]
-    for case, side, f in zip(cases, nvim(cases), findings, strict=True):
-        print(_editor_case_literal(case, side, f))
+def _to_editor_case(path: pathlib.Path) -> int:
+    """Print one app/e2e/cases/*.json line per finding: inputs only, nvim answers at test time."""
+    for f in _load_findings(path):
+        print(_editor_case_line(_with_keys(f.case, f.minimised) if f.minimised else f.case, f))
     return 0
 
 
-def _editor_case_literal(case: generate.Case, side: compare.Side, f: compare.Finding) -> str:
-    name = f"difftest seed {case.seed} #{case.index} [{f.cls}] {f.shape}"
-    fields = [
-        f"name: {json.dumps(name, ensure_ascii=False)}",
-        f"lines: {json.dumps(list(case.buffer.lines), ensure_ascii=False)}",
-        f"cursor: {json.dumps(list(web.web_cursor(case.buffer)))}",
-        f"keys: {json.dumps(case.keys, ensure_ascii=False)}",
-        f"expect: {json.dumps(list(side.lines), ensure_ascii=False)}",
-        f"cursorAfter: {json.dumps(list(side.cursor))}",
-    ]
-    return "  {\n" + "".join(f"    {line},\n" for line in fields) + "  },"
+def _editor_case_line(case: generate.Case, f: compare.Finding) -> str:
+    entry = {
+        "name": f"difftest seed {case.seed} #{case.index} [{f.cls}] {f.shape}",
+        "lang": case.buffer.lang,
+        "lines": list(case.buffer.lines),
+        "cursor": list(web.web_cursor(case.buffer)),
+        "keys": case.keys,
+    }
+    return json.dumps(entry, ensure_ascii=False)
 
 
 def _with_keys(case: generate.Case, keys: str) -> generate.Case:

@@ -259,11 +259,11 @@ def test_shape_collapses_similar_keys():
     assert compare.shape("ciwfoo<Esc>") == compare.shape("ciwbar baz<Esc>")
 
 
-def _finding(keys, minimised=None):
+def _finding(keys, minimised=None, fields=("lines",)):
     nvim, web = _side(("abc",)), _side(("ab",))
     case = _case(keys)
-    return Finding(case, nvim, web, ["lines"], compare.classify(case, nvim, web), compare.shape(minimised or keys),
-                   minimised)
+    return Finding(case, nvim, web, list(fields), compare.classify(case, nvim, web),
+                   compare.shape(minimised or keys), minimised)
 
 
 def test_is_known_by_shape_and_match():
@@ -276,6 +276,13 @@ def test_is_known_by_shape_and_match():
     assert not compare.is_known(_finding("dd"), known)
     # Once minimised, a known shape in the original keys no longer counts.
     assert not compare.is_known(_finding("cgnx<Esc>dd", minimised="dd"), known)
+
+
+def test_is_known_respects_fields():
+    known = [{"shape": "x", "match": "<Esc>u$", "fields": ["cursor"], "class": "a", "note": "n", "added": "2026-10-16"}]
+    assert compare.is_known(_finding("ofoo<Esc>u", fields=["cursor"]), known)
+    assert not compare.is_known(_finding("ofoo<Esc>u", fields=["lines"]), known)
+    assert not compare.is_known(_finding("dwifoo<Esc>u", fields=["cursor", "mode"]), known)
 
 
 def test_seeded_known_list():
