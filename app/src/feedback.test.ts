@@ -41,3 +41,12 @@ test("VERSION matches app/package.json", () => {
   const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
   assert.equal(VERSION, pkg.version);
 });
+
+test("the newest errors go at the end of the body, never pushing out the version", () => {
+  const errors = [{ t: 0, version: "v", route: "practice", message: "boom", stack: "at x" }];
+  const body = new URL(issueUrl(report({ errors }))).searchParams.get("body") ?? "";
+  assert.ok(body.includes("recent errors") && body.includes("boom"), body);
+  const nasty = "<Esc> `\n😀".repeat(3000);
+  const worst = new URL(issueUrl(report({ seq: nasty, note: nasty, ex: { ...ex, task: nasty }, errors }))).searchParams.get("body") ?? "";
+  assert.ok(worst.includes(`app version: ${VERSION}`), worst.slice(-200));
+});

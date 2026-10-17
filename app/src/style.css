@@ -100,6 +100,11 @@ code { font-family: var(--mono); font-size: .93em; }
 .page p { margin: 6px 0; }
 .lead { font-size: 16px; }
 .lead code { color: var(--accent); }
+.moment { color: var(--pass); font-weight: 500; }
+.note.nudge { color: var(--accent); margin-top: 6px; }
+.note.broke { color: var(--fail); }
+.note.gate { color: var(--accent); }
+.page .version { margin-top: 18px; }
 .tabs { display: flex; gap: 18px; margin: 10px 0 4px; font-size: 13.5px; color: var(--muted); }
 .tabs .on { color: var(--fg); border-bottom: 2px solid var(--accent); }
 table.skills, table.sessions { width: 100%; border-collapse: collapse; font-size: 13.5px; }

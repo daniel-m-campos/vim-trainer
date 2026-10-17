@@ -26,16 +26,24 @@ Model: `src/model/model.ts` (TypeScript mirror of `model/vimtrainer_model`, test
 is bundled; `src/graph.ts` applies the editor profile and disables skills that have no exercises
 in the current language, so the model only rotates through drillable skills (TODO(mvp)).
 
-Emulator: `src/vimfixes.ts` patches the places where codemirror-vim differs from `nvim --clean` on
-shipped pars (`d}` exclusive-linewise, `dG` at the end of the buffer, `:m` / `:t` / `:copy`,
-case-sensitive search, Vim's linewise `i{` / `i[` / `i(` on multi-line blocks after an operator). `e2e/emulator.mjs` + `emulator-check.html` replay every par in the browser;
+Emulator: `src/vimfixes.ts` patches the places where codemirror-vim differs from `nvim --clean`
+(numbered fixes in its header: exclusive and linewise ranges, a failing motion aborting its
+operator, `>`/`<` on empty lines, cursor placement after `y`/`g~`/`p`, `J`, counts, `:m` / `:t` /
+`:copy`, case-sensitive search, block objects). It reaches codemirror-vim's private motion,
+operator and action tables through `grabTable()` and wraps entries. `src/vimfixes-macros-indent.ts`
+(installed by `installVimFixes()`) handles macros and `:normal` (a failing command aborts them,
+with a recursion guard), Python/C++ auto-indent, Insert-mode `<C-w>`, `:j` and ex errors. Pure
+helpers are unit-tested in `src/vimfixes.test.ts`; `e2e/editor.mjs` (plus
+`e2e/cases-macros-indent.mjs`) types Neovim-verified key sequences, and a case may carry
+`xfailIn: ["firefox"]` for an engine-specific failure that is reported but not counted.
+`e2e/emulator.mjs` + `emulator-check.html` replay every par in the browser;
 `make content` runs it with `--write`, which sets `emulator.web` and drops browser mismatches from the index.
 
 Keys: in the editor every key goes to Vim, except `F1` (hint). `Esc Esc` in normal mode gives up.
 On the result strip: `space` next, `r` retry, `?` hints, `p` replay (pro, disabled), `!` flag, `q` end session,
 `s` stats, `,` settings. Stats (`src/stats/`): `tab` / `1` `2` `3` skills grid / progress / sessions,
 `h` `j` `k` `l` move, `enter` history chart, `f` drill this next, `Esc` back. Straight after placement
-`enter` starts the session. `stats-demo.html` renders the view on a simulated learner (`npm run e2e:stats`).
+`enter` starts the session. Browser Back and Forward move between the same views (see Reading note: routing). `stats-demo.html` renders the view on a simulated learner (`npm run e2e:stats`).
 
 State lives in `localStorage["vim-trainer.v1"]`; export/import JSON in settings.
 
@@ -85,7 +93,41 @@ language whose placement ran or was skipped. `load()` and `parseImport()` in
 - `startPlacement()` stores the language in `placement.lang`; `finishPlacement()` sets
   `saved.placementDone[placement.lang]`, or the current language when `x` skipped it.
 - `onLangChange()` puts a message in settings for a language with no placement yet;
-  `Esc` then goes through `goBack()`, which opens the placement intro.
+  `Esc` then goes through `goBack()` to `#practice`, whose guard opens the placement intro.
+  A placement still running is finished first by `closePlacement()` with the samples it
+  has, so the new language starts its own intro and counter.
+- `persist()` copies the running `placement` into `saved.placement`, so a reload resumes
+  at the same exercise with the records kept. `finish()` sets a placement record's `ok`
+  with `placementPass(ok, keys, par)` from `src/grading.ts`: a correct answer over
+  `max(2 * par, par + 6)` keys is logged as not passed.
+
+## Reading note: routing
+
+`location.hash` decides the view: `#practice` (the default), `#stats`, `#settings`,
+`#placement` and `#placement-intro`. Three functions in `src/main.ts` change it:
+
+- `navigate(route)` is for a key or link the player used (`s`, `,`, the header links). It
+  pushes a history entry, so browser Back returns to the previous view.
+- `redirect(route)` is for internal hops (end of placement, a guard). It replaces the
+  current entry, so Back never lands on it.
+- `render()` draws the view for the current hash. It runs after both, and on `hashchange`
+  (Back, Forward, an edited URL). Its guards make every hash safe to load directly:
+  `#practice` while a placement runs goes to `#placement`, `#placement-intro` for a placed
+  language goes to `#practice`, and on a first visit everything except `#settings` shows
+  the setup questions.
+
+`Esc` on stats or settings calls `goBack()`: `history.back()` when the app pushed the
+current entry (so `Esc` and Back agree), otherwise `redirect("practice")`.
+
+## Reading note: errors and version
+
+There is no telemetry. `window` `error` and `unhandledrejection` handlers in `src/main.ts`
+call `recordError()`, which keeps the last 20 as `saved.errors` (`pushError` in
+`src/storage.ts`): time, version, route, message and the first 5 stack lines. Export
+writes them, the "!" issue body lists the newest three while they fit under the URL cap,
+and the footer says "something broke" once. `VERSION` in `src/feedback.ts` is
+`__APP_VERSION__`, which `vite.config.ts` defines as `package.json` "version" plus the
+short commit sha; settings shows it at the bottom.
 
 What each file is for:
 
@@ -93,7 +135,8 @@ What each file is for:
   builds the attempt record, including `seq` (the keys typed, from `replayKeys`) and `beatPar`.
 - `src/feedback.ts`: the issue URL. `REPO` is the one place that names the GitHub repo.
 - `src/grading.ts`: pure functions. Key tokens, pass checks and the efficiency `band()`
-  (`"beat"` when keys < par). `displayKeys` is what the strip shows; `replayKeys` is the
+  (`"beat"` when keys < par). `placementPass()` is the placement key cap (ADR 0011);
+  `unrecoverable()` gives the reason for the "not quite — u to undo" nudge, or null. `displayKeys` is what the strip shows; `replayKeys` is the
   same string with a `jk` escape written as `<Esc>`, so Neovim can replay the logged `seq`.
 - `src/storage.ts`: localStorage load/save and JSON export/import.
 - `src/model/model.ts`: the adaptive model (TypeScript mirror of the Python model). It

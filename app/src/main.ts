@@ -18,12 +18,13 @@ import { baseGraph, drillGraph, graphNodes } from "./graph.ts";
 import { mountEditor, type EditorHandle } from "./editor.ts";
 import {
   tokenize, displayKeys, replayKeys, checkPass, isGiveUp, armsGiveUp, GIVE_UP_MS, band, BAND_LABEL, chooseHint, diffLines, linesEqual, exerciseHints,
+  placementPass, unrecoverable,
   type Band, type DiffLine, type Mode, type Snapshot, type Token,
 } from "./grading.ts";
-import { load, save, clear, exportJson, parseImport, type Saved } from "./storage.ts";
+import { load, save, clear, exportJson, parseImport, pushError, ERRORS_MAX, type ErrorEntry, type PlacementProgress, type Saved } from "./storage.ts";
 import { skillInfo, EDITOR_TIPS } from "./skills.ts";
 import { $, esc, code, taskHtml, confidenceBar, fmtSeconds } from "./dom.ts";
-import { issueUrl, FLAG_REASONS, ISSUES_URL, REPO, type FlagReason } from "./feedback.ts";
+import { issueUrl, FLAG_REASONS, ISSUES_URL, REPO, SOURCES_URL, VERSION, type FlagReason } from "./feedback.ts";
 import { renderStatsView, type StatsTab, type StatsViewHandle } from "./stats/statsView.ts";
 import type { ContentIndex, EditorProfile, EscapePref, Exercise, Settings } from "./types.ts";
 
@@ -53,6 +54,9 @@ const rngSeed = () => crypto.getRandomValues(new Uint32Array(1))[0];
 
 type View = "onboarding" | "placement-intro" | "practice" | "stats" | "settings" | "summary" | "message" | "loading";
 type Role = "placement" | "warmup" | "practice";
+/** The views location.hash can name; the hash is the single source of truth for which one shows. */
+type Route = "practice" | "stats" | "settings" | "placement" | "placement-intro";
+const ROUTES: Route[] = ["practice", "stats", "settings", "placement", "placement-intro"];
 
 interface Result {
   ok: boolean;
@@ -65,6 +69,8 @@ interface Result {
   cursorAt: [number, number];
   /** Why a give-up shows no diff: the ex-kind buffer already matched. */
   note: string | null;
+  /** A correct placement attempt over the key cap (grading.placementPass): logged as not passed. */
+  gateNote: string | null;
 }
 
 interface Current {
@@ -85,18 +91,26 @@ interface Current {
   flagged: FlagReason | null; // sent: the strip says so
   flagUrl: string; // the issue form URL, linked on the strip in case the new tab did not open
   flagBlocked: boolean; // window.open returned null: a popup blocker stopped the new tab
+  nudged: boolean; // the "not quite ... u to undo" note was shown (once per exercise)
 }
 
 let graph: SkillGraph;
 let index: ContentIndex;
 let saved: Saved;
 let view: View = "loading";
-const backStack: View[] = []; // where Esc returns to from stats / settings
+let onboarding = false; // first visit: every route shows the setup questions until they are answered
+let fromOnboarding = false; // the placement intro follows the setup questions in this page load
+let langChanged = false; // the language changed in settings: Esc goes to practice, not back to old stats
 let cur: Current | null = null;
 let session = { startMs: Date.now(), sinceT: nowSec(), count: 0, warmupsLeft: WARMUPS, seen: new Set<string>(), recorded: false };
-let placement: { lang: string; queue: { skill: string; id: string }[]; i: number; records: AttemptRecord[] } | null = null;
+/** The placement in progress; persist() mirrors it into saved.placement so a reload resumes it. */
+let placement: PlacementProgress | null = null;
 let forced: string | null = null;
 let afterPlacement = false;
+let announced = ""; // the focus skill the post-placement stats line names; enter drills exactly this one
+let placementMoment = ""; // "placement complete: N skills placed, M mastered." on the stats page after placement
+const pendingErrors: ErrorEntry[] = []; // errors caught before boot loaded `saved`
+let broke: "no" | "yes" | "seen" = "no"; // an error was caught: the footer says so until the next exercise
 let statsTab: StatsTab = "skills";
 let statsSel = 0;
 let statsView: StatsViewHandle | null = null;
@@ -110,8 +124,37 @@ let escCueTimer: ReturnType<typeof setTimeout> | null = null;
 
 const S = () => saved.settings;
 function persist(): void {
+  if (placement) saved.placement = placement;
+  else delete saved.placement;
   if (!save(saved)) console.warn("vim-trainer: localStorage unavailable; progress will not survive a reload. Use export.");
 }
+
+// --- error visibility (no telemetry) ------------------------------------------------
+
+const BROKE_HTML = `<div class="note broke" id="broke">something broke &mdash; export your data and flag it with <kbd>!</kbd></div>`;
+
+/** Keeps an uncaught error in saved.errors (exported, and put in the "!" issue); called by the window error handlers below. */
+function recordError(message: string, stack: string | undefined): void {
+  const entry: ErrorEntry = {
+    t: nowSec(), version: VERSION, route: location.hash.slice(1) || view,
+    message: message.slice(0, 500), stack: (stack ?? "").split("\n").slice(0, 5).join("\n"),
+  };
+  if (!saved) {
+    if (pendingErrors.length >= ERRORS_MAX) pendingErrors.shift(); // the same cap as saved.errors
+    return void pendingErrors.push(entry);
+  }
+  pushError(saved, entry);
+  persist();
+  if (broke === "no") broke = "yes";
+  const foot = document.getElementById("foot");
+  if (broke === "yes" && view === "practice" && foot && !document.getElementById("broke")) foot.insertAdjacentHTML("afterbegin", BROKE_HTML);
+}
+
+window.addEventListener("error", (e) => recordError(String(e.message), (e.error as Error | undefined)?.stack));
+window.addEventListener("unhandledrejection", (e) => {
+  const r = e.reason as unknown;
+  recordError(r instanceof Error ? r.message : String(r), r instanceof Error ? r.stack : undefined);
+});
 
 // --- model helpers --------------------------------------------------------------------
 
@@ -260,10 +303,12 @@ function show(v: View): void {
 }
 
 function renderHeader(): void {
-  $("#hdr-ctx").innerHTML = `${esc(langName(S().lang).toLowerCase())} &middot; ${esc(S().profile)}`;
-  const skill = cur?.skill ?? (placed() ? focusSkill() : "");
-  const info = skill ? skillInfo(skill) : null;
-  $("#hdr-focus").innerHTML = info && view === "practice" ? `focus: ${code(info.keys)} &nbsp;${esc(info.name)}` : "";
+  // Nothing about the setup before the first question is answered (QA #34).
+  $("#hdr-ctx").innerHTML = onboarding && onboard.step === 0 ? "" : `${esc(langName(S().lang).toLowerCase())} &middot; ${esc(S().profile)}`;
+  const info = cur && view === "practice" ? skillInfo(cur.skill) : null;
+  // A warm-up is not the focus skill: say so, so the header never names a skill the exercise is not (QA #4).
+  const label = cur?.role === "warmup" ? "warm-up" : "focus";
+  $("#hdr-focus").innerHTML = info ? `${label}: ${code(info.keys)} &nbsp;${esc(info.name)}` : "";
 }
 
 const MODE_LABEL: Record<Mode, string> = {
@@ -305,7 +350,13 @@ function renderSolvingFooter(): void {
       <span>trend ${trend(cur.skill)}</span>
       <span class="keys"><span><kbd>F1</kbd> hint</span><span class="giveup" id="giveup">${GIVEUP_IDLE}</span></span>
     </div>
-    <div class="hint midhint" id="midhint" hidden></div>`;
+    <div class="hint midhint" id="midhint" hidden></div>
+    <div class="note nudge" id="nudge" hidden></div>${brokeHtml()}`;
+}
+
+/** The "something broke" line while it is due; called by the two footer renderers. */
+function brokeHtml(): string {
+  return broke === "yes" ? BROKE_HTML : "";
 }
 
 const GIVEUP_IDLE = `<kbd>Esc</kbd><kbd>Esc</kbd> skip`;
@@ -367,7 +418,8 @@ function renderResult(): void {
   const prominent = !r.ok || r.band === "over";
   const par = `<span class="par${prominent ? " prominent" : ""}">par ${code(ex.par.keys)} <span class="dim">${ex.par.count}</span></span>`;
   const beat = r.ok && r.band === "beat" ? `<span class="beat">you beat par: ${r.keys} vs ${ex.par.count}</span>` : "";
-  let extra = "";
+  let extra = brokeHtml();
+  if (r.gateNote) extra += `<div class="note gate">${esc(r.gateNote)}</div>`;
   if (r.hint) extra += `<div class="hint">${esc(r.hint)}</div>`;
   if (!r.ok && r.diff) {
     extra += `<pre class="diff" aria-label="expected buffer diff">${r.diff
@@ -474,7 +526,7 @@ function confirmFlag(): void {
   if (logged) logged.flag = flag;
   persist();
   const r = cur.result;
-  cur.flagUrl = issueUrl({ ex: cur.ex, seq: replayKeys(r.tokens), keys: r.keys, ok: r.ok, reason: cur.flagReason, note, profile: S().profile });
+  cur.flagUrl = issueUrl({ ex: cur.ex, seq: replayKeys(r.tokens), keys: r.keys, ok: r.ok, reason: cur.flagReason, note, profile: S().profile, errors: saved.errors });
   // No "noopener" feature: with it window.open always returns null, so a blocked popup
   // could not be told apart. The opener link is cut by hand instead.
   const w = window.open(cur.flagUrl, "_blank");
@@ -489,11 +541,14 @@ function confirmFlag(): void {
 function mountExercise(ex: Exercise, skill: string, role: Role, retry: boolean): void {
   cur?.editor.destroy();
   setEscCue(false);
+  if (broke === "yes" && document.getElementById("broke")) broke = "seen"; // the note was shown on the last exercise
   // kind=ex only passes through a ':' command (05), which the task text does not say.
   $("#task").innerHTML = taskHtml(ex.task) + (ex.kind === "ex" ? ` <span class="req">using an Ex <kbd>:</kbd> command</span>` : "");
+  const want: Route = role === "placement" ? "placement" : "practice";
+  if (hashRoute() !== want) history.replaceState(null, "", `#${want}`); // a load that finished after a route change
   show("practice");
   const editor = mountEditor($("#code"), ex, { relativeNumbers: S().relativeNumbers, escape: S().escape });
-  const me: Current = { ex, skill, role, retry, hintUsed: false, editor, phase: "solving", result: null, showAllHints: false, proNote: false, record: null, flagging: false, flagReason: null, flagged: null, flagUrl: "", flagBlocked: false };
+  const me: Current = { ex, skill, role, retry, hintUsed: false, editor, phase: "solving", result: null, showAllHints: false, proNote: false, record: null, flagging: false, flagReason: null, flagged: null, flagUrl: "", flagBlocked: false, nudged: false };
   cur = me;
   session.seen.add(ex.id);
   renderHeader();
@@ -506,6 +561,16 @@ function mountExercise(ex: Exercise, skill: string, role: Role, retry: boolean):
     if (checkPass(ex, snap, tokens)) finish(me, true, snap);
     else if (ex.kind === "ex" && snap.mode === "normal" && ex.expect.lines && linesEqual(snap.lines, ex.expect.lines))
       showMidNote("the buffer is right, but this drill counts only a : command. u undoes back to the start.");
+    else if (!me.nudged && snap.mode === "normal" && ex.expect.lines && !linesEqual(snap.lines, ex.expect.lines)) {
+      // Back in normal mode with a buffer that can no longer reach the target: say so once.
+      const why = unrecoverable(ex.start.lines, snap.lines, ex.expect.lines);
+      if (why) {
+        me.nudged = true;
+        const el = $("#nudge");
+        el.textContent = `not quite: ${why} — u to undo`;
+        el.hidden = false;
+      }
+    }
   });
   editor.recorder.onHintKey(() => cur === me && revealMidHint());
   editor.recorder.onKey((ev) => {
@@ -530,6 +595,12 @@ function finish(me: Current, ok: boolean, snap: Snapshot): void {
     hint: me.hintUsed, retry: me.retry, undo: rec.undoCount(),
     seq: replayKeys(tokens), beatPar: ok && keys < me.ex.par.count,
   };
+  // Placement: a correct answer far over par is not evidence of the skill (QA #8).
+  let gateNote: string | null = null;
+  if (me.role === "placement") {
+    record.ok = placementPass(ok, keys, me.ex.par.count);
+    if (ok && !record.ok) gateNote = `placement counts this one as not yet known: ${keys} keys, and up to ${Math.max(2 * me.ex.par.count, me.ex.par.count + 6)} count.`;
+  }
   me.record = record;
   const wantLines = me.ex.expect.lines;
   const matched = !!wantLines && linesEqual(snap.lines, wantLines);
@@ -542,6 +613,7 @@ function finish(me: Current, ok: boolean, snap: Snapshot): void {
     note: !ok && me.ex.kind === "ex" && matched
       ? "a : command was required: the buffer already matched, but this drill counts only an Ex command (the par uses one)."
       : null,
+    gateNote,
   };
   me.phase = "result";
 
@@ -618,50 +690,75 @@ async function nextExercise(): Promise<void> {
     mountExercise(ex, skill, role, false);
   } catch (err) {
     console.error(err);
+    // A saved placement keeps its queue: drop the entry that fails, or enter would load it again.
+    if (role === "placement" && placement) {
+      placement.queue.splice(placement.i, 1);
+      persist();
+    }
     showMessage("Could not load an exercise", `${esc(id)}: ${esc((err as Error).message)}. Press enter to try another.`);
   }
 }
 
 function startSession(): void {
   session = { startMs: Date.now(), sinceT: nowSec(), count: 0, warmupsLeft: WARMUPS, seen: new Set(), recorded: false };
+  summaryData = null;
   void nextExercise();
 }
 
+/**
+ * A saved placement without the queue entries build/ no longer has (content rebuilt since
+ * the save); `i` still points at the same next entry. Boot and import call it.
+ */
+function knownQueue(p: PlacementProgress): PlacementProgress {
+  const skills = index.langs[p.lang]?.skills ?? {};
+  const known = (q: { skill: string; id: string }) => skills[q.skill]?.ids.includes(q.id) ?? false;
+  p.i = p.queue.slice(0, p.i).filter(known).length;
+  p.queue = p.queue.filter(known);
+  return p;
+}
+
+/** Enter on the placement intro: build the queue, save it (a reload resumes it) and go to #placement. */
 function startPlacement(): void {
   placement = { lang: S().lang, queue: placementQueue(), i: 0, records: [] };
   if (!placement.queue.length) return finishPlacement();
-  void nextExercise();
+  persist();
+  redirect("placement");
 }
 
-function finishPlacement(): void {
-  if (placement) {
-    // A language switch mid-placement leaves records in two languages. Apply each
-    // consecutive same-language run as its own batch, as rebuild() does, and mark
-    // every language that got samples as placed.
-    const runs: AttemptRecord[][] = [];
-    for (const r of placement.records) {
-      const last = runs[runs.length - 1];
-      if (last && last[0].lang === r.lang) last.push(r);
-      else runs.push([r]);
-    }
-    for (const run of runs) {
-      try {
-        saved.model = M.applyPlacement(saved.model, run, graph);
-      } catch (err) {
-        console.error("applyPlacement failed", err);
-      }
-      saved.placementDone[run[0].lang] = true;
+/**
+ * Applies the placement's first attempts, marks its language placed and drops the
+ * progress. Returns the one-line outcome for the stats page. Called by finishPlacement
+ * and by onLangChange (a language switch finishes the running placement early).
+ */
+function closePlacement(): string {
+  // The x skip path has no placement object: the current language is the one skipped.
+  const lang = placement?.lang ?? S().lang;
+  const recs = (placement?.records ?? []).filter((r) => r.lang === lang);
+  if (recs.length) {
+    try {
+      saved.model = M.applyPlacement(saved.model, recs, graph);
+    } catch (err) {
+      console.error("applyPlacement failed", err);
     }
   }
-  // The x skip path has no placement object: the current language is the one skipped.
-  saved.placementDone[placement?.lang ?? S().lang] = true;
+  saved.placementDone[lang] = true;
   placement = null;
+  fromOnboarding = false;
   persist();
+  if (!recs.length) return "placement skipped.";
+  const skills = [...new Set(recs.map((r) => r.skill))];
+  const mastered = skills.filter((s) => ["mastered", "review"].includes(skillState(s, lang)?.status ?? "")).length;
+  return `placement complete: ${skills.length} skill${skills.length === 1 ? "" : "s"} placed, ${mastered} mastered.`;
+}
+
+/** End of placement (last exercise, q, or x on the intro): the outcome line, then stats. */
+function finishPlacement(): void {
+  placementMoment = closePlacement();
   cur?.editor.destroy();
   cur = null;
   afterPlacement = true;
-  backStack.length = 0;
-  openStats();
+  announced = focusSkill(); // computed once: the stats line and enter use the same skill (QA #4)
+  redirect("stats");
 }
 
 function endSession(): void {
@@ -693,8 +790,7 @@ function endSession(): void {
   persist();
   cur?.editor.destroy();
   cur = null;
-  show("summary");
-  renderSummary();
+  redirect("practice"); // #practice with no exercise and summaryData set shows the summary
 }
 
 // --- pages -----------------------------------------------------------------------
@@ -730,12 +826,17 @@ function statRows(): StatRow[] {
   return nodes.sort((a, b) => a.tier - b.tier || (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)).map((n) => ({ id: n.id, tier: n.tier }));
 }
 
+/** The skill the stats grid outlines: the announced one straight after placement, else the model's pick. */
+function statsFocus(): string {
+  if (afterPlacement && announced) return announced;
+  return placed() ? focusSkill() : "";
+}
+
+/** The #stats route: select the focus row and draw the page; called by render. */
 function openStats(): void {
-  if (view !== "stats") backStack.push(view);
   show("stats");
   const rows = statRows();
-  const focus = placed() ? focusSkill() : "";
-  const i = rows.findIndex((r) => r.id === (forced ?? focus));
+  const i = rows.findIndex((r) => r.id === (forced ?? statsFocus()));
   statsSel = i >= 0 ? i : 0;
   renderStats();
 }
@@ -745,11 +846,12 @@ function renderStats(): void {
   const lang = S().lang;
   const avail = available();
   const rows = statRows();
-  const focus = placed() ? focusSkill() : "";
+  const focus = statsFocus();
   const lead = afterPlacement && focus ? `We'll start with ${code(skillInfo(focus).keys)}. Press enter.` : "";
   const hidden = graphNodes(graph).filter((n) => n.tier <= 12 && !avail.has(n.id)).length;
   $("#page").innerHTML = `
     <h1>Stats <span class="dim" style="font-size:14px;font-weight:400">${esc(langName(lang))}</span></h1>
+    ${afterPlacement && placementMoment ? `<p class="moment" id="placement-moment">${esc(placementMoment)}</p>` : ""}
     ${lead ? `<p class="lead">${lead}</p>` : ""}
     <div id="stats-view"></div>
     ${hidden ? `<p class="note">${hidden} more skills in the plan have no ${esc(langName(lang))} exercises yet.</p>` : ""}
@@ -775,20 +877,21 @@ function renderStats(): void {
   });
 }
 
-/** After placement: enter starts the session on the focus skill. */
+/** After placement: enter starts the session on the skill the stats line announced. */
 function drillSelected(): void {
   afterPlacement = false;
-  forceSkill(focusSkill());
+  forceSkill(announced || focusSkill());
 }
 
-/** Make `id` the next exercise's skill and leave stats for practice. */
+/** Make `id` the next exercise's skill and leave stats for practice; an open exercise stays (forced applies next). */
 function forceSkill(id: string): void {
   if (id && available().has(id)) forced = id;
-  if (cur && cur.phase === "solving") return show("practice"); // forced applies from the next exercise
-  cur?.editor.destroy();
-  cur = null;
-  if (session.count === 0 && !session.recorded) startSession();
-  else void nextExercise();
+  if (!(cur && cur.phase === "solving")) {
+    cur?.editor.destroy();
+    cur = null;
+    summaryData = null;
+  }
+  redirect("practice"); // render -> resumeExercise starts or continues the session
 }
 
 function renderSettings(): void {
@@ -808,7 +911,7 @@ function renderSettings(): void {
       <p class="note">Keyboard layout: pars count keystrokes, not physical keys, so they are the same on every layout.</p>
       <p class="note">Theme: dark (the only theme in v1).</p>
       <p class="note">Exercise snippets are cut from open-source code under its licence; each result shows its source.
-        Full list: <a href="${esc(contentBase())}ATTRIBUTION.md" target="_blank" rel="noopener" id="attribution-link">ATTRIBUTION.md</a>.</p>
+        <a href="${esc(contentBase())}ATTRIBUTION.md" target="_blank" rel="noopener" id="attribution-link">Sources &amp; attribution</a></p>
       <fieldset><legend>Your data (stored only in this browser)</legend>
         <button type="button" id="btn-export">export JSON</button>
         <button type="button" id="btn-import">import JSON</button>
@@ -821,7 +924,9 @@ function renderSettings(): void {
       </fieldset>
       <div class="msg" id="settings-msg">${esc(settingsMsg)}</div>
     </form>
-    <div class="keysline"><span><kbd>tab</kbd> move between controls</span><span><kbd>Esc</kbd> back</span></div>`;
+    <div class="keysline"><span><kbd>tab</kbd> move between controls</span><span><kbd>Esc</kbd> back</span></div>
+    <p class="note version" id="app-version">vim-trainer ${esc(VERSION)}</p>`;
+  void checkAttribution($("#attribution-link") as HTMLAnchorElement);
   const form = $("#settings-form") as HTMLFormElement;
   form.addEventListener("change", (e) => {
     const t = e.target as HTMLInputElement;
@@ -844,6 +949,8 @@ function renderSettings(): void {
     try {
       saved = parseImport(await f.text(), LANGS.map(([k]) => k));
       saved.settings = { ...DEFAULTS, ...saved.settings };
+      placement = saved.placement?.lang === saved.settings.lang && !placed() ? knownQueue(saved.placement) : null;
+      onboarding = false; // an imported save answers the setup questions
       refreshGraph();
       persist();
       settingsMsg = `imported ${saved.model.log.length} attempts.`;
@@ -858,47 +965,121 @@ function renderSettings(): void {
       return renderSettings();
     }
     clear();
+    history.replaceState(null, "", "#practice"); // reload into the first-visit questions, not settings
     location.reload();
   });
 }
 
+/** Points the "Sources & attribution" link at GitHub when this host does not serve ATTRIBUTION.md; called by renderSettings. */
+async function checkAttribution(a: HTMLAnchorElement): Promise<void> {
+  try {
+    const res = await fetch(a.href, { method: "HEAD", cache: "no-cache" });
+    if (res.ok && !(res.headers.get("content-type") ?? "").includes("text/html")) return;
+  } catch {
+    /* offline or blocked: use the fallback */
+  }
+  a.href = SOURCES_URL;
+}
+
 /**
  * The language changed in settings. Model state is per (skill, language), so nothing is
- * lost; the open exercise is in the old language and is dropped unrecorded, and a
- * placement in progress continues with exercises in the new language. A language with no
- * placement yet gets a settings message, and Esc (goBack) opens its placement intro.
+ * lost; the open exercise is in the old language and is dropped unrecorded. A placement
+ * in progress is finished with the samples it has (QA #15), so the new language gets its
+ * own intro and counter. A language with no placement yet gets a settings message, and
+ * Esc (goBack) opens its placement intro.
  */
 function onLangChange(): void {
+  const was = placement ? { lang: placement.lang, n: placement.records.length } : null;
+  if (placement) closePlacement(); // before refreshGraph: its records are scored on the old graph
   refreshGraph();
   if (cur && cur.ex.lang !== S().lang) {
     cur.editor.destroy();
     cur = null;
   }
-  if (placement) placement = { ...placement, queue: placement.queue.slice(0, placement.i).concat(placementQueue().slice(placement.i)) };
-  else if (!placed()) settingsMsg = `${langName(S().lang)} is new here: Esc opens its placement (x skips it).`;
+  langChanged = true;
+  const ended = was ? `${langName(was.lang)} placement ended early with ${was.n} exercise${was.n === 1 ? "" : "s"}. ` : "";
+  if (!placed()) settingsMsg = `${ended}${langName(S().lang)} is new here: Esc opens its placement (x skips it).`;
+  else if (ended) settingsMsg = ended;
   statsSel = 0;
 }
 
+/** The #settings route: draw the page with no message; called by render. */
 function openSettings(): void {
-  if (view !== "settings") backStack.push(view);
   show("settings");
   settingsMsg = "";
   resetArmed = false;
   renderSettings();
 }
 
+/**
+ * Esc on stats / settings: the previous history entry when this one was pushed by the
+ * app (so Esc and browser Back agree), else practice. After a language change it is
+ * always practice, which shows the new language's intro if it has no placement (QA #16).
+ */
 function goBack(): void {
   afterPlacement = false;
-  const to = backStack.pop();
-  if (to === "stats") return show("stats"), renderStats();
-  if (to === "settings") return show("settings"), renderSettings(); // stats opened from settings (header link)
-  if (to === "summary" && summaryData) return show("summary"), renderSummary();
-  if (to === "onboarding") return show("onboarding"), renderOnboarding();
-  if (to === "placement-intro" || (!placed() && !placement && !cur)) return show("placement-intro"), renderPlacementIntro();
+  if (langChanged || !(history.state as { app?: boolean } | null)?.app) {
+    langChanged = false;
+    return redirect("practice");
+  }
+  history.back(); // hashchange -> render
+}
+
+// --- routing -----------------------------------------------------------------------
+// The hash names the view. navigate() pushes a history entry (a key or link the player
+// used), redirect() replaces the current one (an internal hop, so Back never lands on
+// it), and hashchange (Back, Forward, an edited URL) re-renders. render() applies the
+// guards, so every hash is safe to load directly.
+
+/** The route location.hash names; "" and unknown hashes mean practice. */
+function hashRoute(): Route {
+  const h = location.hash.slice(1);
+  return (ROUTES as string[]).includes(h) ? (h as Route) : "practice";
+}
+
+/** A route the player asked for (s, ",", the header links): a new history entry, then render. */
+function navigate(r: Route): void {
+  if (location.hash === `#${r}`) return;
+  history.pushState({ app: true }, "", `#${r}`);
+  render();
+}
+
+/** An internal hop: replace the current history entry, then render. */
+function redirect(r: Route): void {
+  history.replaceState(null, "", `#${r}`);
+  render();
+}
+
+/** Show the view for the current hash, redirecting when it does not apply (no placement running, already placed...). */
+function render(): void {
+  // First visit: only settings (to import a save) is open before the setup questions are answered.
+  if (onboarding && hashRoute() !== "settings") return show("onboarding"), renderOnboarding();
+  switch (hashRoute()) {
+    case "stats":
+      return openStats();
+    case "settings":
+      return openSettings();
+    case "placement-intro":
+      if (placement) return redirect("placement");
+      if (placed()) return redirect("practice"); // a skipped placement is not re-entered (QA #14)
+      return show("placement-intro"), renderPlacementIntro();
+    case "placement":
+      if (!placement) return redirect(placed() ? "practice" : "placement-intro");
+      return resumeExercise();
+    case "practice":
+      if (placement) return redirect("placement");
+      if (!placed()) return redirect("placement-intro");
+      return resumeExercise();
+  }
+}
+
+/** The practice / placement routes: the open exercise, else the summary, else the next exercise. */
+function resumeExercise(): void {
   if (cur) return show("practice");
-  // A session in progress (no exercise open: dropped by a language change, or loading)
-  // continues; only a fresh one starts over.
-  if (to === "message" || session.count > 0 || session.recorded) return void nextExercise();
+  if (summaryData) return show("summary"), renderSummary();
+  // A session in progress (no exercise open: dropped by a language change, a message, or
+  // loading) continues; a placement resumes at placement.i; only a fresh session starts over.
+  if (placement || session.count > 0 || session.recorded) return void nextExercise();
   startSession();
 }
 
@@ -913,7 +1094,7 @@ function onboardOptions(): { label: string; sub: string; off: boolean; apply: ()
     });
   if (onboard.step === 1) return PROFILES.map(([k, n, sub]) => ({ label: n, sub, off: false, apply: () => (s.profile = k) }));
   return [
-    { label: "Yes, relative line numbers", sub: "default; the m.rel drills use them", off: false, apply: () => (s.relativeNumbers = true) },
+    { label: "Yes, relative line numbers", sub: "default; the count-and-jump drills (7j) use them", off: false, apply: () => (s.relativeNumbers = true) },
     { label: "No, absolute numbers", sub: "", off: false, apply: () => (s.relativeNumbers = false) },
   ];
 }
@@ -938,20 +1119,27 @@ function onboardChoose(i: number): void {
   if (onboard.step >= 3) {
     refreshGraph();
     persist();
-    show("placement-intro");
-    renderPlacementIntro();
-  } else renderOnboarding();
+    onboarding = false;
+    fromOnboarding = true;
+    redirect("placement-intro");
+  } else {
+    renderOnboarding();
+    renderHeader(); // the language shows in the header once it is chosen
+  }
 }
 
 function renderPlacementIntro(): void {
   const n = placementQueue().length;
   // Another language already placed: this is a language switch, not the first visit.
   const second = Object.values(saved.placementDone).some(Boolean);
+  // "first visit 4 of 4" only right after the three setup questions (QA #31).
+  const steps = fromOnboarding ? "first visit &middot; 4 of 4" : second ? "new language" : "";
+  const carry = masteredElsewhere(S().lang).size > 0;
   $("#page").innerHTML = `
-    ${second ? `<p class="steps">new language</p>` : `<p class="steps">first visit &middot; 4 of 4</p>`}
+    ${steps ? `<p class="steps">${steps}</p>` : ""}
     <h1>Let's see where you are${second ? ` in ${esc(langName(S().lang))}` : ""}</h1>
     <p class="lead">${n} short exercises in ${esc(langName(S().lang))}, about five minutes. There is no pass mark; the results seed your chart.</p>
-    ${second ? `<p class="note">This is a new language: skills you mastered in another language are skipped (they come back as reviews).</p>` : ""}
+    ${carry ? `<p class="note">This is a new language: skills you mastered in another language are skipped (they come back as reviews).</p>` : ""}
     <p class="note">Solve each one in the editor. <kbd>Esc</kbd><kbd>Esc</kbd> in normal mode skips one you don't know.</p>
     <div class="keysline"><span><kbd>enter</kbd> start</span><span><kbd>x</kbd> skip placement</span></div>`;
 }
@@ -1005,12 +1193,12 @@ function onKey(e: KeyboardEvent): void {
         else if (k === "q") handled(), endSession();
         else if (k === "?") handled(), (cur.showAllHints = !cur.showAllHints), renderResult();
         else if (k === "p") handled(), (cur.proNote = true), renderResult();
-        else if (k === "s") handled(), openStats();
-        else if (k === ",") handled(), openSettings();
+        else if (k === "s") handled(), navigate("stats");
+        else if (k === ",") handled(), navigate("settings");
       } else {
         // Focus left the editor mid-exercise (a click): header keys, enter returns.
-        if (k === "s") handled(), openStats();
-        else if (k === ",") handled(), openSettings();
+        if (k === "s") handled(), navigate("stats");
+        else if (k === ",") handled(), navigate("settings");
         else if (k === "Enter" || k === "Escape" || k === "i") handled(), cur.editor.view.focus();
       }
       return;
@@ -1019,7 +1207,7 @@ function onKey(e: KeyboardEvent): void {
       if (afterPlacement && k === "Enter") return handled(), drillSelected();
       if (statsView?.handleKey(k, e.shiftKey)) return handled();
       if (k === "Escape") handled(), goBack();
-      else if (k === ",") handled(), openSettings();
+      else if (k === ",") handled(), navigate("settings");
       return;
     }
     case "settings":
@@ -1027,12 +1215,12 @@ function onKey(e: KeyboardEvent): void {
       return;
     case "summary":
       if (k === "Enter") handled(), startSession();
-      else if (k === "s") handled(), openStats();
-      else if (k === ",") handled(), openSettings();
+      else if (k === "s") handled(), navigate("stats");
+      else if (k === ",") handled(), navigate("settings");
       return;
     case "message":
       if (k === "Enter") handled(), void nextExercise();
-      else if (k === ",") handled(), openSettings();
+      else if (k === ",") handled(), navigate("settings");
       return;
   }
 }
@@ -1042,15 +1230,20 @@ function onKey(e: KeyboardEvent): void {
 async function boot(): Promise<void> {
   index = await loadIndex();
   const prior = load();
-  saved = prior ?? { version: 1, settings: { ...DEFAULTS }, model: M.newState(baseGraph()), placementDone: {}, sessions: [] };
+  saved = prior ?? { version: 1, settings: { ...DEFAULTS }, model: M.newState(baseGraph()), placementDone: {}, sessions: [], errors: [] };
   saved.settings = { ...DEFAULTS, ...saved.settings };
   // An import from before validation may hold an unknown language; fall back to the default.
   if (!LANGS.some(([k]) => k === saved.settings.lang)) saved.settings.lang = DEFAULTS.lang;
+  for (const e of pendingErrors.splice(0)) pushError(saved, e), (broke = "yes");
+  // A placement saved mid-way resumes at the same index with its records (QA #18).
+  if (saved.placement?.lang === saved.settings.lang && !placed()) placement = knownQueue(saved.placement);
+  else delete saved.placement;
+  onboarding = !prior;
   refreshGraph();
   document.addEventListener("keydown", onKey);
-  $("#nav-stats").addEventListener("click", (e) => (e.preventDefault(), openStats()));
-  $("#nav-settings").addEventListener("click", (e) => (e.preventDefault(), openSettings()));
-  $("#hdr-ctx").addEventListener("click", (e) => (e.preventDefault(), openSettings()));
+  $("#nav-stats").addEventListener("click", (e) => (e.preventDefault(), navigate("stats")));
+  $("#nav-settings").addEventListener("click", (e) => (e.preventDefault(), navigate("settings")));
+  $("#hdr-ctx").addEventListener("click", (e) => (e.preventDefault(), navigate("settings")));
   // Clicking the locked editor must not strand focus: send it back to the strip.
   $("#code").addEventListener("mousedown", (e) => {
     if (cur?.phase === "result") {
@@ -1058,22 +1251,24 @@ async function boot(): Promise<void> {
       $("#foot").focus();
     }
   });
-  if (!prior) {
-    show("onboarding");
-    renderOnboarding();
-  } else if (!placed()) {
-    show("placement-intro");
-    renderPlacementIntro();
-  } else startSession();
+  window.addEventListener("hashchange", () => render());
+  history.replaceState(history.state, "", `#${hashRoute()}`); // "" or an unknown hash: name the route
+  render(); // a first visit shows the setup questions whatever the hash says
 }
 
 declare global {
   interface Window {
-    vimTrainer: { saved: () => Saved; model: () => ModelState; current: () => Current | null; placementSkills: () => string[] };
+    vimTrainer: {
+      saved: () => Saved; model: () => ModelState; current: () => Current | null; placementSkills: () => string[];
+      placement: () => PlacementProgress | null;
+    };
   }
 }
 // Test hook for the e2e suites; placementSkills lists the open placement's queued skills.
-window.vimTrainer = { saved: () => saved, model: () => saved.model, current: () => cur, placementSkills: () => placement?.queue.map((q) => q.skill) ?? [] };
+window.vimTrainer = {
+  saved: () => saved, model: () => saved.model, current: () => cur, placementSkills: () => placement?.queue.map((q) => q.skill) ?? [],
+  placement: () => placement,
+};
 
 boot().catch((err) => {
   console.error(err);
