@@ -17,6 +17,7 @@ import { vim, Vim, getCM } from "@replit/codemirror-vim";
 import { attachRecorder, recorderExtension, type Recorder } from "./recorder.ts";
 import { targetRanges } from "./grading.ts";
 import { caseSensitiveSearch, installVimFixes, lastEditorKey } from "./vimfixes.ts";
+import { insertUndoSteps } from "./vimfixes-macros-indent.ts";
 import type { EscapePref, Exercise, Pos } from "./types.ts";
 
 // Mock palette (docs/mocks/practice-screen.html).
@@ -188,6 +189,22 @@ export interface EditorHandle {
   destroy(): void;
 }
 
+/**
+ * Firefox can report a stale DOM selection after a command rewrote the cursor's line: after
+ * >* the cursor jumped to the line start ~300 ms later (CodeMirror's DOM observer read it
+ * as a user selection). Outside Insert mode the cursor moves only by Vim commands or the
+ * mouse, so a non-pointer selection read from the DOM ("select") is dropped there.
+ * mountEditor adds it to every editor; `view` is the editor once it exists.
+ */
+function keepVimCursor(view: () => EditorView | undefined): Extension {
+  return EditorState.transactionFilter.of((tr) => {
+    const v = view();
+    const vim = v && (getCM(v) as unknown as { state: { vim?: { insertMode?: boolean } } } | null)?.state.vim;
+    const fromDom = tr.isUserEvent("select") && !tr.isUserEvent("select.pointer") && !tr.docChanged;
+    return fromDom && vim && !vim.insertMode ? [] : tr;
+  });
+}
+
 export function mountEditor(parent: HTMLElement, ex: Exercise, opts: { relativeNumbers: boolean; escape: EscapePref }): EditorHandle {
   resetVimGlobals(opts.escape);
   const doc = ex.start.lines.join("\n");
@@ -206,22 +223,27 @@ export function mountEditor(parent: HTMLElement, ex: Exercise, opts: { relativeN
     extensions: [
       vim(), // first, so its keymap has precedence
       history(), // without it `u` is a silent no-op
+      insertUndoSteps, // an insert and the command that started it are one undo step, as in Vim
       opts.relativeNumbers ? relativeNumbers : lineNumbers(),
       drawSelection(),
       EditorState.allowMultipleSelections.of(true), // <C-v> block insert / append edits every line
       langExt(ex.lang),
       syntaxHighlighting(highlight),
       EditorState.tabSize.of(4),
+      EditorState.lineSeparator.of("\n"), // only \n breaks a line: Visual r<CR> leaves a literal \r, as in Vim
       indentUnit.of("    "),
       theme,
       ranges.length ? targetField(ranges) : [],
       editable.of([]),
       recorderExtension,
       revealField,
+      keepVimCursor(() => created),
     ],
   });
   parent.replaceChildren();
+  let created: EditorView | undefined;
   const view = new EditorView({ state, parent });
+  created = view;
   // The cursor line must be visible; buffers are short so this is cheap.
   view.dispatch({ effects: EditorView.scrollIntoView(anchor, { y: "center" }) });
   const recorder = attachRecorder(view, parent);
@@ -244,6 +266,10 @@ export function mountEditor(parent: HTMLElement, ex: Exercise, opts: { relativeN
     },
     destroy() {
       recorder.destroy();
+      // A pending Insert-mode key (`a<` waits for `<C-w>` etc.) has a 200 ms codemirror-vim
+      // timer that clears the input state; emptied here, it no longer touches the destroyed editor.
+      const vimState = (getCM(view) as unknown as { state: { vim?: { inputState: { keyBuffer: string[] } } | null } } | null)?.state.vim;
+      if (vimState) vimState.inputState.keyBuffer.length = 0;
       view.destroy();
     },
   };
