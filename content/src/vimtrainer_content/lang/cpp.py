@@ -55,7 +55,26 @@ SUBSCRIPT_TEXTS: Final = ("0", "i + 1", "index", "key", "n - 1")
 ANGLE_TEXTS: Final = ("int", "std::string", "double", "char", "std::size_t", "bool", "long long", "T")
 TPARAM_TEXTS: Final = ("typename T", "class T", "typename K, typename V", "int N")
 INT_TEXTS: Final = ("0", "1", "10", "100", "-1", "3")
-NAME_TEXTS: Final = ("count", "total", "index", "limit", "offset", "size", "result", "current")
+# Rename targets by role (see templates.ROLE_NAMES); _prime puts this list in the window cache.
+ROLE_NAMES: Final = {
+    "many": ("items", "values"),
+    "count": ("count", "total", "size"),
+    "index": ("index", "pos"),
+    "text": ("name", "label"),
+    "ptr": ("ptr", "node"),
+    "buffer": ("buffer", "buf"),
+    "flag": ("is_valid", "is_ready", "has_value"),
+    "call": ("process", "compute", "update"),
+    "class": ("record", "item", "handler"),
+    "any": ("value", "result"),
+}
+# Declared type -> role, first match wins (_type_roles).
+_TYPE_ROLES: Final = (
+    (re.compile(r"\b(vector|list|map|set|array|deque|unordered_\w+|multiset|multimap)\b"), "many"),
+    (re.compile(r"\bbool\b"), "flag"),
+    (re.compile(r"\b(string|string_view)\b"), "text"),
+    (re.compile(r"\b(size_t|int|long|short|unsigned|u?int\d+_t)\b"), "count"),
+)
 
 _NOUNS: Final = {
     "string_literal": "string", "argument_list": "argument list", "parameter_list": "parameter list",
@@ -271,7 +290,7 @@ def change_inner(win: Window, node: tree_sitter.Node, skill: str, lang: Language
     c, noun = _PAIR[o], _NOUNS[node.type]
     draft = Draft(
         template="change_inner", skill=skill, kind="edit",
-        task=f"Change the contents of this {noun} {_excerpt(win, node)} to `{text}`",
+        task=f"Change {templates._inside_phrase(noun, _DELIM_NAMES[o], inner)} to `{text}`",
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, oc + 1, cc, text)},
         variants=[f"ci{o}{text}<Esc>"], alternates=[f"ci{a}{text}<Esc>" for a in _ALIASES[o]],
         idioms=[f"{m}{text}<Esc>" for m in ("ciw", "ciW", "cw", "cW", "ce", "cE", f"ct{c}", f"cT{o}", "bcw",
@@ -302,7 +321,7 @@ def delete_inner(win: Window, node: tree_sitter.Node, skill: str, lang: Language
     c, noun, delims = _PAIR[o], _NOUNS[node.type], _DELIM_NAMES[o]
     draft = Draft(
         template="delete_inner", skill=skill, kind="edit",
-        task=f"Delete everything inside this {noun} {_excerpt(win, node)}, keeping the {delims}",
+        task=f"Delete {templates._inside_phrase(noun, delims, win.lines[row][oc + 1:cc])}, keeping the {delims}",
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, oc + 1, cc, "")},
         variants=[f"di{o}"], alternates=[f"di{a}" for a in _ALIASES[o]],
         idioms=["diw", "diW", "dw", "dW", "de", "dE", f"dt{c}", f"dT{o}", "bdt" + c, f"F{o}ldt{c}", f"T{o}dt{c}", "D"],
@@ -338,7 +357,7 @@ def delete_block(win: Window, node: tree_sitter.Node, skill: str, lang: Language
     header = _header(win, node, orow)
     yield Draft(
         template="delete_inner", skill=skill, kind="edit",
-        task=f"Delete the {n} lines inside the braces of `{header}`, keeping the `{{` and `}}` lines",
+        task=f"Delete the {n} lines inside the braces of {templates._quote(header)}, keeping the `{{` and `}}` lines",
         lines=lines, cursor=[row + 1, col], expect={"lines": lines[:orow + 1] + lines[crow:]},
         variants=["di{", "diB"], alternates=["di}"],
         idioms=["dap", "dip", "d}", "d{", "d]}", "d[{", f"{n}dd", "dd", "D"],
@@ -366,7 +385,7 @@ def upper_inner(win: Window, node: tree_sitter.Node, skill: str, lang: Language)
     if col is None:
         return
     draft = Draft(
-        template="upper_inner", skill=skill, kind="edit", task=f"Uppercase the text inside the string `{q}{inner}{q}`",
+        template="upper_inner", skill=skill, kind="edit", task=f"Uppercase {templates._inside_phrase('string', 'quotes', inner)}",
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, oc + 1, cc, inner.upper())},
         variants=[f"gUi{q}"], alternates=[f"vi{q}U", f"g~i{q}"],
         idioms=["gUiw", "gUiW", "gUt" + q, "gUT" + q, f"ci{q}{inner.upper()}<Esc>"],
@@ -412,7 +431,7 @@ def change_nth_arg(win: Window, node: tree_sitter.Node, skill: str, lang: Langua
     fn = _text(call.child_by_field_name("function"))
     yield Draft(
         template="change_nth_arg", skill=skill, kind="edit",
-        task=f"Change the {templates.ordinal(n)} argument of `{_clip(fn, 32)}(...)` from `{value}` to `{text}`",
+        task=f"Change the {templates.ordinal(n)} argument of the `{templates._call_name(fn)}` call from `{value}` to `{text}`",
         lines=win.lines, cursor=[row + 1, cursor], expect={"lines": _replace(win.lines, row, a0, a1, text)},
         variants=[f"{fk}w{m}{text}<Esc>" for m in (f"ct{d}", "cw", "ce", "cE", "cW")],
         alternates=[f"f,{';' * (k - 1)}wct{d}{text}<Esc>"] if k > 1 else [],
@@ -437,7 +456,7 @@ def change_rhs(win: Window, node: tree_sitter.Node, skill: str, lang: Language) 
         inits = [c for c in node.named_children if c.type == "init_declarator"]
         if len(inits) != 1:
             return
-        left, right = inits[0].child_by_field_name("declarator"), inits[0].child_by_field_name("value")
+        left, right = _declared_name(inits[0].child_by_field_name("declarator")), inits[0].child_by_field_name("value")
     else:
         kids = node.named_children
         if len(kids) != 1 or kids[0].type != "assignment_expression":
@@ -455,7 +474,7 @@ def change_rhs(win: Window, node: tree_sitter.Node, skill: str, lang: Language) 
         return
     yield Draft(
         template="change_to_end", skill=skill, kind="edit",
-        task=f"Replace the value assigned to `{_clip(_text(left), 32)}` with `{text}`",
+        task=f"Replace the value assigned to {templates._quote(_text(left), 32)} with `{text}`",
         lines=win.lines, cursor=[row + 1, r0], expect={"lines": _replace(win.lines, row, r0, r1, text)},
         variants=[f"C{text};<Esc>", f"ct;{text}<Esc>", f"c${text};<Esc>"], alternates=[f"Da{text};<Esc>"],
         idioms=[f"cW{text}<Esc>", f"cw{text}<Esc>", f"ce{text}<Esc>"],
@@ -493,7 +512,7 @@ def indent_block(win: Window, node: tree_sitter.Node, skill: str, lang: Language
     problem = "lost one level of indent" if under else "is indented one level too deep"
     yield Draft(
         template="indent_block", skill=skill, kind="edit",
-        task=f"The body of `{_header(win, node, orow)}` {problem}. {verb} these {n} lines",
+        task=f"The body of {templates._quote(_header(win, node, orow))} {problem}. {verb} these {n} lines",
         lines=shifted, cursor=[start + 1, _indent(shifted[start])], expect={"lines": lines},
         variants=[f"{o}i{{", f"{o}iB", f"{n}{op}", f"{o}{n - 1}j"],
         alternates=[f"{o}i}}", f"V{n - 1}j{o}"], idioms=[f"{o}ip", f"{o}ap", f"{o}}}", f"{o}G"],
@@ -525,7 +544,7 @@ def move_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
         variants = [f":m-{k + 1}<CR>", f":m{row - k}<CR>", f"dd{k}kP" if k > 1 else "ddkP"]
     yield Draft(
         template="move_line", skill=skill, kind="edit",
-        task=f"Move this line {'below' if down else 'above'} `{_clip(lines[other].strip())}`",
+        task=f"Move this line {'below' if down else 'above'} {templates._quote(lines[other].strip())}",
         lines=lines, cursor=[row + 1, _indent(lines[row])], expect={"lines": expect},
         variants=sorted(variants, key=len), alternates=[v.replace(":m", ":move ") for v in variants],
         target=[_range(row, 0, row, len(lines[row]) - 1), _range(other, 0, other, len(lines[other]) - 1)],
@@ -555,9 +574,9 @@ def copy_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
     if k == 0:
         variants, task = [":t.<CR>", f":t{row + 1}<CR>", "yyp"], "Duplicate this line (the copy goes right below it)"
     elif down:
-        variants, task = [f":t+{k}<CR>", f":t{row + k + 1}<CR>", "yyjp" if k == 1 else f"yy{k}jp"], f"Copy this line to just below `{_clip(lines[other].strip())}`"
+        variants, task = [f":t+{k}<CR>", f":t{row + k + 1}<CR>", "yyjp" if k == 1 else f"yy{k}jp"], f"Copy this line to just below {templates._quote(lines[other].strip())}"
     else:
-        variants, task = [f":t-{k + 1}<CR>", f":t{row - k}<CR>", "yykP" if k == 1 else f"yy{k}kP"], f"Copy this line to just above `{_clip(lines[other].strip())}`"
+        variants, task = [f":t-{k + 1}<CR>", f":t{row - k}<CR>", "yykP" if k == 1 else f"yy{k}kP"], f"Copy this line to just above {templates._quote(lines[other].strip())}"
     yield Draft(
         template="copy_line", skill=skill, kind="edit", task=task,
         lines=lines, cursor=[row + 1, _indent(lines[row])], expect={"lines": expect},
@@ -809,10 +828,6 @@ CPP_LINE_TEMPLATES: Final = {"cpp_goto_line_rel": goto_line_rel, "cpp_find_char"
 # Private Functions ================================================================================
 
 
-def _clip(text: str, width: int = 48) -> str:
-    return text if len(text) <= width else text[:width - 3] + "..."
-
-
 def _text(node: tree_sitter.Node | None) -> str:
     return node.text.decode() if node is not None and node.text is not None else ""
 
@@ -826,11 +841,6 @@ def _indent(line: str) -> int:
     return len(line) - len(line.lstrip())
 
 
-def _excerpt(win: Window, node: tree_sitter.Node) -> str:
-    text = _text(node)
-    return f"`{_clip(text, 40)}`" if "\n" not in text and "`" not in text else ""
-
-
 def _replace(lines: list[str], row: int, c0: int, c1: int, text: str) -> list[str]:
     out = list(lines)
     out[row] = lines[row][:c0] + text + lines[row][c1:]
@@ -841,7 +851,7 @@ def _header(win: Window, node: tree_sitter.Node, orow: int) -> str:
     """First line of the statement that owns a ``{`` block (the signature, not its last line)."""
     parent = node.parent
     row = parent.start_point.row if parent is not None and parent.type != "translation_unit" else orow
-    return _clip(win.lines[min(row, orow)].strip())
+    return win.lines[min(row, orow)].strip()
 
 
 def _fit(win: Window, node: tree_sitter.Node, old: str) -> str | None:
@@ -857,9 +867,7 @@ def _fit(win: Window, node: tree_sitter.Node, old: str) -> str | None:
     if kind == "char_literal":
         return _pick_other(("' '", "'0'", "'a'", "'-'"), text, *key)
     if kind == "identifier":
-        words = set(re.findall(r"\w+", "\n".join(win.lines)))
-        names = [n for n in NAME_TEXTS if n not in words]
-        return pick(names, *key) if names else None
+        return templates._new_name(win, text, node, *key)
     if kind in ("binary_expression", "unary_expression"):
         op = node.child_by_field_name("operator")
         logical = op is not None and op.type in ("==", "!=", "<", ">", "<=", ">=", "&&", "||", "!", "and", "or", "not")
@@ -884,8 +892,6 @@ def _inner_text(win: Window, node: tree_sitter.Node, inner: str) -> str:
         return _pick_other(("0", "1, 2, 3") if "'" not in inner else ("' '", "'a', 'b'"), inner, *key)
     if node.type == "compound_statement":
         return "return {};" if inner.strip().startswith("return") else "++count;"
-    if node.type == "string_literal" and node.parent is not None and node.parent.type == "preproc_include":
-        return _pick_other(("util.h", "common.h", "types.h"), inner, *key)
     return _pick_other(_TEXTS[node.type], inner, *key)
 
 
@@ -1041,13 +1047,14 @@ def _make_window(lines: list[str], start: int, end: int, source: dict[str, str])
         chunk, start = chunk[1:], start + 1
     while chunk and not chunk[-1].strip():
         chunk, end = chunk[:-1], end - 1
+    indent = min(len(ln) - len(ln.lstrip()) for ln in chunk if ln.strip()) if chunk else 0
     chunk = [ln.rstrip() for ln in textwrap.dedent("\n".join(chunk)).split("\n")]
     if snippets.size_problem(chunk):
         return None
     tree = parse("\n".join(chunk))
     if tree.root_node.has_error:
         return None
-    return Window(lines=chunk, source=source, first_line=start + 1, last_line=end + 1, tree=tree)
+    return Window(lines=chunk, source=source, first_line=start + 1, last_line=end + 1, tree=tree, indent=indent)
 
 
 def _prime(win: Window):
@@ -1080,7 +1087,47 @@ def _prime(win: Window):
         elif n.type in _ANGLES:
             delims["<"] = delims.get("<", 0) + 1
         stack.extend(n.children)
-    win.cache.update({"cpp": True, "prose": prose, "strings": cells, "delims": delims})
+    win.cache.update({"cpp": True, "prose": prose, "strings": cells, "delims": delims, "role_names": ROLE_NAMES,
+                      "types": _type_roles(win)})
+
+
+def _type_roles(win: Window) -> dict[str, str]:
+    """Name -> role from C++ declarations and parameters: a pointer is "ptr", a char array
+    "buffer", a container "many", a bool "flag", a string "text", an integer "count".
+    Read by templates._role through the window cache."""
+    roles: dict[str, str] = {}
+    stack = [win.root]
+    while stack:
+        n = stack.pop()
+        stack.extend(n.named_children)
+        if n.type not in ("declaration", "field_declaration", "parameter_declaration"):
+            continue
+        type_text = _text(n.child_by_field_name("type"))
+        for decl in n.children_by_field_name("declarator"):
+            name = _declared_name(decl)
+            if name is None:
+                continue
+            inner = decl.child_by_field_name("declarator") if decl.type == "init_declarator" else decl
+            if inner is not None and inner.type == "pointer_declarator":
+                role = "ptr"
+            elif inner is not None and inner.type == "array_declarator" and "char" in type_text:
+                role = "buffer"
+            else:
+                role = next((r for rx, r in _TYPE_ROLES if rx.search(type_text)), None)
+            if role is not None:
+                roles.setdefault(_text(name), role)
+    return roles
+
+
+def _declared_name(decl: tree_sitter.Node | None) -> tree_sitter.Node | None:
+    """The identifier a declarator declares: ``next`` in ``* next``, ``buf`` in ``buf[64]``, ``x`` in ``x = 1``.
+    Called by change_rhs (so the task never shows ``* next``, QA #54) and _type_roles."""
+    while decl is not None and decl.type not in ("identifier", "field_identifier"):
+        if decl.type not in ("init_declarator", "pointer_declarator", "reference_declarator", "array_declarator"):
+            return None
+        decl = decl.child_by_field_name("declarator") or next(
+            (k for k in decl.named_children if k.type in ("identifier", "field_identifier")), None)
+    return decl
 
 
 def _span(win: Window, node: tree_sitter.Node) -> tuple[int, int, int, str] | None:
@@ -1089,6 +1136,8 @@ def _span(win: Window, node: tree_sitter.Node) -> tuple[int, int, int, str] | No
     if node.type == "string_literal":
         if len(kids) < 2 or kids[0].type != '"' or kids[-1].type != '"' or node.start_point.row != node.end_point.row:
             return None
+        if node.parent is not None and node.parent.type == "preproc_include":
+            return None  # an #include path is not text to edit (QA #27)
         if any(k.type == "escape_sequence" for k in kids):
             return None
         row, oc, cc, q = node.start_point.row, kids[0].start_point.column, kids[-1].start_point.column, '"'

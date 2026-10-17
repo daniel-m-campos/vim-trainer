@@ -188,20 +188,45 @@ def describe(values):
     return len(values)
 '''
 
-CLASS_CONSTANTS = '''
+CONSTANTS = '''
+lowest_level = 1
+middle_level = 5
+highest_level = 10
+default_level = 3
+warning_level = 8
+
+
+def clamp(x, low, high):
+    return max(low, min(high, x))
+'''
+
+# Not constants (round 4 review): counters and accumulators that the code below changes, the same
+# run in a class body (attributes may be descriptors) and in a dedented function body.
+COUNTERS = '''
+pile = []
+seen = set()
+total = 0
+cards_played = 0
+
+
+def play(card):
+    pile.append(card)
+    seen.add(card)
+    return total + cards_played
+'''
+
+UNUSED_MUTABLE = '''
+names = []
+lookup = {}
+first_level = 1
+last_level = 9
+'''
+
+CLASS_RUN = '''
 class Limits:
     lowest_level = 1
     middle_level = 5
     highest_level = 10
-    default_level = 3
-    warning_level = 8
-
-    def clamp(self, x):
-        return max(self.lowest_level, min(self.highest_level, x))
-
-
-def make():
-    return Limits()
 '''
 
 
@@ -230,7 +255,7 @@ def test_append_each_line_skips_short_or_mixed_collections():
 
 
 def test_upper_constants_needs_an_ex_command(runner):
-    drafts = _drafts(CLASS_CONSTANTS, "upper_constants")
+    drafts = _drafts(CONSTANTS, "upper_constants")
     assert drafts
     for d in drafts:
         assert d.kind == "ex" and ":norm" in d.variants[0]
@@ -240,13 +265,22 @@ def test_upper_constants_needs_an_ex_command(runner):
         assert not dot.passed and "':'" in dot.reason
 
 
+def test_upper_constants_skips_names_that_are_not_constants():
+    assert not _drafts(COUNTERS, "upper_constants")  # used again below: gUiw on the definitions breaks it
+    assert not _drafts(UNUSED_MUTABLE, "upper_constants")  # a list or dict is not a constant
+    assert not _drafts(CLASS_RUN, "upper_constants")
+    dedented = snippets.Window(lines=CONSTANTS.strip("\n").splitlines(), source=SOURCE, first_line=1,
+                               last_line=10, tree=snippets.parse(CONSTANTS.strip("\n")), indent=4)
+    assert not [d for d in templates.generate(dedented, LANG) if d.template == "upper_constants"]
+
+
 # delete_matching_lines / keep_matching_lines (x.global) ===========================================
 
 
 def test_delete_matching_lines_uses_global_delete(runner):
     drafts = _drafts(LOGGING, "delete_matching_lines")
     labels = {d.task for d in drafts}
-    assert any("print(...)" in t for t in labels), labels
+    assert any("calls `print`" in t for t in labels), labels
     for d in drafts:
         assert d.kind == "ex" and d.variants[0].startswith(":g/")
         assert len(d.expect["lines"]) < len(d.lines)
@@ -294,7 +328,7 @@ def test_rename_all_dot_counts_one_dot_per_remaining_match(runner):
         assert "cgn" in d.variants[0]
         assert d.expect["lines"] != d.lines
         _assert_solvable(d, runner)
-        assert d.params["new"] not in ("value", "X")
+        assert d.params["new"] in {n for pool in templates.ROLE_NAMES.values() for n in pool}
 
 
 # join_lines (o.join) ==============================================================================
@@ -410,7 +444,8 @@ def test_change_kwarg_value_find_variant(runner):
 
 WORDING_SNIPPETS = [COLLECTIONS, CALL_ARGS, LOGGING, RENAMES, NUMBERS, ASSIGNMENTS, PARAGRAPHS, WRAPPED]
 _BAD_WORDS = re.compile(r"\b1st\b|\b2nd\b|\b3rd\b|keeping the [()\[\]{}'\"]")
-_PLACEHOLDERS = {"value", "X", "x + 1", "*args", "self", "*args, **kwargs"}
+# "value" is not here: it is a plain name in templates.ROLE_NAMES["any"], fit for renaming an identifier.
+_PLACEHOLDERS = {"X", "x + 1", "*args", "self", "*args, **kwargs"}
 
 
 @pytest.mark.parametrize("snippet", range(len(WORDING_SNIPPETS)))
@@ -463,7 +498,7 @@ def test_ordinal_words():
     ("append_each_line", COLLECTIONS), ("delete_matching_lines", LOGGING), ("rename_all_dot", RENAMES),
     ("increment", NUMBERS), ("record_macro", ASSIGNMENTS), ("delete_block", PARAGRAPHS),
     ("duplicate_line", LOGGING), ("join_lines", WRAPPED), ("prefix_each_line", ASSIGNMENTS),
-    ("keep_matching_lines", PARAGRAPHS), ("upper_constants", CLASS_CONSTANTS),
+    ("keep_matching_lines", PARAGRAPHS), ("upper_constants", CONSTANTS),
 ])
 def test_some_draft_passes_every_gate(template, snippet):
     results = [_accepted(d) for d in _drafts(snippet, template)]
@@ -499,7 +534,7 @@ def _deleted(d):
 
 @pytest.mark.parametrize("template,snippet,skill,count", [
     ("prefix_each_line", ASSIGNMENTS, "x.normal", lambda d: d.params["n"]),
-    ("upper_constants", CLASS_CONSTANTS, "x.normal", lambda d: d.params["n"]),
+    ("upper_constants", CONSTANTS, "x.normal", lambda d: d.params["n"]),
     ("delete_matching_lines", LOGGING, "x.global", _deleted),
     ("keep_matching_lines", PARAGRAPHS, "x.global", _deleted),
 ], ids=["prefix_each_line", "upper_constants", "delete_matching_lines", "keep_matching_lines"])
@@ -510,15 +545,16 @@ def test_line_range_drills_are_ex_from_ex_min_lines(template, snippet, skill, co
         assert count(d) >= templates.EX_MIN_LINES and d.kind == "ex", (d.task, count(d), d.kind)
 
 
-def test_rename_all_subst_kind_follows_the_occurrence_count(runner):
-    drafts = _drafts(THREE_USES, "rename_all_subst") + _drafts(RENAMES, "rename_all_subst")
-    assert {len(d.target) <= templates.SUBST_EDIT_MAX for d in drafts} == {True, False}
+def test_rename_all_subst_is_always_ex(runner):
+    # QA #30: one template, one kind. Three uses are left to x.lastsearch / a.dot (cgn + .).
+    assert "factor" not in {d.params["old"] for d in _drafts(THREE_USES, "rename_all_subst")}
+    assert "factor" in {d.params["old"] for d in _drafts(THREE_USES, "rename_all_dot")}
+    drafts = _drafts(RENAMES, "rename_all_subst") + _drafts(THREE_USES, "rename_all_subst")
+    assert drafts
     for d in drafts:
-        few = len(d.target) <= templates.SUBST_EDIT_MAX
-        assert d.kind == ("edit" if few else "ex"), (d.task, d.kind)
-        assert any("cgn" in a for a in d.alternates) == few
-        _assert_solvable(d, runner)  # the cgn + . alternate passes in Neovim
-        if not few:
-            dots = "." * (len(d.target) - 1)
-            normal = _verdicts(d, [f"/\\<{d.params['old']}\\><CR>cgn{d.params['new']}<Esc>{dots}"], runner)[0]
-            assert not normal.passed and "':'" in normal.reason
+        assert len(d.target) > templates.SUBST_EDIT_MAX and d.kind == "ex", (d.task, d.kind)
+        assert not any("cgn" in a for a in d.alternates)
+        _assert_solvable(d, runner)
+        dots = "." * (len(d.target) - 1)
+        normal = _verdicts(d, [f"/\\<{d.params['old']}\\><CR>cgn{d.params['new']}<Esc>{dots}"], runner)[0]
+        assert not normal.passed and "':'" in normal.reason

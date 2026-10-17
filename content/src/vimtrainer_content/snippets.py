@@ -56,6 +56,7 @@ class Window:
     last_line: int  # 1-based line of lines[-1] in the source file
     tree: tree_sitter.Tree = field(repr=False)
     cache: dict = field(default_factory=dict, repr=False)  # per-window memo for templates
+    indent: int = 0  # columns the dedent removed: 0 means the window's top level is the file's
 
     @property
     def root(self) -> tree_sitter.Node:
@@ -260,10 +261,12 @@ def _make_window(
         chunk, start = chunk[1:], start + 1
     while chunk and not chunk[-1].strip():
         chunk, end = chunk[:-1], end - 1
+    indent = min(len(ln) - len(ln.lstrip()) for ln in chunk if ln.strip()) if chunk else 0
     chunk = [ln.rstrip() for ln in textwrap.dedent("\n".join(chunk)).split("\n")]
     if size_problem(chunk):
         return None
     tree = parse("\n".join(chunk))
     if tree.root_node.has_error:
         return None
-    return Window(lines=chunk, source=source, first_line=origin[start], last_line=origin[end], tree=tree)
+    return Window(lines=chunk, source=source, first_line=origin[start], last_line=origin[end], tree=tree,
+                  indent=indent)

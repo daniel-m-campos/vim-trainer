@@ -185,4 +185,102 @@ Python x.normal exercises.
   unchanged.
 - `rename_all_subst` with 3 occurrences is now kind "edit". Its task text stays "Rename
   every `x` to `y` (3 occurrences)". The text does not name `:s`, which fits a drill that
-  also accepts `/\<x\><CR>cgny<Esc>..`.
+  also accepts `/\<x\><CR>cgny<Esc>..`. (Superseded in round 4: see below.)
+
+## Round 4: targets and wording from the mock-user QA
+
+The QA ids are from `docs/qa/2026-10-13-mock-users.md`. Before and after are two scratch
+builds of all skills, `content/.cache/scratch-4-base` (main) and `content/.cache/scratch-4`
+(this change), each 1644 exercises. Every (lang, skill) count is the same in both: 40 for
+all skills except py t.brace 25, py v.blockedit 29, py x.normal 23, py a.macro 20 and cpp
+t.bracket 27, as before.
+
+### 1. Renames only touch code identifiers (QA #7, #27)
+
+`:%s` and `*` match the name in strings, docstrings and comments too, so "Rename every
+`x`" changed text that is not the name. `rename_all_subst` and `rename_all_dot` now make a
+draft only when every whole-word match in the window is a code identifier
+(`_ident_hits`), so the expected buffer is exactly the identifier rename Neovim's `:%s`
+gives. Namespace names are never targets. `rename_here` and `upper_word` also need a code
+identifier. In C++, a `#include "x.h"` path is no longer a t.quote or o.case target.
+
+| rule | before | after |
+|---|---|---|
+| rename_all_subst whose name is also in a string, comment or include | 10 of 80 | 0 |
+| rename_all_dot whose name is also in a string, comment or include | 12 of 80 | 0 |
+| C++ change/delete/upper inner on an `#include` path | 14 | 0 |
+
+### 2. x.subst says "whole word" and has one kind (QA #13, #30, #33)
+
+The par needs `\<` or `\>` exactly when the name also occurs inside a longer word. The task
+now says so and names that word. x.subst drafts need more than 3 occurrences, so every
+x.subst exercise is "ex"; renaming 3 names is drilled by x.lastsearch and a.dot (`cgn` +
+`.`). "Rename every `words` to `parts`" read badly, so the text is now "Rename `x` to `y`
+everywhere".
+
+| before | after |
+|---|---|
+| Rename every `text` to `word` (4 occurrences), par `:%s/\<text/word<CR>` | Rename `text` to `label` everywhere, as a whole word (4 occurrences; `encoded_text` stays) |
+| Rename every `houses` to `rows` (3 occurrences), kind edit | not generated (3 occurrences); x.lastsearch and a.dot cover it |
+
+Counted: x.subst kinds were py 32 ex + 8 edit and cpp 21 ex + 19 edit; now 40 ex each. Pars
+that use `\<` or `\>` without "whole word" in the task: 24 before, 0 after (13 now say it).
+
+### 3. Case drills only on constants (QA #28)
+
+"Make `x` a constant name" uppercased one occurrence of a local variable, which breaks the
+other uses. `upper_word` now targets only the one definition of a constant whose name is
+used nowhere else in the window: in Python a top-level single assignment (to uppercase) or
+an UPPER_CASE assignment at top or class level (to lowercase); in C++ a `const` or
+`constexpr` declaration, an enumerator or a `#define` name. "Top level" uses the new
+`Window.indent`: a function body cut out and dedented parses as a module, but its
+`indent` is not 0.
+
+Counted: 42 upper_word exercises before, 32 of them on a name used elsewhere in the window;
+21 after, none. upper_inner filled o.case back to 40 (py 18 to 30, cpp 20 to 29).
+
+### 4. New names from a short role list (QA #23)
+
+Rename targets come from a short list per role and language (`templates.ROLE_NAMES`,
+`cpp.ROLE_NAMES`): a collection gets `items`/`values`, a count `count`/`total`, an index
+`index`/`pos`, text `label`/`name`, a path `path`/`filename`, a predicate (`is_`, `has_`,
+`bool`) `is_valid`/`is_ready`/`has_value`, a pointer `ptr`/`node`, anything else
+`value`/`result`. The role comes from the syntax, the name's words, then the declared type
+(C++) or assigned value (Python). A name already in the window is never picked; with none
+left, the template makes no draft. "value" is allowed again for identifiers: the old ban
+was about strings becoming `value`, and strings still get strings.
+
+The QA's examples (`has_priority` to `handle`, `coins` to `rows`) are no longer drawn in
+the scratch build. On test snippets, `has_priority` gets a name from the predicate list
+and `coins` gets `items` or `values` (`test_new_names_fit_the_role_and_are_fresh`,
+`test_type_roles_pick_names_that_fit`). From the scratch build:
+
+| after |
+|---|
+| Rename the `can_chain` under the cursor to `is_ready` (only this one) |
+| Rename `found` to `is_ready` everywhere (5 occurrences) |
+| Rename `ComplexNumber` to `Item` everywhere (6 occurrences) |
+
+None of the 240 rename exercises in either build picks a name already in its window. The
+most common new names are now `result`, `value`, `items`, `values` and `process`.
+
+### 5. Task text (QA #20, #29, #49, #50, #52, #54)
+
+- No literal `...` inside backticks. A long quoted line is cut after a whole token and
+  marked outside the quote: "Copy this line to just below `footer = format_footer(total,`
+  ...". A node too long to quote is not quoted (the highlight shows it). Calls are named
+  "the `wrap` call" instead of `` `wrap(...)` ``. Tasks with "..." inside a quote: 149
+  before, 0 after.
+- One wording for inner text objects, with old and new text both quoted without
+  delimiters: "Change the text `abundant` inside the quotes to `pending`", "Delete the text
+  `True, x` inside the parentheses of this tuple, keeping the parentheses", "Uppercase the
+  text `first` inside the quotes". Tasks with "contents of" or "everything inside": 285
+  before, 0 after.
+- o.number on a line with more than one number says which: "Change `height=300` to
+  `height=302` (the second number on the line)". 14 exercises now carry it.
+- C++ change_to_end names the declared variable: "Replace the value assigned to `next`",
+  not "`* next`".
+
+Tests: `content/tests/test_templates_wording.py` (Python, one test per rule) and the
+round-4 block at the end of `content/tests/test_cpp.py`. Drafts whose buffer a rule changes
+are replayed in Neovim.
