@@ -88,6 +88,25 @@ Undo is allowed and counted as keystrokes. An attempt with `undo > 0` still pass
 accuracy in the model only counts outright fails and skips. (An attempt that reaches
 the expected buffer by undoing a mistake is still a correct edit.)
 
+## The "not quite — u to undo" nudge (round 4)
+
+There is still no general detection of "wrong", but one case is cheap and certain
+enough to name: the buffer can no longer reach the target without retyping deleted
+text. After a failed check in normal mode, `unrecoverable(start, now, expect)` in
+`grading.ts` returns a reason, and the exercise view shows "not quite — u to undo"
+with it. False alarms are worse than misses, so it stays quiet when:
+
+- nothing was deleted (only typing added), since the rest can still be typed;
+- every deleted line is one the target still needs, since `p`/`P` may restore it
+  (the `dd` half of `ddp`, a line move).
+
+Otherwise it fires on (a) fewer lines than both start and expect ("the target keeps
+N more lines"), (b) a non-blank line common to start and expect gone from the buffer
+("a line that should stay was removed"), or (c) whole lines deleted and the text under
+half of expect's length ("too much was deleted"). Mid-insert typing never deletes
+lines, so (a) and (c) cannot fire on it. The nudge changes nothing in grading: undo
+still counts as keystrokes.
+
 ## Fail and skip
 
 - **Give up**: `Esc Esc` in normal mode. Logged `ok: false`, result strip shows the

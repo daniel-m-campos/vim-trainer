@@ -49,14 +49,26 @@ All four resolved; see Resolved below.
 | question | from | resolve by |
 |---|---|---|
 | ~~Placement per language (C++ users start with no placement)~~ | 04 | done in round 3c: the first switch to a new language opens its placement; `placementDone` is per language |
-| Sticky mastery across languages: a C++ placement sample that *fails* on a skill mastered in Python leaves it mastered in C++ (n=1, review due at once), via `ensureSkill` carry-over. Pinned by vector 26 as current behaviour; is it intended, or should a failed placement sample demote the carried-over skill? | 04 | author decides after dogfooding C++ |
+| ~~Sticky mastery across languages~~ | 04 | decided 2026-10-14: keep the carry-over (a failed sample in a new language leaves the skill mastered with a review due at once, vector 26) until dogfooding says otherwise |
 | Reading order and comments in app/ for a TypeScript newcomer | 0008 | started in round 3a (flag path in app/README.md); continue with each app change |
 
 ## Added in round 3a
 | question | from | resolve by |
 |---|---|---|
-| Public feedback repo at soft launch: the `!` issue link targets the private main repo `daniel-m-campos/vim-trainer`, which outside testers cannot use | 11 | M5; one constant in `app/src/feedback.ts` |
+| **Next blocker.** Public feedback repo at soft launch: the `!` issue link targets the private main repo `daniel-m-campos/vim-trainer`, which outside testers cannot use | 11 | before invited testers; one constant in `app/src/feedback.ts` |
 | Is the ingest generalisation rule (counts to `{{k}}`, insert text to `{{text}}`) too loose or too strict? | 11, 0009 | after the first ingest runs on real exports |
+
+## Launch hardening (2026-10-14)
+The next blockers are the public feedback repo and the deploy pipeline. The full list,
+in order:
+
+1. Emulator class-a backlog in `known.jsonl` (12).
+2. Public feedback channel for outside testers (11). **Next blocker.**
+3. Deploy pipeline running `make content && make build` and publishing `app/dist/`
+   (ADR 0010). **Next blocker.**
+4. Cross-browser e2e (real Firefox and Safari keyboards are untested).
+5. Error ring buffer in the export (round 4).
+6. A real version string in the export and issue body (round 4).
 
 ## Resolved
 - Command-done and mode-change hooks: unreliable alone, so a filtered microtask check reads state. 2026-10-11 (05).
@@ -82,4 +94,6 @@ All four resolved; see Resolved below.
 - Per-attempt `seq`, `beatPar`, `flag`; `!` flag picker; prefilled GitHub issue to the main repo for now. 2026-10-13, round 3a (11).
 - `ingest` command: Neovim-verifies player pars, writes `idioms_learned.toml`, alternates and review queues. 2026-10-13, round 3a (11, ADR 0009).
 - How we find emulator divergences: `difftest`, a seeded differential fuzzer (Neovim vs the app's editor) with a minimiser, `known.jsonl` and a nightly CI job. 2026-10-13, round 3b (12).
+- Sticky mastery across languages: keep the carry-over until dogfooding says otherwise. 2026-10-14 (04).
+- Placement efficiency gate: `keys <= max(2 * par, par + 6)`. 2026-10-14 (ADR 0011).
 - Template kind audit: ex only where normal mode would be a repetition drill. 2026-10-13, round 3a (03).

@@ -142,6 +142,16 @@ skill already mastered (or due for review) in another language, since those carr
 (see Per-language state). It keeps one skill per tier 1–9 among the rest and fills the
 remaining slots with the skills that weigh most in the new language (`langWeights`).
 
+Placement samples have an efficiency gate (round 4, ADR 0011). A sample counts as a
+pass only when the target was reached within `max(2 * par, par + 6)` keys
+(`placementPass` in `grading.ts`). Before the gate, QA finding #8 showed brute force
+passing: eleven presses of `l` on a par-2 cursor exercise marked the skill and all its
+prerequisites mastered. A sample over the cap is recorded as a fail for seeding.
+
+Placement progress persists. Each answered sample is saved as it lands, so a reload or
+Back mid-placement resumes at the next unanswered sample instead of starting over or
+dropping the answers already given.
+
 ## Projection (the chart line)
 
 Copied from keybr: fit a polynomial (linear, then quadratic when n ≥ 15) over the last

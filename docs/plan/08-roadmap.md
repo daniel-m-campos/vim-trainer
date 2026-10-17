@@ -73,9 +73,27 @@ run and a republished artifact.
 - **3d.** Mock-user QA: a workflow of Sonnet agents with personas driving the site
   through Playwright; no code. Their findings become round 4.
 
+## Round 4: QA fixes and launch hardening (inside M4)
+Started 2026-10-14 from the 55 ranked mock-user findings
+(`docs/qa/2026-10-13-mock-users.md`). Contents:
+
+- Placement efficiency gate `max(2 * par, par + 6)` and placement progress that
+  survives reloads (04, ADR 0011).
+- The "not quite — u to undo" nudge (05).
+- Hash routes as the single source of truth for the screen; Back and reload behave;
+  a placement-complete moment; onboarding copy with no skill ids before the first
+  exercise (10).
+- Error ring buffer in the export and in the issue body; a real version string (11).
+- Emulator class-a fixes in `vimfixes.ts`, with `known.jsonl` pruned after them (12).
+
+Soft-launch sequence after round 4: (1) a public feedback repo and the deploy pipeline
+(`make content && make build`) land; (2) 10–20 invited switchers, not an open post;
+(3) cross-browser e2e before widening; (4) then the r/neovim testers of M5. See 09 for
+the hardening list.
+
 ## M5 — Soft launch
 Hosting, domain, FAQ ("why no mobile", "why these commands"), GitHub Sponsors link,
-10–20 testers from r/neovim, bug fixing, opt-in anonymous log upload.
+10–20 invited switchers first, then testers from r/neovim, bug fixing, opt-in anonymous log upload.
 Decide where outside testers file feedback (a public feedback repo; see 09).
 Exit: five testers return for a second week unprompted.
 
