@@ -29,7 +29,8 @@ MAX_PER_WINDOW: Final = 2  # drafts kept per (window, template, skill), spreads 
 # Kind rule for Ex drills. "ex" (the solution must use a `:` command) only where the
 # normal-mode way is a repetition drill rather than a skill: :g, :v and :normal over
 # EX_MIN_LINES or more lines, and :%s over more than SUBST_EDIT_MAX occurrences. With
-# SUBST_EDIT_MAX or fewer, `cgn` + `.` is a real normal-mode idiom, so the kind is "edit".
+# SUBST_EDIT_MAX or fewer, `cgn` + `.` is the real idiom, so rename_all_subst makes no
+# draft there (x.lastsearch and a.dot drill that) and every x.subst exercise is "ex".
 EX_MIN_LINES: Final = 3
 SUBST_EDIT_MAX: Final = 3
 
@@ -47,17 +48,27 @@ RHS_BY_TYPE: Final = {
     "set": "set()", "set_comprehension": "set()", "tuple": "()", "call": "None", "binary_operator": "0",
     "true": "False", "false": "True", "none": "0", "conditional_expression": "None",
 }
-# Role -> names, in snake_case; _styled converts them to the old name's case style.
+# Role -> a short list of plain names, in snake_case; _styled converts them to the old
+# name's case style. A rename never picks a name already in the window; when the role's
+# list is used up, data roles fall back to "any" and the others are not renamed at all.
+# lang/cpp.py puts its own list in the window cache ("role_names").
 ROLE_NAMES: Final = {
-    "many": ("items", "entries", "records", "rows", "parts", "names"),
-    "count": ("total", "count", "size", "limit", "offset", "amount"),
-    "index": ("pos", "position", "idx", "start", "cursor"),
-    "text": ("text", "label", "message", "title", "word"),
-    "call": ("process", "handle", "compute", "convert", "build", "parse_input", "load"),
-    "class": ("record", "entry", "handler", "builder", "parser", "node"),
-    "any": ("item", "result", "entry", "current", "record", "target", "source", "data"),
+    "many": ("items", "values"),
+    "count": ("count", "total"),
+    "index": ("index", "pos"),
+    "text": ("label", "name"),
+    "path": ("path", "filename"),
+    "flag": ("is_valid", "is_ready", "has_value"),
+    "call": ("process", "compute", "update"),
+    "class": ("record", "item", "handler"),
+    "any": ("value", "result"),
 }
+_DATA_ROLES: Final = frozenset({"many", "count", "index", "text", "path", "ptr", "buffer", "any"})
 _ROLE_WORDS: Final = {
+    "flag": {"found", "done", "valid", "ok", "enabled", "flag", "visible", "ready"},
+    "path": {"path", "file", "filename", "dir", "folder", "filepath"},
+    "buffer": {"buf", "buffer"},
+    "ptr": {"ptr", "pointer"},
     "many": {"list", "items", "values", "keys", "rows", "cols", "lines", "words", "names", "dict", "set", "map",
              "nums", "numbers", "chars", "letters", "data", "elements", "entries", "results", "parts"},
     "count": {"count", "num", "number", "total", "size", "len", "length", "n", "max", "min", "limit", "sum",
@@ -66,8 +77,16 @@ _ROLE_WORDS: Final = {
     "text": {"name", "text", "str", "string", "word", "line", "msg", "message", "label", "title", "char",
              "letter", "sentence", "phrase", "prefix", "suffix"},
 }
+_PREDICATE_HEADS: Final = frozenset({"is", "has", "can", "should", "use", "allow"})
+# Identifier node types that are code (python, C++), and the subtrees that are not:
+# strings, comments and #include lines. Rename and case targets come only from code.
+_CODE_IDENTS: Final = frozenset({"identifier", "field_identifier", "type_identifier"})
+_NOT_CODE: Final = frozenset({
+    "string", "comment", "string_literal", "raw_string_literal", "char_literal", "system_lib_string",
+    "concatenated_string", "preproc_include",
+})
 ORDINAL_WORDS: Final = ("", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth")
-_DELIM_NAMES: Final = {"(": "parentheses", "[": "brackets", "{": "braces", '"': "quotes", "'": "quotes"}
+_DELIM_NAMES: Final = {"(": "parentheses", "[": "square brackets", "{": "braces", '"': "quotes", "'": "quotes"}
 _BUILTINS: Final = frozenset(dir(builtins))
 CURSOR_IDIOMS: Final = (
     "w", "b", "e", "W", "B", "E", "ge", "2w", "3w", "4w", "2W", "3W", "2e", "2E", "$", "0", "^", "g_",
@@ -170,7 +189,7 @@ def change_inner(win: Window, node: tree_sitter.Node, skill: str, lang: Language
     c, noun = _PAIR[o], _NOUNS[node.type]
     yield Draft(
         template="change_inner", skill=skill, kind="edit",
-        task=f"Change the contents of {_the(win, node, noun)} to `{text}`",
+        task=f"Change {_inside_phrase(noun, _DELIM_NAMES[o], inner)} to `{text}`",
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, oc + 1, cc, text)},
         variants=[f"ci{o}{text}<Esc>"], alternates=[f"ci{a}{text}<Esc>" for a in _ALIASES[o]],
         idioms=[f"{m}{text}<Esc>" for m in ("ciw", "ciW", "cw", "cW", "ce", "cE", f"ct{c}", f"cT{o}", "bcw",
@@ -198,7 +217,7 @@ def delete_inner(win: Window, node: tree_sitter.Node, skill: str, lang: Language
     c, noun = _PAIR[o], _NOUNS[node.type]
     yield Draft(
         template="delete_inner", skill=skill, kind="edit",
-        task=f"Delete everything inside {_the(win, node, noun)}, keeping the {_DELIM_NAMES[o]}",
+        task=f"Delete {_inside_phrase(noun, _DELIM_NAMES[o], win.lines[row][oc + 1:cc])}, keeping the {_DELIM_NAMES[o]}",
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, oc + 1, cc, "")},
         variants=[f"di{o}"], alternates=[f"di{a}" for a in _ALIASES[o]],
         idioms=["diw", "diW", "dw", "dW", "de", "dE", f"dt{c}", f"dT{o}", "bdt" + c, f"F{o}ldt{c}", f"T{o}dt{c}", "D"],
@@ -225,10 +244,18 @@ def delete_around(win: Window, node: tree_sitter.Node, skill: str, lang: Languag
     if head is None or head.end_point.row != row:
         return
     name = _text(head)
+    if "\n" in name or "`" in name or len(name) > 32:
+        return  # a multi-line or long head (a dict literal) cannot be named in the task
     if node.type == "argument_list" and name in _BUILTINS:
         return  # `len(x)` -> `len` is not an edit anyone makes; user functions passed as callbacks are
-    task = (f"Turn `{name}{win.lines[row][oc:cc + 1]}` into `{name}` by deleting the subscript" if node.type == "subscript"
-            else f"Turn the call `{name}(...)` into the bare name `{name}`")
+    whole = f"{name}{win.lines[row][oc:cc + 1]}"
+    short = len(whole) <= 48 and "`" not in whole
+    if node.type == "subscript":
+        task = (f"Turn `{whole}` into `{name}` by deleting the subscript" if short
+                else f"Delete the subscript after `{name}`, square brackets included")
+    else:
+        task = (f"Turn the call `{whole}` into the bare name `{name}`" if short
+                else f"Turn the `{name}` call into the bare name `{name}`: delete its arguments and parentheses")
     yield Draft(
         template="delete_around", skill=skill, kind="edit", task=task,
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, oc, cc + 1, "")},
@@ -273,7 +300,7 @@ def change_nth_arg(win: Window, node: tree_sitter.Node, skill: str, lang: Langua
     fn = _text(call.child_by_field_name("function"))
     yield Draft(
         template="change_nth_arg", skill=skill, kind="edit",
-        task=f"Change the {ordinal(n)} argument of `{fn}(...)` from `{value}` to `{text}`",
+        task=f"Change the {ordinal(n)} argument of the `{_call_name(fn)}` call from `{value}` to `{text}`",
         lines=win.lines, cursor=[row + 1, cursor], expect={"lines": _replace(win.lines, row, a0, a1, text)},
         variants=[f"{fk}w{m}{text}<Esc>" for m in (f"ct{d}", "cw", "ce", "cE", "cW")],
         alternates=[f"f,{';' * (k - 1)}wct{d}{text}<Esc>"] if k > 1 else [],
@@ -512,7 +539,7 @@ def indent_block(win: Window, node: tree_sitter.Node, skill: str, lang: Language
     problem = "lost one level of indent" if under else "is indented one level too deep"
     yield Draft(
         template="indent_block", skill=skill, kind="edit",
-        task=f"The body of `{_clip(header)}` {problem}. {verb} these {n} lines",
+        task=f"The body of {_quote(header)} {problem}. {verb} these {n} lines",
         lines=lines, cursor=[start + 1, _indent(lines[start])], expect={"lines": win.lines},
         variants=[f"{op[0]}}}", f"{op[0]}G", f"{op[0]}ip", f"{n}{op}", f"{op[0]}{n - 1}j"],
         alternates=[f"V{n - 1}j{op[0]}"], idioms=[f"{op[0]}ap"],
@@ -530,13 +557,10 @@ def upper_word(win: Window, node: tree_sitter.Node, skill: str, lang: Language) 
     name = _text(node)
     upper = bool(re.fullmatch(r"[a-z][a-z0-9_]{4,}", name))
     lower = bool(re.fullmatch(r"[A-Z][A-Z0-9_]{3,}", name)) and any(ch.isalpha() for ch in name)
-    if not (upper or lower) or name in lang.keywords or name in _BUILTINS or _seen(win, "case", name):
+    if not (upper or lower) or name in lang.keywords or name in _BUILTINS:
         return
-    parent = node.parent
-    module = parent is not None and (parent.type in ("dotted_name", "aliased_import") or (
-        parent.type == "attribute" and parent.child_by_field_name("object") == node))
-    if upper and (_role(node, name) in ("call", "class") or _is_member(node) or module):
-        return  # an uppercased function, attribute or module name reads as a mistake, not an edit
+    if not _constant_def(win, node, upper) or _seen(win, "case", name):
+        return  # only a constant's own definition: an uppercased local reads as a mistake (QA #28)
     row, c0 = node.start_point.row, node.start_point.column
     col = c0 + pick(range(1, len(name)), win.key, node.start_point, "case")
     new = name.upper() if upper else name.lower()
@@ -572,7 +596,7 @@ def upper_inner(win: Window, node: tree_sitter.Node, skill: str, lang: Language)
     if col is None:
         return
     yield Draft(
-        template="upper_inner", skill=skill, kind="edit", task=f"Uppercase the text inside the string `{q}{inner}{q}`",
+        template="upper_inner", skill=skill, kind="edit", task=f"Uppercase {_inside_phrase('string', 'quotes', inner)}",
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, oc + 1, cc, inner.upper())},
         variants=[f"gUi{q}"], alternates=[f"vi{q}U", f"g~i{q}"],
         idioms=["gUiw", "gUiW", "gUt" + q, "gUT" + q, f"ci{q}{inner.upper()}<Esc>"],
@@ -590,11 +614,13 @@ def rename_here(win: Window, node: tree_sitter.Node, skill: str, lang: Language)
     name = _text(node)
     if len(name) < 4 or name in lang.keywords or not re.fullmatch(r"\w+", name) or _is_member(node):
         return
-    if name in _BUILTINS or _is_dunder(name) or _seen(win, "word", name):
+    if name in _BUILTINS or _is_dunder(name) or not _is_code_ident(win, node) or _seen(win, "word", name):
         return
     row, c0 = node.start_point.row, node.start_point.column
     col = c0 + pick(range(1, len(name)), win.key, node.start_point, "word")
     new = _new_name(win, name, node, node.start_point)
+    if new is None:
+        return
     yield Draft(
         template="rename_here", skill=skill, kind="edit",
         task=f"Rename the `{name}` under the cursor to `{new}` (only this one)",
@@ -613,35 +639,36 @@ def rename_here(win: Window, node: tree_sitter.Node, skill: str, lang: Language)
 
 
 def rename_all_subst(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
-    """``:%s/\\<old\\>/new/g<CR>``: rename every whole-word occurrence.
+    """``:%s/\\<old\\>/new/g<CR>``: rename every whole-word occurrence (ex kind).
 
-    Ex kind above SUBST_EDIT_MAX occurrences. With SUBST_EDIT_MAX or fewer the kind is
-    "edit" and ``/\\<old\\><CR>cgnnew<Esc>..`` is a verified alternate: renaming three
-    names with ``cgn`` + ``.`` is a fair answer, not a way around the drill.
+    Only names with more than SUBST_EDIT_MAX occurrences, all of them code identifiers:
+    with fewer, ``cgn`` + ``.`` is the better answer (that is x.lastsearch / a.dot), and a
+    hit in a string or comment would make ``:%s`` change text that is not the name. So every
+    x.subst exercise is "ex" (QA #30). The task says "as a whole word" exactly when the
+    name also occurs inside a longer word, which is when the par needs ``\\<`` or ``\\>``.
     """
     old = _text(node)
     if len(old) < 3 or old in lang.keywords or not re.fullmatch(r"[A-Za-z_]\w*", old) or _seen(win, "subst", old):
         return
     if old in _BUILTINS or _is_dunder(old):
         return
-    rx = re.compile(rf"\b{old}\b")
-    hits = [(r, m.start()) for r, ln in enumerate(win.lines) for m in rx.finditer(ln)]
-    if len(hits) < 3 or len({r for r, _ in hits}) < 2:
+    hits = _ident_hits(win, old)
+    if hits is None or len(hits) <= SUBST_EDIT_MAX or len({r for r, _ in hits}) < 2:
         return
     new = _new_name(win, old, node, node.start_point)
     cursor = _away_from(win.lines, hits, len(old))
-    if cursor is None:
+    if new is None or cursor is None:
         return
+    rx = re.compile(rf"\b{old}\b")
     patterns = (old, f"{old}\\>", f"\\<{old}", f"\\<{old}\\>")
     variants = [f":%s/{p}/{new}{flag}<CR>" for flag in ("", "/g") for p in patterns]
-    few = len(hits) <= SUBST_EDIT_MAX
-    dots = "." * (len(hits) - 1)
+    inside = sorted({m.group() for ln in win.lines for m in re.finditer(rf"\w*{old}\w*", ln)} - {old})
+    task = (f"Rename `{old}` to `{new}` everywhere, as a whole word ({len(hits)} occurrences; `{inside[0]}` stays)"
+            if inside else f"Rename `{old}` to `{new}` everywhere ({len(hits)} occurrences)")
     yield Draft(
-        template="rename_all_subst", skill=skill, kind="edit" if few else "ex",
-        task=f"Rename every `{old}` to `{new}` ({len(hits)} occurrences)",
+        template="rename_all_subst", skill=skill, kind="ex", task=task,
         lines=win.lines, cursor=[cursor[0] + 1, cursor[1]], expect={"lines": [rx.sub(new, ln) for ln in win.lines]},
-        variants=sorted(variants, key=len), alternates=[f"/\\<{old}\\><CR>cgn{new}<Esc>{dots}"] if few else [],
-        typed=len(new), params={"old": old, "new": new},
+        variants=sorted(variants, key=len), typed=len(new), params={"old": old, "new": new},
         target=[_range(r, c, r, c + len(old) - 1) for r, c in hits], window=win, tags=["identifier", "substitute"],
         hints=[
             {"trigger": "^[*#]|cgn|ciw|cw|\\.", "text": ":%s/old/new/g renames every occurrence in one command."},
@@ -671,7 +698,7 @@ def move_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
     where = "below" if down else "above"
     yield Draft(
         template="move_line", skill=skill, kind="edit",
-        task=f"Move this line {where} `{_clip(lines[other].strip())}`",
+        task=f"Move this line {where} {_quote(lines[other].strip())}",
         lines=lines, cursor=[row + 1, _indent(lines[row])], expect={"lines": expect},
         variants=sorted(variants, key=len), alternates=[v.replace(":m", ":move ") for v in variants],
         target=[_range(row, 0, row, len(lines[row]) - 1), _range(other, 0, other, len(lines[other]) - 1)],
@@ -700,9 +727,9 @@ def copy_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
     if k == 0:
         variants, task = [":t.<CR>", f":t{row + 1}<CR>", "yyp"], "Duplicate this line (the copy goes right below it)"
     elif down:
-        variants, task = [f":t+{k}<CR>", f":t{row + k + 1}<CR>", "yyjp" if k == 1 else f"yy{k}jp"], f"Copy this line to just below `{_clip(lines[other].strip())}`"
+        variants, task = [f":t+{k}<CR>", f":t{row + k + 1}<CR>", "yyjp" if k == 1 else f"yy{k}jp"], f"Copy this line to just below {_quote(lines[other].strip())}"
     else:
-        variants, task = [f":t-{k + 1}<CR>", f":t{row - k}<CR>", "yykP" if k == 1 else f"yy{k}kP"], f"Copy this line to just above `{_clip(lines[other].strip())}`"
+        variants, task = [f":t-{k + 1}<CR>", f":t{row - k}<CR>", "yykP" if k == 1 else f"yy{k}kP"], f"Copy this line to just above {_quote(lines[other].strip())}"
     yield Draft(
         template="copy_line", skill=skill, kind="edit", task=task,
         lines=lines, cursor=[row + 1, _indent(lines[row])], expect={"lines": expect},
@@ -823,12 +850,18 @@ def normal_prefix(
 
 
 def upper_constants(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
-    """``V{n}j:norm gUiw<CR>``: uppercase the names of consecutive module- or class-level assignments (x.normal)."""
-    if node.type == "block" and (node.parent is None or node.parent.type != "class_definition"):
+    """``V{n}j:norm gUiw<CR>``: uppercase the names of consecutive top-level constant assignments
+    (x.normal). Every name must pass ``_constant_def`` (top level of a file, not a dedented body,
+    no other use in the window) and hold a literal: counters, accumulators and class attributes
+    (which may be descriptors) are not constants (round 4 review)."""
+    if node.type != "module":
         return
     for run in _assignment_runs(win, node, EX_MIN_LINES):  # ex kind: gUiwj.j. would be a repetition drill
         names = [_text(a.child_by_field_name("left")) for a in run]
         if not all(re.fullmatch(r"[a-z][a-z0-9_]*[a-z0-9]", n) for n in names):
+            continue
+        if not all(_constant_def(win, a.child_by_field_name("left"), True) and _literal(a.child_by_field_name("right"))
+                   for a in run):
             continue
         rows = [a.start_point.row for a in run]
         if _seen(win, "constants", rows[0]):
@@ -931,16 +964,20 @@ def rename_all_dot(win: Window, node: tree_sitter.Node, skill: str, lang: Langua
     if _seen(win, f"dot:{skill}", old):
         return
     rx = re.compile(rf"\b{old}\b")
-    hits = [(r, m.start()) for r, ln in enumerate(win.lines) for m in rx.finditer(ln)]
-    if not 3 <= len(hits) <= 8 or len({r for r, _ in hits}) < 2 or (node.start_point.row, node.start_point.column) != hits[0]:
+    hits = _ident_hits(win, old)
+    if hits is None or not 3 <= len(hits) <= 8 or len({r for r, _ in hits}) < 2:
+        return
+    if (node.start_point.row, node.start_point.column) != hits[0]:
         return
     new = _new_name(win, old, node, node.start_point, "dot")
+    if new is None:
+        return
     row, c0 = hits[0]
     col = c0 + pick(range(len(old)), win.key, node.start_point, "dotcur")
     dots = "." * (len(hits) - 1)
     yield Draft(
         template="rename_all_dot", skill=skill, kind="edit",
-        task=f"Rename every `{old}` to `{new}` ({len(hits)} occurrences), one match at a time",
+        task=f"Rename `{old}` to `{new}` everywhere ({len(hits)} occurrences), one match at a time",
         lines=win.lines, cursor=[row + 1, col], expect={"lines": [rx.sub(new, ln) for ln in win.lines]},
         variants=[f"*cgn{new}<Esc>{dots}", f"#cgn{new}<Esc>{dots}", f"*Ncgn{new}<Esc>{dots}"],
         alternates=[f"*ciw{new}<Esc>" + "n." * (len(hits) - 1), f"/\\<{old}\\><CR>cgn{new}<Esc>{dots}"],
@@ -1061,13 +1098,17 @@ def increment(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
     key = "<C-a>" if up else "<C-x>"
     parent = node.parent
     context = _text(parent) if parent is not None else ""
-    if parent is not None and parent.start_point.row == parent.end_point.row and len(context) <= 32 and context.count(text) == 1 and "`" not in context:
+    if (parent is not None and parent.start_point.row == parent.end_point.row and len(context) <= 32
+            and context.count(text) == 1 and line.count(context) == 1 and "`" not in context):
         rel = c0 - parent.start_point.column
         task = f"Change `{context}` to `{context[:rel]}{new}{context[rel + len(text):]}`"
     elif len(re.findall(rf"(?<![\w.]){text}(?![\w.])", line)) == 1:
         task = f"Change the `{text}` on this line to `{new}`"
     else:
         return
+    numbers = _number_cols(win).get(row, [])
+    if len(numbers) > 1 and c0 in numbers:  # say which one, so a line like `(0, 1)` is not a guess (QA #50)
+        task += f" (the {ordinal(numbers.index(c0) + 1)} number on the line)"
     yield Draft(
         template="increment", skill=skill, kind="edit", task=task,
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, c0, c1, new)},
@@ -1103,17 +1144,17 @@ def duplicate_line(win: Window, node: tree_sitter.Node, skill: str, lang: Langua
     other = row + k if down else row - k
     dest = other + 1 if down else other
     expect = lines[:dest] + [lines[row]] + lines[dest:]
-    quote = _clip(lines[other].strip())
+    quote = _quote(lines[other].strip())
     if k == 0:
         variants, task = ["yyp"], "Duplicate this line (the copy goes right below it)"
         alternates = [":t.<CR>", "yyjP"]
     elif down:
         move = f"{k}j" if k > 1 else "j"
-        variants, task = [f"yy{move}p", f"yy{k}+p"], f"Copy this line to just below `{quote}`"
+        variants, task = [f"yy{move}p", f"yy{k}+p"], f"Copy this line to just below {quote}"
         alternates = [f":t+{k}<CR>", f"yy{k + 1}jP"]
     else:
         move = f"{k}k" if k > 1 else "k"
-        variants, task = [f"yy{move}P", f"yy{k}-P"], f"Copy this line to just above `{quote}`"
+        variants, task = [f"yy{move}P", f"yy{k}-P"], f"Copy this line to just above {quote}"
         alternates = [f":t-{k + 1}<CR>", f"yy{k + 1}kp"]
     yield Draft(
         template="duplicate_line", skill=skill, kind="edit", task=task,
@@ -1158,7 +1199,7 @@ def record_macro(win: Window, node: tree_sitter.Node, skill: str, lang: Language
         what = "string" if wrapper == "_" else "value"
         yield Draft(
             template="record_macro", skill=skill, kind="edit",
-            task=f"Wrap the {what} of each of these {n} assignments in `{wrapper}(...)`",
+            task=f"Wrap the {what} of each of these {n} assignments in a call to `{wrapper}`",
             lines=win.lines, cursor=[rows[0] + 1, _indent(win.lines[rows[0]])], expect={"lines": expect},
             variants=[f"qa{body}q{n - 1}@a", f"qq{body}q{n - 1}@q"],
             alternates=[f"qa{body}q@a" + "@@" * (n - 2), f"qa{body}q:.,+{n - 2}norm @a<CR>"],
@@ -1196,10 +1237,10 @@ def delete_block(win: Window, node: tree_sitter.Node, skill: str, lang: Language
         return
     row, col = pick(cols, win.key, node.start_point, "blk")
     n = crow - orow - 1
-    noun = {"(": "argument", "[": "item", "{": "entry"}[o]
     yield Draft(
         template="delete_block", skill=skill, kind="edit",
-        task=f"Delete the {_plural(n, noun + ' line')} of this {_NOUNS.get(node.type, 'block')}, keeping the `{o}` and `{c}` lines",
+        task=(f"Delete the {_plural(n, 'line')} inside the {_DELIM_NAMES[o]} of this {_NOUNS.get(node.type, 'block')},"
+              f" keeping the `{o}` and `{c}` lines"),
         lines=lines, cursor=[row + 1, col], expect={"lines": lines[:orow + 1] + lines[crow:]},
         variants=[f"di{o}"], alternates=[f"di{a}" for a in _ALIASES[o]],
         idioms=["dap", "dip", "d}", "d{", f"{n}dd", "dd", f"[{o}jd]{c}" if o in "({" else "dd", f"d{n - 1}j", f"d{n - 1}k"],
@@ -1278,7 +1319,7 @@ def goto_line_rel(win: Window, skill: str, lang: Language) -> Iterator[Draft]:
         yield Draft(
             template="goto_line_rel", skill=skill, kind="cursor",
             task=("Move the cursor to the highlighted line" if dup or "`" in lines[t]
-                  else f"Move the cursor to the highlighted line `{_clip(lines[t].strip())}`"),
+                  else f"Move the cursor to the highlighted line {_quote(lines[t].strip())}"),
             lines=lines, cursor=[s + 1, col], expect={"cursor": [t + 1, col]},
             variants=[motion], alternates=[alt], idioms=list(CURSOR_IDIOMS),
             target=[_range(t, 0, t, len(lines[t]) - 1)], window=win, tags=["relative-line"],
@@ -1375,13 +1416,32 @@ def _indent(line: str) -> int:
     return len(line) - len(line.lstrip())
 
 
-def _clip(text: str, width: int = 48) -> str:
-    return text if len(text) <= width else text[:width - 3] + "..."
+def _quote(text: str, width: int = 48) -> str:
+    """``text`` in backticks. A longer text is cut after its last whole token and marked with
+    " ..." outside the backticks, so the quote never holds characters the line does not."""
+    if len(text) <= width:
+        return f"`{text}`"
+    head = text[:width - 4]
+    if not text[len(head)].isspace():  # cut at the last space, else before the split word
+        space = head.rfind(" ")
+        head = head[:space] if space >= len(head) // 2 else head[:max(
+            (m.start() for m in re.finditer(r"\b\w", head)), default=len(head))] or head
+    return f"`{head.rstrip()}` ..."
 
 
-def _excerpt(win: Window, node: tree_sitter.Node) -> str:
-    text = _text(node)
-    return f"`{_clip(text, 40)}`" if "\n" not in text and "`" not in text else ""
+def _call_name(fn: str, width: int = 32) -> str:
+    """The callee as a task names it: whole when short, else its last ``.`` / ``::`` / ``->`` part.
+    Called by change_nth_arg here and in lang/cpp.py."""
+    return fn if len(fn) <= width else re.split(r"\.|::|->", fn)[-1]
+
+
+def _inside_phrase(noun: str, delims: str, inner: str) -> str:
+    """'the text `abc` inside the quotes' or 'the text inside the parentheses of this tuple': the one
+    wording every inner-text-object task uses (QA #49), quoting the old text without its delimiters
+    like the new one (QA #20). Called by the change/delete/upper inner templates here and in lang/cpp.py."""
+    quoted = f" `{inner}`" if 0 < len(inner) <= 40 and inner == inner.strip() and "`" not in inner else ""
+    of = "" if noun == "string" else f" of this {noun}"
+    return f"the text{quoted} inside the {delims}{of}"
 
 
 def _replace(lines: list[str], row: int, c0: int, c1: int, text: str) -> list[str]:
@@ -1410,6 +1470,23 @@ def _prose_rows(win: Window) -> set[int]:
             else:
                 stack.extend(n.children)
     return rows
+
+
+def _number_cols(win: Window) -> dict[int, list[int]]:
+    """Row -> start columns of the number literals on it, left to right (code only, not strings)."""
+    cols = win.cache.get("numbers")
+    if cols is None:
+        cols = win.cache["numbers"] = {}
+        stack = [win.root]
+        while stack:
+            n = stack.pop()
+            if n.type in ("integer", "float", "number_literal"):
+                cols.setdefault(n.start_point.row, []).append(n.start_point.column)
+            elif n.type not in _NOT_CODE:
+                stack.extend(n.children)
+        for row in cols.values():
+            row.sort()
+    return cols
 
 
 def _string_cells(win: Window) -> set[tuple[int, int]]:
@@ -1453,42 +1530,173 @@ def _seen(win: Window, kind: str, name: str) -> bool:
     return False
 
 
-def _new_name(win: Window, old: str, node: tree_sitter.Node | None, *key: object) -> str:
-    """A fresh name for ``old``: same role (callable, collection, count, ...) and case style."""
+def _new_name(win: Window, old: str, node: tree_sitter.Node | None, *key: object) -> str | None:
+    """A fresh name for ``old`` from the role's short list, in its case style; None when every
+    fitting name is already in the window (the template then makes no draft)."""
     words = win.cache.get("words")
     if words is None:
         words = win.cache["words"] = set(re.findall(r"\w+", "\n".join(win.lines)))
-    role = _role(node, old)
-    for pool in (ROLE_NAMES[role], ROLE_NAMES["any"]):
+    names = win.cache.get("role_names", ROLE_NAMES)
+    role = _role(node, old, win)
+    pools = (names.get(role, names["any"]), names["any"]) if role in _DATA_ROLES else (names[role],)
+    for pool in pools:
         choices = [n for n in (_styled(w, old) for w in pool) if n not in words and n != old and n not in _BUILTINS]
         if choices:
             return pick(choices, win.key, old, *key)
-    return _styled("new_" + old.lower().strip("_"), old)
+    return None
 
 
-def _role(node: tree_sitter.Node | None, name: str) -> str:
-    """What an identifier names, for picking a replacement that reads like a real rename."""
+def _role(node: tree_sitter.Node | None, name: str, win: Window | None = None) -> str:
+    """What an identifier names, for picking a replacement that reads like a real rename.
+
+    Syntax first (a function, class or call), then the words of the name, then the declared
+    type or assigned value (``win.cache["types"]``, filled by ``_declared_roles`` or
+    ``lang/cpp.py``), then a plural ending.
+    """
     parent = node.parent if node is not None else None
+    parts = [p.lower() for p in re.findall(r"[A-Z]+(?![a-z])|[A-Z]?[a-z0-9]+", name)]
+    predicate = bool(parts) and parts[0] in _PREDICATE_HEADS and len(parts) > 1
     if parent is not None:
         if parent.type in ("function_definition", "class_definition") and parent.child_by_field_name("name") == node:
-            return "call" if parent.type == "function_definition" else "class"
+            return "class" if parent.type == "class_definition" else "flag" if predicate else "call"
         if parent.type == "function_declarator" and parent.child_by_field_name("declarator") == node:
-            return "call"  # C++: the name in `int area(int w)`, definition or declaration
+            return "flag" if predicate else "call"  # C++: the name in `int area(int w)`, definition or declaration
         if parent.type in ("call", "call_expression") and parent.child_by_field_name("function") == node:
-            return "class" if name[:1].isupper() and not name.isupper() else "call"
+            return "class" if name[:1].isupper() and not name.isupper() else "flag" if predicate else "call"
         if (parent.type == "field_expression" and parent.child_by_field_name("field") == node and parent.parent is not None
                 and parent.parent.type == "call_expression" and parent.parent.child_by_field_name("function") == parent):
             return "call"  # C++: the method in `obj.size()`
     if name[:1].isupper() and not name.isupper():
         return "class"
-    parts = [p.lower() for p in re.findall(r"[A-Z]+(?![a-z])|[A-Z]?[a-z0-9]+", name)]
+    if predicate:
+        return "flag"
     last = parts[-1] if parts else ""
     for role, vocabulary in _ROLE_WORDS.items():
         if last in vocabulary:
             return role
+    declared = _declared_roles(win).get(name) if win is not None else None
+    if declared:
+        return declared
     if len(last) > 3 and last.endswith("s") and not last.endswith("ss"):
         return "many"
     return "any"
+
+
+def _declared_roles(win: Window) -> dict[str, str]:
+    """Python: name -> role from what a one-target assignment stores (a list is "many",
+    a number "count", a string "text", a bool "flag"). lang/cpp.py fills the same cache key
+    from declared types."""
+    roles = win.cache.get("types")
+    if roles is None:
+        roles = win.cache["types"] = {}
+        by_value = {"list": "many", "list_comprehension": "many", "dictionary": "many", "set": "many",
+                    "dictionary_comprehension": "many", "set_comprehension": "many", "integer": "count",
+                    "string": "text", "true": "flag", "false": "flag"}
+        stack = [win.root]
+        while stack:
+            n = stack.pop()
+            stack.extend(n.named_children)
+            if n.type == "assignment":
+                left, right = n.child_by_field_name("left"), n.child_by_field_name("right")
+                if left is not None and right is not None and left.type == "identifier" and right.type in by_value:
+                    roles.setdefault(_text(left), by_value[right.type])
+    return roles
+
+
+def _code_names(win: Window) -> tuple[dict[str, list[tuple[int, int]]], set[str]]:
+    """(name -> (row, col) of each code occurrence, namespace names). Code means an identifier
+    outside strings, comments and #include lines; an f-string field is code. The name of a
+    ``using namespace x;`` counts as a namespace name."""
+    cached = win.cache.get("code_names")
+    if cached is not None:
+        return cached
+    names: dict[str, list[tuple[int, int]]] = {}
+    namespaces: set[str] = set()
+    stack = [win.root]
+    while stack:
+        n = stack.pop()
+        if n.type in _NOT_CODE:
+            stack.extend(k for k in n.children if k.type == "interpolation")
+            continue
+        stack.extend(n.children)
+        if n.type == "namespace_identifier" or (
+                n.type == "identifier" and n.parent is not None and n.parent.type == "using_declaration"
+                and any(k.type == "namespace" for k in n.parent.children)):
+            namespaces.add(_text(n))
+        elif n.type in _CODE_IDENTS:
+            names.setdefault(_text(n), []).append((n.start_point.row, n.start_point.column))
+    cached = win.cache["code_names"] = ({k: sorted(v) for k, v in names.items()}, namespaces)
+    return cached
+
+
+def _ident_hits(win: Window, old: str) -> list[tuple[int, int]] | None:
+    """Every whole-word ``old`` in the window as (row, col), or None when one of them is not a
+    code identifier (it sits in a string, a comment or an #include, or names a namespace):
+    ``:%s`` and ``*`` would change those too, so the drill would not be a rename."""
+    rx = re.compile(rf"\b{re.escape(old)}\b")
+    hits = [(r, m.start()) for r, ln in enumerate(win.lines) for m in rx.finditer(ln)]
+    names, namespaces = _code_names(win)
+    return hits if hits == names.get(old, []) and old not in namespaces else None
+
+
+def _constant_def(win: Window, node: tree_sitter.Node, upper: bool) -> bool:
+    """True when ``node`` is the name in the one definition of a constant, and nothing else in
+    the window uses that name (a case change of the definition alone would break the uses).
+
+    Python: ``name = value`` at the file's top level (``win.indent == 0``), assigned once (to
+    uppercase), or an UPPER_CASE name assigned at top or class level (to lowercase). C++: the name in a ``const`` /
+    ``constexpr`` declaration (either direction); to lowercase, also an enumerator or a
+    ``#define`` name.
+    """
+    if not _is_code_ident(win, node):
+        return False
+    name, parent = _text(node), node.parent
+    if len(_code_names(win)[0].get(name, [])) != 1:
+        return False
+    if parent is None:
+        return False
+    if parent.type == "assignment":  # python
+        stmt = parent.parent
+        scope = stmt.parent if stmt is not None and stmt.type == "expression_statement" else None
+        if parent.child_by_field_name("left") != node or scope is None:
+            return False
+        if scope.type == "module":
+            return win.indent == 0 or not upper  # a dedented function body parses as a module too
+        return not upper and scope.type == "block" and scope.parent is not None and scope.parent.type == "class_definition"
+    if not upper and ((parent.type == "enumerator" and parent.child_by_field_name("name") == node)
+                      or (parent.type == "preproc_def" and parent.child_by_field_name("name") == node)):
+        return True
+    decl = parent.parent if parent.type == "init_declarator" else parent
+    if decl is None or decl.type not in ("declaration", "field_declaration"):
+        return False
+    if parent.type == "init_declarator" and parent.child_by_field_name("declarator") != node:
+        return False
+    if parent.type == "field_declaration" and (parent.child_by_field_name("declarator") != node
+                                               or parent.child_by_field_name("default_value") is None):
+        return False
+    return any(k.type == "type_qualifier" and _text(k) in ("const", "constexpr") for k in decl.children)
+
+
+_LITERALS = {"integer", "float", "string", "concatenated_string", "true", "false", "none"}
+
+
+def _literal(node: tree_sitter.Node | None) -> bool:
+    """True for an immutable literal value: a number, a string without fields, True/False/None,
+    a negated number, or a tuple of those; a list, dict, set or call is not a constant."""
+    if node is None:
+        return False
+    if node.type == "unary_operator":
+        return _literal(node.child_by_field_name("argument"))
+    if node.type in ("tuple", "parenthesized_expression"):
+        return all(_literal(k) for k in node.named_children)
+    return node.type in _LITERALS and not any(k.type == "interpolation" for k in node.children)
+
+
+def _is_code_ident(win: Window, node: tree_sitter.Node) -> bool:
+    """True when ``node`` is a code identifier (see ``_code_names``) that is not a namespace name."""
+    names, namespaces = _code_names(win)
+    name = _text(node)
+    return name not in namespaces and (node.start_point.row, node.start_point.column) in names.get(name, [])
 
 
 def _styled(snake: str, old: str) -> str:
@@ -1513,12 +1721,6 @@ def _plural(n: int, noun: str) -> str:
 
 def _is_dunder(name: str) -> bool:
     return len(name) > 4 and name.startswith("__") and name.endswith("__")
-
-
-def _the(win: Window, node: tree_sitter.Node, noun: str) -> str:
-    """'the string `'abc'`' when the node can be quoted, else 'this string' (the highlight shows it)."""
-    excerpt = _excerpt(win, node)
-    return f"the {noun} {excerpt}" if excerpt else f"this {noun}"
 
 
 def _fit_string(inner: str, *key: object) -> str:
@@ -1555,7 +1757,8 @@ def _fit_value(win: Window, node: tree_sitter.Node, salt: str) -> str | None:
         obj, attr = node.child_by_field_name("object"), node.child_by_field_name("attribute")
         if obj is None or attr is None or obj.type != "identifier":
             return None
-        return f"{_text(obj)}.{_new_name(win, _text(attr), attr, *key)}"
+        new = _new_name(win, _text(attr), attr, *key)
+        return f"{_text(obj)}.{new}" if new is not None else None
     return RHS_BY_TYPE.get(t)
 
 
@@ -1813,7 +2016,7 @@ def _line_groups(win: Window) -> list[tuple[str, list[str], list[int]]]:
         if fn is None or not re.fullmatch(r"[A-Za-z_][\w.]*", _text(fn)) or n.end_point.column != len(win.lines[row]):
             continue
         groups.setdefault(_text(fn), []).append(row)
-    out = [(f"line that calls `{fn}(...)`", [fn[:i] for i in range(1, len(fn) + 1)], sorted(rows))
+    out = [(f"line that calls `{fn}`", [fn[:i] for i in range(1, len(fn) + 1)], sorted(rows))
            for fn, rows in sorted(groups.items())]
     lines = win.lines
     comments = [r for r, ln in enumerate(lines) if ln.lstrip().startswith("#")]

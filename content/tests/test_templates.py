@@ -28,9 +28,10 @@ def test_every_mapped_template_fires_on_fixture(drafts):
     fired = {d.template for d in drafts}
     # fixture strings are not all lower-case words; the tier 5-8 templates that need repeated
     # structure (4+ sibling assignments, one-item-per-line collections) are covered by
-    # test_templates_tiers.py with their own snippets.
+    # test_templates_tiers.py with their own snippets. The fixture defines no constant, so
+    # upper_word is covered by test_templates_wording.py.
     missing = set(ALL_TEMPLATES) - fired - {"upper_inner", "append_each_line", "prefix_each_line", "record_macro",
-                                            "upper_constants"}
+                                            "upper_constants", "upper_word"}
     assert not missing
 
 
@@ -84,10 +85,10 @@ def test_indent_block_start_is_misindented_and_expect_is_source(window, drafts):
         assert d.lines != window.lines
 
 
-def test_rename_all_subst_kind_follows_occurrences_and_a_variant_passes(drafts, runner):
+def test_rename_all_subst_is_ex_above_subst_edit_max_and_a_variant_passes(drafts, runner):
     d = next(d for d in drafts if d.template == "rename_all_subst")
-    assert len(d.target) >= 3
-    assert d.kind == ("edit" if len(d.target) <= templates.SUBST_EDIT_MAX else "ex")
+    assert len(d.target) > templates.SUBST_EDIT_MAX
+    assert d.kind == "ex"
     ok = [_replay(d, k, runner) for k in d.variants]
     assert any(v.passed for v in ok)
 

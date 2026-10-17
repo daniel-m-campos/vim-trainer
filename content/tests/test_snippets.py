@@ -30,6 +30,11 @@ def test_big_definitions_are_split_into_body_windows():
     wins = snippets.windows(text, {"repo": "r", "path": "p"})
     assert wins and all(len(w.lines) <= snippets.MAX_LINES for w in wins)
     assert all(not w.lines[0].startswith(" ") for w in wins)  # body windows are dedented
+    assert all(w.indent == 4 for w in wins)  # and remember it: their top level is not the file's
+
+
+def test_top_level_window_has_no_indent(window):
+    assert window.indent == 0
 
 
 def test_size_problem_rejects_short_wide_tab_and_non_ascii():

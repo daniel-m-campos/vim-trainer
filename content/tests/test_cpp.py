@@ -315,3 +315,95 @@ def test_every_draft_has_a_variant_that_passes_in_neovim(drafts):
     passed = {owners[k] for k, v in enumerate(verdicts) if v.passed}
     failing = [(d.template, d.skill, d.task, d.variants) for i, d in enumerate(drafts) if i not in passed]
     assert not failing
+
+
+# Round 4 template rules (QA #7, #13, #23, #27, #28, #54); the Python side is test_templates_wording.py
+
+RULES = """\
+#include "scoring.h"
+#include <vector>
+
+namespace scoring {
+
+constexpr int max_bonus = 50;
+
+int score(const std::vector<int>& coins, bool has_priority, Node* head) {
+    Node* next = head->next_node;
+    int points = 0;
+    int bonus = 0;
+    for (int coin : coins) {
+        points += coin;
+        bonus = bonus + 1;
+    }
+    log("missing points", points);  // points so far
+    if (has_priority) {
+        points = points * 2 + bonus;
+    }
+    return points + bonus;
+}
+
+}  // namespace scoring
+"""
+
+
+@pytest.fixture(scope="module")
+def rules():
+    lines = RULES.splitlines()
+    win = snippets.Window(lines=lines, source=SOURCE, first_line=1, last_line=len(lines),
+                          tree=cpp.parse("\n".join(lines)))
+    return win, cpp.generate(win)
+
+
+def _passes(draft) -> bool:
+    ex = dict(draft.exercise(cpp.LANG.name), id=draft.uid)
+    return any(v.passed for v in oracle.verify_many([(ex, k) for k in draft.variants], oracle.subprocess_runner()))
+
+
+def test_include_paths_are_never_string_targets(rules):
+    win, drafts = rules
+    inner = [d for d in drafts if d.template in ("change_inner", "delete_inner", "upper_inner")]
+    assert any(d.skill == "t.quote" for d in inner)  # the other string still drills t.quote
+    assert not [d for d in inner if d.target[0]["start"][0] == 1], "row 1 is the #include"
+
+
+@pytest.mark.skipif(shutil.which("nvim") is None, reason="nvim not installed")
+def test_renames_skip_names_in_strings_comments_and_namespaces(rules):
+    win, drafts = rules
+    renames = [d for d in drafts if d.template in ("rename_here", "rename_all_subst", "upper_word")]
+    olds = {d.params.get("old") for d in renames}
+    assert "points" not in olds and "scoring" not in olds  # `points` is also in a string and a comment
+    (subst,) = [d for d in renames if d.template == "rename_all_subst"]
+    assert subst.params["old"] == "bonus" and subst.kind == "ex"
+    assert "as a whole word" in subst.task and "`max_bonus` stays" in subst.task  # QA #13
+    assert not [d for d in renames if d.lines[d.target[0]["start"][0] - 1].startswith("namespace")]
+    assert _passes(subst)  # Neovim's :%s gives the identifier-only buffer
+
+
+@pytest.mark.skipif(shutil.which("nvim") is None, reason="nvim not installed")
+def test_case_drills_only_target_constants_cpp(rules):
+    win, drafts = rules
+    cases = [d for d in drafts if d.template == "upper_word"]
+    assert [d.params["word"] for d in cases] == ["max_bonus"]  # constexpr and used once; locals never
+    assert cases[0].task == "Make `max_bonus` a constant name: uppercase it to `MAX_BONUS`"
+    assert _passes(cases[0])
+
+
+def test_change_to_end_names_the_declared_variable(rules):
+    win, drafts = rules
+    tasks = [d.task for d in drafts if d.template == "change_to_end"]
+    assert any("`next`" in t for t in tasks), tasks
+    assert not any("`*" in t or "`&" in t for t in tasks), tasks  # QA #54: not "`* next`"
+
+
+def test_type_roles_pick_names_that_fit(rules):
+    win, _ = rules
+    types = win.cache["types"]
+    assert (types["coins"], types["has_priority"], types["head"], types["points"]) == ("many", "flag", "ptr", "count")
+    found = {}
+    stack = [win.root]
+    while stack:
+        n = stack.pop()
+        stack.extend(n.children)
+        if n.type == "identifier" and templates._text(n) in ("coins", "head"):
+            found[templates._text(n)] = templates._new_name(win, templates._text(n), n, "k")
+    assert found["coins"] in cpp.ROLE_NAMES["many"] and found["head"] in cpp.ROLE_NAMES["ptr"]
