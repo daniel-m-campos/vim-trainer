@@ -145,6 +145,11 @@ uv run vimtrainer-content difftest --accept .cache/difftest/20261013/findings.js
 
 This appends one entry per shape in the file. Review the diff and commit it.
 
+After a round of fixes, prune the file: run two fresh seeds (`make difftest SEED=...`
+twice, neither seed used before), and remove every entry whose shape (or `match`) no
+longer appears in either run. An entry that still appears on one seed stays. Commit the
+pruning with the fix it follows.
+
 ## Nightly job
 
 `.github/workflows/difftest.yml` runs at 03:00 UTC and on manual dispatch, which takes
@@ -153,9 +158,9 @@ This appends one entry per shape in the file. Review the diff and commit it.
 head of `summary.md` to the job summary and always uploads `content/.cache/difftest/` as an
 artifact. It is report-only for now: the first runs (2026-10-13) found ~130–160 minimised
 shapes per 2,000 cases, overwhelmingly class a, and every fresh seed still adds ~20–30 new
-shapes, so a red night would carry no signal until the round-4 fixes land. Once a fresh
-seed passes `make difftest` (strict) locally, drop `STRICT=` from the workflow so the
-nightly fails on new shapes again. To reproduce a night locally, run
+shapes. After round 4 a fresh seed still adds ~35–45 new shapes (below), so the nightly
+stays report-only. The rule: when a fresh seed passes `make difftest` (strict) clean
+locally, drop `STRICT=` from the workflow so the nightly fails on new shapes again. To reproduce a night locally, run
 `make difftest SEED=<that date>` and read `summary.md`.
 
 ## From a class-a finding to a fix
@@ -216,6 +221,33 @@ The class-d entries are Neovim defaults: Visual `*`/`#` mappings, `smarttab` `<B
 A fresh seed (3, 2,000 cases) still gave 27 new shapes out of 136. The nightly job will
 stay red until round-4 fixes or further triage shrink the families. Small Neovim-verified
 cases for the main families are commented in `app/e2e/editor.mjs`.
+
+## Round 4 measurement (2026-10-14)
+
+Round 4 rewrote `vimfixes.ts` and added `vimfixes-macros-indent.ts`. Pruning followed the
+rule above: the 80 class-a entries whose shapes the builders reported fixed were removed,
+seeds 7 and 20261101 (2,000 cases each) were run against the rest, and the 14 entries
+whose shape or `match` still covered a judged finding there were put back (`c}`,
+`A<CR>`, `><CR>`, `N}`, `c*`, `c-`, `va'`, `:m<CR>`, `>G`, `Vs`, `S<Esc>`, `J`,
+`O<C-w>`, `vit`). 66 stay pruned. New entries: `o{text}`/`O{text}` and `c_`/`c+` (class c,
+indent engine) and `Y` (class d, Neovim's `Y` is `y$`).
+
+| seed | diverging | minimised shapes | class a | new vs known |
+|---|---|---|---|---|
+| 20261013 (before round 4) | 1,026 | 152 | 131 | 29 |
+| 20261015 nightly (before round 4) | 1,028 | 142 | 119 | 28 |
+| 7 | 534 | 145 | 107 | 72 against the pruned file; 43 after the re-adds |
+| 20261101 | 546 | 137 | 105 | 71 against the pruned file; 34 after the re-adds |
+| 20261014 (`make difftest`, strict) | 527 | 126 | 96 | 36 (exit 1) |
+
+Diverging cases halved. The shape counts are capped by the 240 s minimisation budget:
+each round-4 run left 319–335 findings unminimised and unjudged, so they understate the
+shapes, and the build the runs sampled from is the round-4 one. The new class-a shapes
+are the next backlog: undo cursor (`Ju`, `ddu`), `:d`/`:t`/`:m` with ranges or patterns,
+`:s` with an empty pattern (a page error in codemirror-vim), Visual `i"`/`i'` staying
+charwise in `V`, `v$d`, `*` on punctuation, `<BS>` at column 0, `y_` cursor, and error-path
+divergences the classifier guessed as c (`Vp`/`vp` with an empty register, `:4t.` past
+the end, `:.,2d` on a one-line buffer). These stay out of `known.jsonl`.
 
 ## What it will not catch
 

@@ -282,12 +282,14 @@ def test_seeded_known_list():
     known = compare.load_known(KNOWN)
     assert len(known) >= 12
     assert all({"shape", "class", "note", "added"} <= set(k) and k["class"] in "abcd" for k in known)
-    for keys in ("vi{", "vjU", "g@iw", "cgnx<Esc>", '"2p', "<C-v>jIab<CR><Esc>", "j<NL>x", ":.,+2j<CR>",
+    for keys in ("vi{", "vjU", "g@iw", "cgnx<Esc>", '"2p', "<C-v>jIab<CR><Esc>",
                  "c}", "y}", "gU}", "d/foo<CR>", "%",
                  # families from the first triage (seed 20261012)
-                 "S<Esc>", "Axy<CR>", "yb", "==", "vas", "V]}", "va<", "o<C-w>", "v*", ":m<CR>"):
+                 "S<Esc>", "Axy<CR>", "==", "vas", "V]}", "va<", "o<C-w>", "v*", ":m<CR>"):
         assert compare.is_known(_finding(keys), known), keys
-    for keys in ("dd", "ciwx<Esc>", ":%s/a/b/g<CR>", "df}", ":s/x/word/<CR>", "<Esc>{", "gUw"):
+    for keys in ("dd", "ciwx<Esc>", ":%s/a/b/g<CR>", "df}", ":s/x/word/<CR>", "<Esc>{", "gUw",
+                 # fixed in round 4 and pruned from known.jsonl (docs/plan/12)
+                 "j<NL>x", ":.,+2j<CR>", "yb"):
         assert not compare.is_known(_finding(keys), known), keys
     assert compare.load_known(KNOWN.parent / "missing.jsonl") == []
 
