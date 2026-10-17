@@ -37,8 +37,32 @@ jobs:
       - uses: ./.github/actions/setup
 
       # The fuzzer samples its buffers from build/, which is not committed (ADR 0010).
-      - name: Generate content
-        run: make content
+      # Same two stages and the same cache as ci.yml (keep the key in step with it): the
+      # nvim stage is restored or rebuilt and saved, then the browser replay always runs.
+      - name: Neovim version (cache key)
+        id: nvim
+        run: echo "version=$(nvim --version | head -1 | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Restore content build (nvim stage)
+        id: content-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: build
+          key: content-build-${{ runner.os }}-nvim-${{ steps.nvim.outputs.version }}-${{ hashFiles('content/**', '!content/.cache/**', '!content/.venv/**', '!**/__pycache__/**', '!content/tests/**', '!content/difftest/**', '!content/review/**', '!content/**/*.md', '.github/actions/setup/action.yml') }}
+
+      - name: Generate content, nvim stage (cache miss)
+        if: steps.content-cache.outputs.cache-hit != 'true'
+        run: cd content && uv run vimtrainer-content build
+
+      - name: Save content build (nvim stage)
+        if: steps.content-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build
+          key: ${{ steps.content-cache.outputs.cache-primary-key }}
+
+      - name: Generate content, browser replay
+        run: cd app && node e2e/emulator.mjs --write
 
       # Three fixed cases with known nvim results: fails fast if the worker protocol broke.
       - name: Browser worker self-test

@@ -61,8 +61,9 @@ make build      # static site in app/dist/
 
 `build/` is generated, not committed (ADR 0010): `make test`, `make e2e`, `make difftest` and
 `make build` refuse to run until `make content` has produced it. CI (`.github/workflows/ci.yml`)
-generates it on every run and then rebuilds it a second time to prove the pipeline is
-deterministic. After changing anything under `content/`, run `make content` again.
+generates it on every run (the Neovim stage comes from a cache when `content/` is unchanged;
+the browser replay always runs). When `content/` or the CI setup changed, and on main, it
+rebuilds `build/` a second time to prove the pipeline is deterministic. After changing anything under `content/`, run `make content` again.
 
 ## Layout
 
