@@ -1,7 +1,7 @@
 // Adaptive model (docs/plan/04-adaptive-model.md), TypeScript mirror of model/vimtrainer_model.
 //
 // Pure functions, no dependencies, no clock or global randomness: time and seeds are
-// arguments. Both mirrors are checked against the shared vectors in model/vectors/*.json
+// arguments. Both mirrors are checked against the shared vectors in model/.cache/vectors/ (make vectors)
 // (see app/src/model/model.test.ts). Keep operation order identical to the Python side so
 // floating-point results match bit for bit.
 //

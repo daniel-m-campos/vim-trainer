@@ -8,6 +8,8 @@
 #                 build/ is NOT committed (ADR 0010): run this once after setup, and again
 #                 after any change under content/. test, e2e and difftest need it.
 #   make dev      run the app at http://localhost:5173/
+#   make vectors  generate the model's shared scenarios into model/.cache/vectors/ (not committed;
+#                 test-model and test-app run it first, so `make test` needs nothing extra)
 #   make test     unit tests: content, model (Python and TS mirror), app grading, typecheck
 #   make e2e      Playwright: the sample flow, a 15-exercise session on build/, the stats demo,
 #                 editor regressions checked against nvim
@@ -20,10 +22,10 @@ export PLAYWRIGHT_BROWSERS_PATH := 0
 BROWSERS ?= chromium
 CHECK_DIR := content/.cache/build-check
 
-.PHONY: setup content need-content content-check dev test test-content test-model test-app e2e e2e-all emulator difftest build clean help
+.PHONY: setup content need-content content-check dev vectors test test-content test-model test-app e2e e2e-all emulator difftest build clean help
 
 help:
-	@sed -n '1,17p' Makefile
+	@sed -n '1,19p' Makefile
 
 setup:
 	@command -v uv >/dev/null || { echo "uv is missing: brew install uv"; exit 1; }
@@ -59,17 +61,22 @@ content-check: need-content
 dev:
 	cd app && npm run dev
 
-test: need-content test-content test-model test-app
+# The model's shared scenarios with Python's outputs as `expect`; app/src/model/model.test.ts
+# replays them through the TypeScript mirror. Derived data, so generated here, not committed.
+vectors:
+	cd model && uv run python gen_vectors.py --out .cache/vectors
+
+test: need-content vectors test-content test-model test-app
 
 test-content:
 	cd content && uv run pytest -q
 
-test-model:
+test-model: vectors
 	cd model && uv run pytest -q
 
 # Grading unit tests, the build/ contract test and the TS model mirror (node --test),
 # plus the e2e key-notation helper (keys.mjs).
-test-app:
+test-app: vectors
 	cd app && npm test
 	cd app && npm run test:e2e-helpers
 	cd app && npm run typecheck
@@ -105,4 +112,4 @@ build: need-content
 	cd app && npm run build
 
 clean:
-	rm -rf app/dist $(CHECK_DIR)
+	rm -rf app/dist $(CHECK_DIR) model/.cache
