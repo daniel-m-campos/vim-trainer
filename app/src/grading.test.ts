@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  tokenize, displayKeys, replayKeys, splitKeys, checkPass, band, isGiveUp, armsGiveUp, PausableClock, tabSpaces, chooseHint, diffLines, usedExCommand, targetRange, targetRanges, exerciseHints,
+  tokenize, displayKeys, replayKeys, splitKeys, checkPass, band, isGiveUp, armsGiveUp, PausableClock, tabSpaces, chooseHint, diffLines, usedExCommand, targetRange, targetRanges, exerciseHints, placementPass, unrecoverable,
   type KeyEvent, type Mode,
 } from "./grading.ts";
 import type { Exercise } from "./types.ts";
@@ -214,4 +214,57 @@ test("build/ exercises match what the app reads", { skip: !existsSync(BUILD) && 
       }
   assert.ok(n > 0, "no exercises found");
   assert.deepEqual(problems.slice(0, 10), []);
+});
+
+test("placementPass: ok within max(2 * par, par + 6) keys (QA #8)", () => {
+  assert.equal(placementPass(true, 8, 2), true); // short par: par + 6 = 8
+  assert.equal(placementPass(true, 9, 2), false);
+  assert.equal(placementPass(true, 11, 2), false); // 11 presses of l on a par-2 exercise
+  assert.equal(placementPass(true, 20, 10), true); // long par: 2 * par = 20
+  assert.equal(placementPass(true, 21, 10), false);
+  assert.equal(placementPass(true, 12, 6), true); // the two caps meet at par 6
+  assert.equal(placementPass(true, 13, 6), false);
+  assert.equal(placementPass(false, 1, 2), false);
+});
+
+// py/o.delete/0a6154fe41 (QA #3): "Delete the function `__init__` (4 lines)", par d}.
+// Every `now` below is Neovim 0.12.5's buffer after the named keys (oracle.verify_many).
+const INIT = ["def __init__(self):", "    self.current_frame_idx = 0", "    self.bonus_throws = []", "    self.frames = [Frame(idx) for idx in range(MAX_FRAME)]"];
+const REST = ["@property", "def current_frame(self):", "    return self.frames[self.current_frame_idx]", "", "def next_throws(self, frame_idx):", '    """Return a frame\'s next throws in the form of a list."""', "    throws = []", "    for idx in range(frame_idx + 1, MAX_FRAME):", "        throws.extend(self.frames[idx].throws)", "    throws.extend(self.bonus_throws)", "    return throws"];
+const START = [...INIT, "", ...REST];
+const EXPECT = ["", ...REST];
+
+test("unrecoverable: dap removes the blank line the target keeps (QA #3)", () => {
+  assert.equal(unrecoverable(START, REST, EXPECT), "the target keeps 1 more line");
+});
+
+test("unrecoverable: a kept line deleted along with other lines", () => {
+  // 3jd2j: deletes self.frames, the blank and @property; 13 lines, still >= 12.
+  const now = [...INIT.slice(0, 3), ...REST.slice(1)];
+  assert.equal(unrecoverable(START, now, EXPECT), "a line that should stay was removed");
+});
+
+test("unrecoverable: whole lines deleted and less than half the text left", () => {
+  const start = ["total = compute(alpha, beta, gamma)", "", "", "print(total)"];
+  const expect = ["total = compute(alpha, beta)", "", "print(total)"];
+  assert.equal(unrecoverable(start, ["", "", "print(total)"], expect), "too much was deleted"); // dd
+});
+
+test("unrecoverable: stays quiet on states that can still reach the target", () => {
+  const cases: [string, string[], string[], string[]][] = [
+    ["untouched", START, START, EXPECT],
+    ["d} (the pass)", START, EXPECT, EXPECT],
+    ["dd, part way", START, START.slice(1), EXPECT],
+    ["3dd, part way", START, START.slice(3), EXPECT],
+    ["cwfoo, insert still open", START, ["foo __init__(self):", ...START.slice(1)], EXPECT],
+    ["o# note<Esc>, an extra line", START, [INIT[0], "    # note", ...START.slice(1)], EXPECT],
+    ["ddp, lines reordered", START, [INIT[1], INIT[0], ...START.slice(2)], EXPECT],
+    ["6jdd, a kept line in the register (P restores it)", START, [...START.slice(0, 6), ...START.slice(7)], EXPECT],
+    ["dd of a line move, before the p", ["import os", "import sys", "x = 1"], ["import sys", "x = 1"], ["import sys", "import os", "x = 1"]],
+    ["f,;Dx, a charwise delete", ["total = compute(alpha, beta, gamma)", "", "", "print(total)"], ["total = compute(alpha, bet", "", "", "print(total)"], ["total = compute(alpha, beta)", "", "print(total)"]],
+    // Fewer lines than start and expect, but the missing line is new text still to type.
+    ["dG, then oX to come", ["a", "b", "c", "d"], ["a"], ["a", "X"]],
+    ["jdd, then obaz to come", ["foo", "bar"], ["foo"], ["foo", "baz"]],
+  ];
+  for (const [name, start, now, expect] of cases) assert.equal(unrecoverable(start, now, expect), null, name);
 });

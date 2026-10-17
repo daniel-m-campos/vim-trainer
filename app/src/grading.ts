@@ -119,6 +119,78 @@ export function band(keys: number, par: number): Band {
   return "over";
 }
 
+/**
+ * Placement gate (QA #8): a placement sample counts as passed only when it reached
+ * the target within max(2 * par, par + 6) keys. Without the key cap, eleven presses
+ * of l on a par-2 cursor exercise marked the skill (and its prerequisites) mastered.
+ * The + 6 keeps very short pars (1 to 6 keys) from failing on one detour. For the
+ * placement flow in main.ts.
+ */
+export function placementPass(ok: boolean, keys: number, par: number): boolean {
+  return ok && keys <= Math.max(2 * par, par + 6);
+}
+
+// Lines as a count map (trailing whitespace ignored), for unrecoverable().
+function lineCounts(lines: string[]): Map<string, number> {
+  const m = new Map<string, number>();
+  for (const l of normLines(lines)) m.set(l, (m.get(l) ?? 0) + 1);
+  return m;
+}
+
+// Lines of `a` not matched by a line of `b` (multiset difference), for unrecoverable().
+function minus(a: Map<string, number>, b: Map<string, number>): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const [l, n] of a) if (n > (b.get(l) ?? 0)) out.set(l, n - (b.get(l) ?? 0));
+  return out;
+}
+
+/**
+ * Cheap check that the buffer can no longer reach the target without retyping
+ * deleted text, so the player should undo. Returns the reason to show, or null.
+ * False alarms are worse than misses, so it stays quiet unless something was
+ * deleted that a single put could not bring back:
+ *  - nothing deleted (only typing added): null, the rest can still be typed;
+ *  - every deleted line is one the target still needs: null, `p`/`P` may restore
+ *    it (the dd half of ddp, a line move);
+ * and then fires on (a) fewer lines than both start and expect while a line the
+ * target needs from start is gone (a line only expect has is new text still to type:
+ * dG then oX is fine), (b) a non-blank line common to start and expect gone from the
+ * buffer, (c) whole lines deleted, the text under half of expect's length, and over
+ * half of expect's text was on the deleted lines (shared prefix + suffix with a missing
+ * line: a deleted line the target only edits, not new text).
+ * Mid-insert typing never deletes lines, so (a) and (c) cannot fire on it. Meant for
+ * normal mode between commands; main.ts (the exercise view) is the intended caller.
+ */
+export function unrecoverable(start: string[], now: string[], expect: string[]): string | null {
+  const nowC = lineCounts(now);
+  const startC = lineCounts(start);
+  const deleted = minus(startC, nowC);
+  const missing = minus(lineCounts(expect), nowC);
+  if (deleted.size === 0) return null;
+  if ([...deleted].every(([l, n]) => (missing.get(l) ?? 0) >= n)) return null;
+
+  const lostFromStart = [...missing.keys()].some((l) => startC.has(l));
+  if (now.length < expect.length && now.length < start.length && lostFromStart) {
+    const n = expect.length - now.length;
+    return `the target keeps ${n} more line${n === 1 ? "" : "s"}`;
+  }
+  const kept = normLines(start).filter((l) => l.trim() !== "" && normLines(expect).includes(l));
+  if (kept.some((l) => !nowC.has(l))) return "a line that should stay was removed";
+  const len = (ls: string[]) => normLines(ls).join("\n").length;
+  const fromDeleted = [...missing.keys()].reduce((sum, m) => sum + Math.max(0, ...[...deleted.keys()].map((d) => shared(d, m))), 0);
+  if (now.length < start.length && len(now) < 0.5 * len(expect) && fromDeleted > 0.5 * len(expect)) return "too much was deleted";
+  return null;
+}
+
+// Characters two lines share as a common prefix plus a common suffix, for unrecoverable().
+function shared(a: string, b: string): number {
+  let p = 0;
+  while (p < a.length && p < b.length && a[p] === b[p]) p++;
+  let s = 0;
+  while (s < a.length - p && s < b.length - p && a[a.length - 1 - s] === b[b.length - 1 - s]) s++;
+  return p + s;
+}
+
 export const BAND_LABEL: Record<Band, string> = { beat: "beat par", par: "at par", close: "close", pass: "passed", over: "over par" };
 
 export const GIVE_UP_MS = 800;

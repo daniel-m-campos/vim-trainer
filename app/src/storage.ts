@@ -2,7 +2,7 @@
 // export / import. Every access is wrapped: private windows and blocked storage
 // must still give a working (if forgetful) trainer.
 
-import type { ModelState } from "./modelApi.ts";
+import type { AttemptRecord, ModelState } from "./modelApi.ts";
 import type { SessionRecord, Settings } from "./types.ts";
 
 const KEY = "vim-trainer.v1";
@@ -14,6 +14,35 @@ export interface Saved {
   /** Per language: true once that language's placement ran or was skipped. */
   placementDone: Record<string, boolean>;
   sessions: SessionRecord[];
+  /** The last ERRORS_MAX uncaught errors, oldest first; export and the "!" issue carry them. */
+  errors: ErrorEntry[];
+  /** A placement in progress, so a reload resumes it; absent when none is running. */
+  placement?: PlacementProgress;
+}
+
+/** One uncaught error or unhandled rejection, as main.ts records it. */
+export interface ErrorEntry {
+  t: number; // epoch seconds
+  version: string; // app version (feedback.ts VERSION)
+  route: string; // the view or #hash it happened on
+  message: string;
+  stack: string; // first 5 lines
+}
+
+/** The placement queue and the first attempts made so far (main.ts `placement`). */
+export interface PlacementProgress {
+  lang: string;
+  queue: { skill: string; id: string }[];
+  i: number;
+  records: AttemptRecord[];
+}
+
+export const ERRORS_MAX = 20;
+
+// Appends an error and drops the oldest past ERRORS_MAX; called by main.ts's error handlers.
+export function pushError(data: Saved, e: ErrorEntry): void {
+  data.errors.push(e);
+  if (data.errors.length > ERRORS_MAX) data.errors.splice(0, data.errors.length - ERRORS_MAX);
 }
 
 export function load(): Saved | null {
@@ -84,7 +113,9 @@ const isObj = (v: unknown): boolean => !!v && typeof v === "object" && !Array.is
 // Upgrades older saves in place; called by load() and parseImport(). placementDone was
 // one boolean before placement went per language: true meant the saved language's.
 // A save without model.skills (an import from before validation) gets empty maps, which
-// the model fills in again, so it no longer throws on every load.
+// the model fills in again, so it no longer throws on every load. Saves from before the
+// error buffer get an empty one, and only well-formed error entries are kept (feedback.ts
+// formats each one); a malformed placement in progress is dropped.
 function normalize(data: Saved): Saved {
   const old = data.placementDone as unknown;
   if (typeof old === "boolean") data.placementDone = old ? { [data.settings.lang ?? "python"]: true } : {};
@@ -93,5 +124,20 @@ function normalize(data: Saved): Saved {
   if (!isObj(m.skills)) m.skills = {};
   if (!Array.isArray(m.recent)) m.recent = [];
   if (!Array.isArray(m.focusHistory)) m.focusHistory = [];
+  data.errors = Array.isArray(data.errors) ? data.errors.filter(isErrorEntry).slice(-ERRORS_MAX) : [];
+  const p = data.placement as unknown as PlacementProgress | undefined;
+  if (p !== undefined && !(isObj(p) && typeof p.lang === "string" && Array.isArray(p.queue) && p.queue.every(isQueueEntry) &&
+    Number.isInteger(p.i) && p.i >= 0 && p.i <= p.queue.length && Array.isArray(p.records)))
+    delete data.placement;
   return data;
 }
+
+// A saved error entry feedback.ts can format (a finite time, string fields); for normalize().
+const isErrorEntry = (e: unknown): e is ErrorEntry => {
+  const x = e as ErrorEntry;
+  return isObj(e) && Number.isFinite(x.t) && Math.abs(x.t) < 8.64e12 &&
+    [x.version, x.route, x.message, x.stack].every((s) => typeof s === "string");
+};
+
+// A placement queue entry: skill and exercise id strings; for normalize().
+const isQueueEntry = (q: unknown): boolean => isObj(q) && typeof (q as { skill: unknown }).skill === "string" && typeof (q as { id: unknown }).id === "string";

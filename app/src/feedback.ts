@@ -4,12 +4,19 @@
 // place that names the tracker, so moving it (09: revisit at soft launch) is one line.
 
 import type { AttemptRecord } from "./modelApi.ts";
+import type { ErrorEntry } from "./storage.ts";
 import type { Exercise } from "./types.ts";
+import pkg from "../package.json" with { type: "json" };
 
 export const REPO = "daniel-m-campos/vim-trainer";
 export const ISSUES_URL = `https://github.com/${REPO}/issues`;
-/** Keep equal to "version" in app/package.json (the app has no build-time version). */
-export const VERSION = "0.0.0";
+/** Fallback for the settings "Sources & attribution" link on a host that does not serve
+ * build/ATTRIBUTION.md (the single-file bundle): the committed source allowlist. */
+export const SOURCES_URL = `https://github.com/${REPO}/blob/main/content/sources.toml`;
+/** Defined by vite.config.ts: package.json "version", plus "+<short commit sha>" when known. */
+declare const __APP_VERSION__: string | undefined;
+/** The app version; under node --test (no Vite define) it is package.json's "version". */
+export const VERSION: string = typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : pkg.version;
 /** GitHub rejects new-issue URLs of about 8k characters. The cap is on the encoded body,
  * because encodeURIComponent turns one character into 3 to 12 (space, `<`, newline, emoji). */
 const ENCODED_BODY_MAX = 6000;
@@ -35,6 +42,8 @@ export interface FlagReport {
   reason: FlagReason;
   note: string;
   profile: string;
+  /** saved.errors; the newest few go at the end of the body while they fit. */
+  errors?: ErrorEntry[];
 }
 
 /** The new-issue URL with title and body filled in; called by confirmFlag in main.ts. */
@@ -51,11 +60,27 @@ export function issueUrl(r: FlagReport): string {
     `- editor profile: ${r.profile}`,
     `- app version: ${VERSION}`,
   ].join("\n");
+  // Errors last, one line at a time, only while the encoded body stays under the cap.
+  for (const line of errorLines(r.errors ?? [])) {
+    if (encodeURIComponent(`${body}\n${line}`).length > ENCODED_BODY_MAX) break;
+    body += `\n${line}`;
+  }
   // Backstop for a body still too long once encoded: drop a tenth of it per round.
   let cps = Array.from(body); // code points, so a cut never leaves half a surrogate pair
   while (encodeURIComponent(cps.join("")).length > ENCODED_BODY_MAX) cps = cps.slice(0, Math.floor(cps.length * 0.9));
   if (cps.length < Array.from(body).length) body = cps.join("") + "\n(truncated)";
   return `${ISSUES_URL}/new?labels=feedback&title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+}
+
+/** The newest 3 errors as markdown list lines, stack lines indented; called by issueUrl. */
+function errorLines(errors: ErrorEntry[]): string[] {
+  if (!errors.length) return [];
+  const out = ["- recent errors (newest first):"];
+  for (const e of errors.slice(-3).reverse()) {
+    out.push(`  - ${new Date(e.t * 1000).toISOString()} ${e.version} #${e.route}: ${clip(e.message, 200)}`);
+    for (const l of e.stack.split("\n").filter(Boolean)) out.push(`    ${clip(l.trim(), 160)}`);
+  }
+  return out;
 }
 
 /** The first n code points of s, with "..." when cut; called by issueUrl. */

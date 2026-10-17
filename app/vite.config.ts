@@ -1,8 +1,21 @@
 import { resolve, join, normalize, extname } from "node:path";
 import { existsSync, statSync, createReadStream, cpSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
+import { execSync } from "node:child_process";
 import { defineConfig, type Plugin } from "vite";
 
 const repo = resolve(import.meta.dirname, "..");
+
+// package.json "version" plus "+<short sha>" of HEAD; a checkout without git (a tarball,
+// a sandbox) gets the bare version. Defined as __APP_VERSION__ for feedback.ts.
+function appVersion(): string {
+  const { version } = JSON.parse(readFileSync(join(import.meta.dirname, "package.json"), "utf8"));
+  try {
+    const sha = execSync("git rev-parse --short HEAD", { cwd: import.meta.dirname, stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+    return sha ? `${version}+${sha}` : version;
+  } catch {
+    return version;
+  }
+}
 
 // The content pipeline's output (repo build/) is served next to the app. Missing files
 // answer 404 (never the SPA index.html), so the app can fall back to
@@ -64,6 +77,7 @@ function repoStatic(): Plugin {
 export default defineConfig({
   base: "./",
   plugins: [repoStatic()],
+  define: { __APP_VERSION__: JSON.stringify(appVersion()) },
   build: {
     rollupOptions: {
       input: {

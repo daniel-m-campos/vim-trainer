@@ -13,6 +13,12 @@
 // on retries, the ex-kind "a : command was required" give-up, the attempt clock
 // pausing while stats / settings are open, the "!" flag (picker, note, prefilled issue
 // URL via a stubbed window.open, the flag in the log) and the "beat par" band.
+// Round 4: no skill ids or header context before the language is chosen, a reload
+// mid-placement resumes at the same exercise with its records, the "not quite ... u to
+// undo" nudge, the "placement complete" line, hash routing (Esc / Back from stats,
+// direct load of #stats), the version and "Sources & attribution" in settings, the
+// error ring buffer (export and the "!" issue carry it), and the placement key cap
+// (11 presses of l on a par-3 cursor exercise is not a placement pass).
 //
 // /build/ is forced to 404 so the app uses the bundled sample (deterministic, and
 // it exercises the fallback path). Browsers live in node_modules
@@ -23,6 +29,7 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ??= "0";
 const { createServer } = await import("vite");
 const { chromium, firefox, webkit } = await import("playwright");
 const { fileURLToPath } = await import("node:url");
+const { readFileSync } = await import("node:fs");
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const server = await createServer({ root, logLevel: "error", server: { port: 0 } });
@@ -37,9 +44,12 @@ function check(engine, name, ok, detail) {
 }
 
 const text = (page, sel) => page.locator(sel).innerText();
-const editorFocused = (page) => page.waitForFunction(() => !!document.activeElement?.closest(".cm-editor"), null, { timeout: 5000 });
-const waitTask = (page, s) => page.waitForFunction((s) => document.querySelector("#task")?.textContent?.includes(s), s, { timeout: 5000 });
-const waitResult = (page) => page.waitForSelector("#result", { timeout: 5000 });
+// One wait budget for every UI transition: 5 s flaked once locally on the placement-gate
+// page and once on WebKit in CI; a real hang still fails, just later.
+const WAIT = 15000;
+const editorFocused = (page) => page.waitForFunction(() => !!document.activeElement?.closest(".cm-editor"), null, { timeout: WAIT });
+const waitTask = (page, s) => page.waitForFunction((s) => document.querySelector("#task")?.textContent?.includes(s), s, { timeout: WAIT });
+const waitResult = (page) => page.waitForSelector("#result", { timeout: WAIT });
 
 for (const [engine, type] of Object.entries(engines)) {
   const browser = await type.launch();
@@ -47,8 +57,9 @@ for (const [engine, type] of Object.entries(engines)) {
   const warnings = [];
   const errors = [];
   // Expected 404s (the forced /build/ miss, favicon) are not errors.
-  page.on("console", (m) => (m.type() === "warning" ? warnings.push(m.text()) : m.type() === "error" && !m.text().startsWith("Failed to load resource") ? errors.push(m.text()) : null));
-  page.on("pageerror", (e) => errors.push(String(e)));
+  page.on("console", (m) => (m.type() === "warning" ? warnings.push(m.text()) : m.type() === "error" && !m.text().startsWith("Failed to load resource") && !m.text().includes("e2e-injected") ? errors.push(m.text()) : null));
+  // The error-buffer check below throws on purpose; those two are not page errors.
+  page.on("pageerror", (e) => !String(e).includes("e2e-injected") && errors.push(String(e)));
   await page.route("**/build/**", (r) => r.fulfill({ status: 404, body: "not found" }));
   // The sample has no `source`; give t.quote one so the strip's attribution line shows.
   await page.route("**/build-sample/exercises/python/t.quote/*.json", async (r) => {
@@ -65,15 +76,20 @@ for (const [engine, type] of Object.entries(engines)) {
 
   try {
     await page.goto(url);
-    await page.waitForSelector(".choice", { timeout: 5000 });
+    await page.waitForSelector(".choice", { timeout: WAIT });
     check(engine, "first visit shows the language question", (await text(page, "#page")).includes("Which language"));
     check(engine, "falls back to build-sample with a console warning", warnings.some((w) => w.includes("build-sample")), warnings.join(" | "));
+    check(engine, "header names no language or editor before the first choice", (await text(page, "#hdr-ctx")).trim() === "", await text(page, "#hdr-ctx"));
 
     await page.keyboard.press("Enter"); // Python
+    check(engine, "header names the language once it is chosen", (await text(page, "#hdr-ctx")).includes("python"), await text(page, "#hdr-ctx"));
     await page.keyboard.press("Enter"); // Neovim
+    check(engine, "first-visit screens show no skill ids (m.rel)", !(await text(page, "#page")).includes("m.rel"), await text(page, "#page"));
     await page.keyboard.press("Enter"); // relative numbers: yes
     await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("where you are"));
     check(engine, "placement intro lists 3 sample exercises", (await text(page, "#page")).includes("3 short exercises"));
+    check(engine, "placement intro after setup says 'first visit 4 of 4' and the hash is #placement-intro",
+      (await text(page, "#page")).includes("4 of 4") && new URL(page.url()).hash === "#placement-intro", page.url());
     await page.keyboard.press("Enter");
 
     // Placement 1: m.rel (cursor kind). Give up with Esc Esc.
@@ -122,9 +138,16 @@ for (const [engine, type] of Object.entries(engines)) {
     check(engine, "hand-written sample snippet: source line says so", (await text(page, "#result #src")).trim() === "written for vim-trainer", await text(page, "#result #src"));
     await page.keyboard.press(" ");
 
-    // Placement 2: t.quote. Solve with ci"retrying<Esc>.
+    // Placement 2: t.quote. A reload here resumes placement 2 of 3 with placement 1's record kept.
+    await waitTask(page, "logger.warn");
+    await page.reload();
     await waitTask(page, "logger.warn");
     await editorFocused(page);
+    const resumed = await page.evaluate(() => ({ p: window.vimTrainer.placement(), prog: document.querySelector("#progress")?.textContent, hash: location.hash }));
+    check(engine, "reload mid-placement resumes at placement 2 of 3 with the first record kept",
+      resumed.p?.i === 1 && resumed.p.records.length === 1 && resumed.p.records[0].ex === "py/m.rel/0001" && resumed.prog.includes("placement 2 of 3") && resumed.hash === "#placement",
+      JSON.stringify({ ...resumed, p: resumed.p && { i: resumed.p.i, n: resumed.p.records.length } }));
+    // Solve with ci"retrying<Esc>.
     await page.keyboard.type('ci"');
     check(engine, 'after ci" the mode line says INSERT', (await text(page, "#mode")) === "INSERT");
     await page.keyboard.type("retrying");
@@ -225,10 +248,19 @@ for (const [engine, type] of Object.entries(engines)) {
     check(engine, "double space advanced once: placement 3 of 3, no stray keys, not a retry", after.n === 0 && !after.retry && after.prog.includes("placement 3 of 3"), JSON.stringify(after));
     check(engine, "ex-kind task says it wants a : command", (await text(page, "#task .req")).includes("Ex"), await text(page, "#task"));
 
+    // 5dd deletes lines the target keeps: the footer nudges once; u undoes (nvim: back to the start, cursor 1:0).
+    await page.keyboard.type("5dd");
+    const nudge = await page.waitForFunction(() => document.querySelector("#nudge:not([hidden])")?.textContent, null, { timeout: 3000 })
+      .then((h) => h.jsonValue(), () => "");
+    check(engine, "an unrecoverable edit shows 'not quite: <reason> — u to undo'", /^not quite: .+ — u to undo$/.test(nudge), nudge);
+    await page.keyboard.type("u");
+    await page.waitForFunction(() => window.vimTrainer.current().editor.recorder.snapshot().lines.length === 8, null, { timeout: 3000 });
+
     // Reach the expected buffer with dd, then give up: the strip explains instead of an empty diff.
     await page.keyboard.type("jddjjddjdd");
-    await page.waitForFunction(() => document.querySelector("#midhint:not([hidden])")?.textContent?.includes(": command"), null, { timeout: 3000 });
-    check(engine, "ex kind: right buffer without : shows the mid-exercise note", true);
+    const exNote = await page.waitForFunction(() => document.querySelector("#midhint:not([hidden])")?.textContent?.includes(": command"), null, { timeout: 3000 })
+      .then(() => true, () => false);
+    check(engine, "ex kind: right buffer without : shows the mid-exercise note", exNote, await text(page, "#midhint").catch(() => ""));
     await page.keyboard.press("Escape");
     await page.keyboard.press("Escape");
     await waitResult(page);
@@ -257,8 +289,11 @@ for (const [engine, type] of Object.entries(engines)) {
     await page.keyboard.press(" ");
 
     // End of placement -> stats with the focus line.
-    await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("We'll start with"), null, { timeout: 5000 });
-    check(engine, "stats after placement names the starting skill", true);
+    const named = await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("We'll start with"), null, { timeout: WAIT })
+      .then(() => true, () => false);
+    check(engine, "stats after placement names the starting skill", named, await text(page, "#page"));
+    const moment = await text(page, "#placement-moment").catch(() => "");
+    check(engine, "a 'placement complete: N skills placed, M mastered' line opens stats", /^placement complete: 3 skills placed, \d+ mastered\.$/.test(moment.trim()), moment);
     // Only skills with exercises are listed: the sample has 3 skills in 3 tiers.
     check(engine, "stats grid grouped by tier", (await page.locator(".sv-tier").count()) === 3, String(await page.locator(".sv-tier").count()));
     check(engine, "stats grid outlines the focus skill", (await page.locator(".sv-cell.sv-focus").count()) === 1);
@@ -285,10 +320,15 @@ for (const [engine, type] of Object.entries(engines)) {
       quoteRec?.flag?.reason === "wrong-par" && quoteRec.flag.note === "par looks long" && quoteRec.seq === 'ci"retrying<Esc>' && quoteRec.beatPar === false,
       JSON.stringify(quoteRec));
 
+    const announcedKeys = await text(page, "#page .lead code");
     await page.keyboard.press("Enter");
-    await page.waitForSelector("#practice:not([hidden])", { timeout: 5000 });
+    await page.waitForSelector("#practice:not([hidden])", { timeout: WAIT });
     await editorFocused(page);
-    check(engine, "enter starts practice", true);
+    const started = await page.evaluate(() => ({ hash: location.hash, phase: window.vimTrainer.current()?.phase, role: window.vimTrainer.current()?.role }));
+    check(engine, "enter starts practice", started.hash === "#practice" && started.phase === "solving" && started.role !== "placement", JSON.stringify(started));
+    const hdr = await text(page, "#hdr-focus");
+    check(engine, "the first exercise is the announced skill and the header names it as the focus",
+      hdr.startsWith("focus:") && hdr.includes(announcedKeys), `${announcedKeys} | ${hdr}`);
     const lig = await page.evaluate(() => getComputedStyle(document.querySelector(".code .cm-content")).fontVariantLigatures);
     check(engine, "editor has code ligatures off", lig === "none", lig);
     // The attempt clock stops while stats and settings cover the exercise.
@@ -304,6 +344,13 @@ for (const [engine, type] of Object.entries(engines)) {
     await editorFocused(page);
     const clockMs = await page.evaluate(() => window.vimTrainer.current().editor.recorder.activeMs());
     check(engine, "clock paused while stats / settings were open (2.5 s away, < 1.2 s counted)", clockMs < 1200, String(Math.round(clockMs)));
+    // Browser Back from stats returns to the exercise; the app is not left.
+    await page.locator("#nav-stats").click();
+    await page.waitForFunction(() => location.hash === "#stats" && document.querySelector("#page")?.textContent?.includes("Stats"));
+    await page.goBack();
+    await editorFocused(page);
+    check(engine, "Back from stats returns to the open exercise (#practice, same page)",
+      page.url().startsWith(url) && new URL(page.url()).hash === "#practice" && (await page.evaluate(() => window.vimTrainer.current()?.phase)) === "solving", page.url());
     // F1 shows a hint without touching Vim.
     await page.keyboard.press("F1");
     check(engine, "F1 reveals a mid-exercise hint", await page.locator("#midhint:not([hidden])").count() === 1);
@@ -311,30 +358,38 @@ for (const [engine, type] of Object.entries(engines)) {
     await page.keyboard.press("Escape");
     await waitResult(page);
     await page.keyboard.press("q");
-    await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("Session done"), null, { timeout: 5000 });
+    await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("Session done"), null, { timeout: WAIT });
     check(engine, "q ends the session with a summary", (await text(page, "#page")).includes("1 exercises"), await text(page, "#page"));
 
     await page.keyboard.press(",");
     check(engine, ", opens settings", (await text(page, "#page")).includes("Settings"));
-    const href = await page.locator("#attribution-link").getAttribute("href").catch(() => null);
-    check(engine, "settings links ATTRIBUTION.md", !!href && href.endsWith("ATTRIBUTION.md"), String(href));
+    const attr = page.locator("#attribution-link");
+    const href = await attr.getAttribute("href").catch(() => null);
+    check(engine, "settings has a 'Sources & attribution' link to ATTRIBUTION.md",
+      !!href && href.endsWith("ATTRIBUTION.md") && (await attr.innerText()).includes("Sources & attribution"), String(href));
+    const pkgVersion = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
+    const shown = await text(page, "#app-version").catch(() => "");
+    check(engine, "settings footer shows the package.json version (+ git sha)", new RegExp(`^vim-trainer ${pkgVersion.replace(/\./g, "\\.")}(\\+[0-9a-f]{4,})?$`).test(shown.trim()), shown);
     const issues = await page.locator("#issues-link").getAttribute("href").catch(() => null);
     check(engine, "settings 'share your log' links the issues page", issues === "https://github.com/daniel-m-campos/vim-trainer/issues", String(issues));
+    const onPage = (s) => page.waitForFunction((s) => document.querySelector("#page")?.textContent?.includes(s), s, { timeout: 3000 }).then(() => true, () => false);
     await page.keyboard.press("Escape");
-    check(engine, "Esc returns to the summary", (await text(page, "#page")).includes("Session done"));
+    check(engine, "Esc returns to the summary", await onPage("Session done"), await text(page, "#page"));
     // Stats opened from settings: Esc goes back to settings, then to the summary.
     await page.keyboard.press(",");
     await page.locator("#nav-stats").click();
     await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("Stats"));
     await page.keyboard.press("Escape");
-    check(engine, "Esc from stats opened in settings returns to settings", (await text(page, "#page")).includes("Settings"), await text(page, "#page"));
+    check(engine, "Esc from stats opened in settings returns to settings", await onPage("Settings"), await text(page, "#page"));
     await page.keyboard.press("Escape");
-    check(engine, "then Esc returns to the summary", (await text(page, "#page")).includes("Session done"), await text(page, "#page"));
+    check(engine, "then Esc returns to the summary", await onPage("Session done"), await text(page, "#page"));
 
     // Reload keeps state and goes straight to practice.
     await page.reload();
-    await page.waitForSelector("#practice:not([hidden])", { timeout: 5000 });
-    check(engine, "reload resumes practice (no first-visit flow)", true);
+    const practiceShown = await page.waitForSelector("#practice:not([hidden])", { timeout: WAIT }).then(() => true, () => false);
+    const afterReload = await page.evaluate(() => ({ hash: location.hash, choices: document.querySelectorAll(".choice").length, editor: !!document.querySelector("#code .cm-editor") }));
+    check(engine, "reload resumes practice (no first-visit flow)", practiceShown && afterReload.hash === "#practice" && afterReload.choices === 0 && afterReload.editor,
+      JSON.stringify(afterReload));
 
     // A save bricked by an old unchecked import (no model.skills, unknown language) still loads.
     await page.evaluate(() => {
@@ -344,15 +399,85 @@ for (const [engine, type] of Object.entries(engines)) {
       localStorage.setItem("vim-trainer.v1", JSON.stringify(s));
     });
     await page.reload();
-    await page.waitForSelector("#practice:not([hidden])", { timeout: 5000 });
+    await page.waitForSelector("#practice:not([hidden])", { timeout: WAIT });
     check(engine, "a save without model.skills or with an unknown language recovers on reload",
       !(await text(page, "header")).includes("klingon") && (await page.locator(".code .cm-content").count()) === 1, await text(page, "header"));
+
+    // Error ring buffer: an uncaught error and a rejected promise land in saved.errors, the
+    // footer says so, and the "!" issue body and the export carry them.
+    await editorFocused(page);
+    await page.evaluate(() => {
+      setTimeout(() => { throw new Error("e2e-injected boom"); }, 0);
+      setTimeout(() => void Promise.reject(new Error("e2e-injected rejection")), 0);
+    });
+    await page.waitForFunction(() => window.vimTrainer.saved().errors.length === 2, null, { timeout: 3000 });
+    const errs = await page.evaluate(() => window.vimTrainer.saved().errors);
+    check(engine, "uncaught error and rejection are kept with t, version, route, message, stack",
+      errs[0].message.includes("e2e-injected boom") && errs[1].message.includes("e2e-injected rejection") && errs[0].route === "practice" &&
+        errs.every((e) => e.t > 0 && e.version && typeof e.stack === "string" && e.stack.split("\n").length <= 5), JSON.stringify(errs));
+    check(engine, "the footer says 'something broke — export your data and flag it with !'",
+      (await text(page, "#foot")).includes("something broke — export your data and flag it with !"), await text(page, "#foot"));
+    await page.keyboard.press("Escape");
+    await page.keyboard.press("Escape");
+    await waitResult(page);
+    await page.evaluate(() => { window.__opened = []; window.open = (u) => (window.__opened.push(String(u)), {}); });
+    await page.keyboard.type("!");
+    await page.waitForSelector("#flagpick", { timeout: 2000 });
+    await page.keyboard.press("4");
+    await page.keyboard.press("Enter");
+    const flagged = await page.evaluate(() => window.__opened[0] ?? "");
+    const errBody = flagged ? new URL(flagged).searchParams.get("body") ?? "" : "";
+    check(engine, "the '!' issue body lists the recent errors", errBody.includes("recent errors") && errBody.includes("e2e-injected boom"), errBody.slice(-400));
+    await page.locator("#nav-settings").click();
+    const [dl] = await Promise.all([page.waitForEvent("download"), page.locator("#btn-export").click()]);
+    const exportedErrs = JSON.parse(readFileSync(await dl.path(), "utf8")).errors ?? [];
+    check(engine, "export carries the error buffer", exportedErrs.some((e) => e.message.includes("e2e-injected boom")), JSON.stringify(exportedErrs));
+
+    // Direct load of #stats shows stats; Esc (no earlier app entry) goes to practice.
+    await page.goto("about:blank");
+    await page.goto(`${url}#stats`);
+    const direct = await page.waitForFunction(() => document.querySelector("#page:not([hidden]) h1")?.textContent?.startsWith("Stats"), null, { timeout: WAIT }).then(() => true, () => false);
+    check(engine, "direct load of #stats shows the stats page", direct, await text(page, "#page").catch(() => ""));
+    await page.keyboard.press("Escape");
+    await editorFocused(page);
+    check(engine, "Esc from a directly loaded #stats goes to practice", new URL(page.url()).hash === "#practice", page.url());
   } catch (err) {
     failures++;
     console.log(`FAIL  [${engine}] ${err.message}`);
     await page.screenshot({ path: `e2e-failure-${engine}.png` }).catch(() => {});
   }
   check(engine, "no page errors", errors.length === 0, errors.join(" | "));
+
+  // Placement key cap (grading.placementPass): the sample m.rel exercise re-targeted to
+  // [3, 15], which nvim reaches with 3fa (par 3) and with eleven l. Eleven keys pass the
+  // check but exceed max(2 * 3, 3 + 6) = 9, so the placement record is not ok.
+  const gate = await browser.newPage();
+  const gateErrors = [];
+  gate.on("pageerror", (e) => gateErrors.push(String(e)));
+  try {
+    await gate.route("**/build/**", (r) => r.fulfill({ status: 404, body: "not found" }));
+    await gate.route("**/build-sample/exercises/python/m.rel/*.json", async (r) => {
+      const res = await r.fetch();
+      const json = await res.json();
+      Object.assign(json, { expect: { cursor: [3, 15] }, target: { from: [3, 15], to: [3, 16] }, par: { keys: "3fa", count: 3 }, alternates: [], hints: [] });
+      await r.fulfill({ response: res, json });
+    });
+    await gate.goto(url);
+    await gate.waitForSelector(".choice", { timeout: WAIT });
+    for (let i = 0; i < 4; i++) await gate.keyboard.press("Enter"); // setup, then start placement
+    await waitTask(gate, "assigns");
+    await editorFocused(gate);
+    for (let i = 0; i < 11; i++) await gate.keyboard.press("l");
+    await waitResult(gate);
+    const rec = await gate.evaluate(() => window.vimTrainer.placement()?.records[0]);
+    const strip = await text(gate, "#result");
+    check(engine, "11 presses of l on a par-3 placement exercise: strip says correct, the record is not a pass",
+      strip.includes("correct") && strip.includes("not yet known") && rec?.ok === false && rec.keys === 11, `${strip} | ${JSON.stringify(rec)}`);
+  } catch (err) {
+    failures++;
+    console.log(`FAIL  [${engine}] placement gate: ${err.message}`);
+  }
+  check(engine, "no page errors (placement gate page)", gateErrors.length === 0, gateErrors.join(" | "));
   await browser.close();
 }
 

@@ -71,7 +71,14 @@ async function solveAtPar(page, engine, ex, label) {
   await typeKeys(page, ex.par.keys);
   const done = await page.waitForSelector("#result", { timeout: RESULT_TIMEOUT }).then(() => true, () => false);
   if (!done) {
-    check(engine, `${label}: par ${ex.par.keys} solves ${ex.id} in the browser`, false, "no result after typing the par");
+    // Say what the editor was left with, so a CI-only miss (run 38694481891) can be diagnosed:
+    // lost keys show as a wrong buffer, a grading miss as the right buffer with no strip.
+    const left = await page.evaluate(() => {
+      const c = window.vimTrainer.current();
+      const doc = c?.editor?.view?.state?.doc?.toString() ?? "";
+      return { mode: document.querySelector("#mode")?.textContent, phase: c?.phase, lines: doc.split("\n").length, head: doc.slice(0, 160) };
+    }).catch((e) => ({ error: String(e) }));
+    check(engine, `${label}: par ${ex.par.keys} solves ${ex.id} in the browser`, false, `no result after typing the par; editor left with ${JSON.stringify(left)}`);
     await page.keyboard.press("Escape");
     await page.keyboard.press("Escape");
     await page.keyboard.press("Escape");
@@ -217,9 +224,17 @@ for (const [engine, type] of Object.entries(engines)) {
     await page.waitForFunction(() => document.querySelector("#settings-msg")?.textContent?.includes("imported"), null, { timeout: 5000 });
     const imported = await page.evaluate(() => window.vimTrainer.saved());
     check(engine, "import restores the exported state", JSON.stringify(imported.model) === JSON.stringify(exported.model) && imported.sessions.length === 1);
+    // The hash names the view: a reload on #settings stays there; Esc then resumes practice.
     await page.reload();
-    await page.waitForSelector("#practice:not([hidden])", { timeout: 8000 });
-    check(engine, "after import, a reload resumes practice", true);
+    const stayed = await page.waitForFunction(() => document.querySelector("#page:not([hidden]) h1")?.textContent === "Settings", null, { timeout: 8000 })
+      .then(() => page.evaluate(() => location.hash === "#settings"), () => false);
+    await page.keyboard.press("Escape");
+    const escResumed = await page.waitForSelector("#practice:not([hidden])", { timeout: 8000 }).then(() => true, () => false);
+    await page.reload();
+    await page.waitForSelector("#practice:not([hidden])", { timeout: 8000 }).catch(() => {});
+    const kept = await page.evaluate(() => ({ hash: location.hash, editor: !!document.querySelector("#code .cm-editor") }));
+    check(engine, "after import, a reload on #settings stays there, Esc resumes practice and a reload keeps it",
+      stayed && escResumed && kept.hash === "#practice" && kept.editor, JSON.stringify({ stayed, escResumed, ...kept }));
 
     // Migration: a save from before per-language placement has placementDone: true; a
     // reload turns it into {python: true} (the saved language) and practice resumes.
@@ -302,6 +317,40 @@ for (const [engine, type] of Object.entries(engines)) {
       JSON.stringify(afterPlace.placementDone, ["cpp", "python"]) === JSON.stringify({ cpp: true, python: true }) && Object.keys(afterPlace.placementDone).length === 2 &&
         placeRec.placement === true && placeRec.lang === "cpp" && placeRec.ex === cppPlace.id,
       `${JSON.stringify(afterPlace.placementDone)} ${JSON.stringify(placeRec)}`);
+
+    // QA #14: Esc from the stats page after a placement goes to practice, never back into it.
+    await page.keyboard.press("Escape");
+    const afterEsc = await nextMounted(page, "");
+    check(engine, "Esc from the post-placement stats opens a C++ practice exercise (#practice), not the placement",
+      afterEsc.role !== "placement" && afterEsc.id.startsWith("cpp/") && (await page.evaluate(() => location.hash)) === "#practice", JSON.stringify(afterEsc));
+
+    // QA #15 / #16: switching language mid-placement finishes that placement with the samples
+    // it has; Esc from settings (opened from stats) lands on practice, not on stats.
+    await page.evaluate(() => delete window.vimTrainer.saved().placementDone.cpp);
+    await page.locator("#nav-settings").click();
+    await page.selectOption('select[name="lang"]', "python");
+    await page.selectOption('select[name="lang"]', "cpp");
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("where you are"), null, { timeout: 5000 });
+    check(engine, "the intro after a language switch does not say 'first visit'", !(await text(page, "#page")).includes("first visit"), await text(page, "#page"));
+    await page.keyboard.press("Enter");
+    const p1 = await nextMounted(page, "");
+    await solveAtPar(page, engine, p1, "cpp placement again 1");
+    await page.keyboard.press(" ");
+    const p2 = await nextMounted(page, `${p1.id}|false|true`);
+    const prog = await text(page, "#progress");
+    check(engine, "the second C++ placement counts from its own start (placement 2 of N)", p2.role === "placement" && /placement 2 of \d+/.test(prog), prog);
+    await page.locator("#nav-stats").click();
+    await page.keyboard.press(",");
+    await page.selectOption('select[name="lang"]', "python");
+    const msg = await text(page, "#settings-msg");
+    check(engine, "switching language mid-placement ends it early with 1 exercise", msg.includes("C++ placement ended early with 1 exercise"), msg);
+    await page.keyboard.press("Escape");
+    const pyAgain = await nextMounted(page, "");
+    const st = await page.evaluate(() => ({ done: window.vimTrainer.saved().placementDone, open: window.vimTrainer.placement(), kept: "placement" in window.vimTrainer.saved(), hash: location.hash }));
+    check(engine, "after the switch Esc lands on a Python exercise; C++ is placed and no placement is left open",
+      pyAgain.id.startsWith("py/") && pyAgain.role !== "placement" && st.done.cpp === true && st.open === null && !st.kept && st.hash === "#practice",
+      `${pyAgain.id} ${JSON.stringify(st)}`);
   } catch (err) {
     failures++;
     console.log(`FAIL  [${engine}] ${err.message}`);
