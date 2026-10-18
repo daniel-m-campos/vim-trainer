@@ -1,6 +1,6 @@
 {
  "version": 1,
- "source": "docs/design/skill-graph.md",
+ "source": "model/skill-graph.md",
  "targetBase": 1200,
  "perKey": 180,
  "langs": [

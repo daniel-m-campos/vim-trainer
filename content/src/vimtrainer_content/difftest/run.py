@@ -1,6 +1,6 @@
 """``vimtrainer-content difftest``: replay random key sequences in Neovim and in the browser.
 
-Flow (docs/design/differential-testing.md): generate cases from a seed, replay them in
+Flow: generate cases from a seed, replay them in
 headless Neovim (``oracle.subprocess_runner``) and in the practice editor
 (``web.WebWorker``), compare lines/cursor/mode, keep one finding per key shape, minimise
 each to the shortest diverging key string, classify it, and write
@@ -283,7 +283,7 @@ def _nvim_batch(cases: list[generate.Case], runner: oracle.Runner) -> list[compa
 def _job(case: generate.Case) -> oracle.Job:
     """Oracle job for a case. ``startofline`` is on as in Vim (Neovim defaults it off): with it
     off, ``dd``, ``>>``, ``gg``, ``G`` ... keep the column and every such case would diverge
-    from codemirror-vim, which follows Vim. Class d, documented in docs/design/differential-testing.md."""
+    from codemirror-vim, which follows Vim. Class d (Neovim-specific behaviour we accept)."""
     buf = case.buffer
     exercise = {
         "id": f"difftest/{buf.id}", "lang": buf.lang, "kind": "edit",

@@ -13,9 +13,14 @@ and prints each hit as `path:line: text`; an `[[allow]]` entry lets named words 
 named paths, with a reason. Any hit makes the script exit 1. `--check` sweeps the
 current tree in place and copies nothing. A run takes well under a second.
 
-The manifest is the record of what is left out of the public tree and why. This
-README, the script and the manifest are themselves excluded: the word list and the
-exclude list describe what the planning repo holds. To change
+The manifest is the record of what is left out of the public tree and why. The whole
+of `docs/` stays private (design documents, decision records and planning material),
+and so does `.claude/`. `model/skill-graph.md` carries the skill tables that
+`model/gen_graph.py` needs, so the public tree builds without `docs/`. The sweep also
+rejects any mention of `docs/`, an ADR, or the maintainer or author, so a dangling link
+or a personal aside fails the export. This README, the script and the manifest are
+themselves excluded: the word list and the exclude list describe what the private repo
+holds. To change
 what is excluded or forbidden, edit `public_manifest.toml`, run
 `python tools/export_public.py --check`, and fix each hit in the file or, when the word
 is legitimate there (for example a Playwright API name), add a short `[[allow]]` entry

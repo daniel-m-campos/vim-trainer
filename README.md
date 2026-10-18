@@ -76,7 +76,7 @@ make difftest       # differential test of the browser editor against Neovim (SE
 make build          # static site in app/dist/
 ```
 
-`build/` is generated, not committed (ADR 0010): `make test`, `make e2e`, `make difftest`
+`build/` is generated, not committed: `make test`, `make e2e`, `make difftest`
 and `make build` refuse to run until `make content` has produced it. After changing
 anything under `content/`, run `make content` again. CI (`.github/workflows/ci.yml`)
 generates `build/` on every run and checks that the pipeline is deterministic; a nightly
@@ -89,14 +89,11 @@ workflow runs the differential test; `deploy.yml` publishes the site to GitHub P
   the Neovim oracle, quality gates, player-log ingest and the differential tester. Writes
   `build/`. See `content/README.md`.
 - `build/` — generated exercises, `index.json` and `ATTRIBUTION.md` (gitignored).
-- `model/` — the adaptive model in Python, the skill-graph generator, scenario vectors and
+- `model/` — the adaptive model in Python, the skill-graph tables and generator, scenario vectors and
   learner simulations. See `model/README.md`.
 - `app/` — the browser app (TypeScript, Vite, CodeMirror 6 + codemirror-vim, no framework).
   `app/src/model/` is the TypeScript mirror of the model. See `app/README.md`, which has a
   reading guide.
-- `docs/design/` — design documents: skill graph, content pipeline, adaptive model,
-  grading, UX, feedback loop, differential testing, tech stack and QA findings.
-- `docs/decisions/` — short decision records (ADRs), one per decision.
 
 ## Contributing
 
@@ -114,6 +111,6 @@ both MIT; the build checks each licence at the pinned commit. `make content` wri
 commit and licence used, and the site links it from settings. Each exercise also shows its
 source on the result strip.
 
-The site is free and static, with no accounts, ads or payments (ADR 0012). The editor is
+The site is free and static, with no accounts, ads or payments. The editor is
 [CodeMirror 6](https://codemirror.net/) with
 [`@replit/codemirror-vim`](https://github.com/replit/codemirror-vim), both MIT.

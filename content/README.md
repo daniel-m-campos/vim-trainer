@@ -1,7 +1,7 @@
 # content pipeline
 
-The content pipeline turns real source code into verified Vim exercises. The design is in
-`docs/design/content-pipeline.md`, and the top-level `README.md` lists the make targets.
+The content pipeline turns real source code into verified Vim exercises. The top-level
+`README.md` lists the make targets.
 
 ## Ingesting player logs
 
@@ -54,8 +54,7 @@ to stop the par search from using it.
 
 `difftest` looks for places where the browser emulator disagrees with Neovim. It
 generates random key sequences, runs each in `nvim --headless --clean` and in the app's
-editor (headless Chromium), and compares lines, cursor and mode. The design is in
-`docs/design/differential-testing.md`.
+editor (headless Chromium), and compares lines, cursor and mode.
 
 ```sh
 make difftest                                   # from the repo root: today's seed, 2000 cases, --strict
@@ -89,7 +88,7 @@ With `--strict`, the run exits 1 only for minimised findings that match no entry
 (a long unminimised sequence has a shape of its own, so it is counted, not judged).
 Class-a entries are open emulator bugs; remove one when its fix lands. The nightly CI job
 `.github/workflows/difftest.yml` runs `make difftest STRICT=` (report-only while the class-a
-backlog is open; see docs/design/differential-testing.md) and uploads `.cache/difftest/`.
+backlog is open) and uploads `.cache/difftest/`.
 
 ## C++
 
@@ -151,7 +150,7 @@ Some differences from the task wording:
   only when every `-` or `:` before it belongs to an earlier `->` or `::`. In practice
   that means the first `::` on a line, and any `->` with no stray `-` before it.
 
-`cpp.WEIGHTS` holds the C/C++ column of the weight table in `docs/design/skill-graph.md`.
+`cpp.WEIGHTS` holds the C/C++ column of the weight table in `model/skill-graph.md`.
 `tests/test_cpp.py` checks it against `model/skill-graph.json`.
 
 ### Templates

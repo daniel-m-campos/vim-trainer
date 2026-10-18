@@ -1,4 +1,4 @@
-// Player feedback (docs/design/feedback-loop.md): the "!" flag on the result strip
+// Player feedback (app/README.md, "the flag code path"): the "!" flag on the result strip
 // opens a prefilled GitHub issue. No server: the player's browser opens the
 // new-issue form and the player decides whether to submit it. REPO is the single
 // place that names the tracker, so moving it is one line.

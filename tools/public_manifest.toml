@@ -5,14 +5,8 @@
 [exclude]
 paths = [
     ".claude/",
-    # Planning material kept in the private planning repo.
-    "docs/plan/",
-    "docs/research/",
-    "docs/qa/",
-    "docs/mocks/",
-    "docs/decisions/0001-*",
-    "docs/decisions/0006-*",
-    "docs/decisions/0007-*",
+    # Design docs, decision records and planning material stay in the private repo.
+    "docs/",
     # The export tooling itself: its word list and exclude list describe the private repo.
     "tools/export_public.py",
     "tools/public_manifest.toml",
@@ -53,8 +47,13 @@ words = [
     'dogfood',
     '\bmvp\b',
     'switcher',
-    # Links to private planning docs would dangle in the public tree.
-    'docs/(plan|research|qa|mocks)/',
+    # docs/ is not exported, so any link into it would dangle in the public tree.
+    'docs/',
+    '(?-i:\bADR\b)',
+    # Public files speak about the project, not about who runs it.
+    'maintainer',
+    '\bthe author\b',
+    "author's",
 ]
 
 # Each entry lets the listed forbidden words (exactly as written above) appear in files

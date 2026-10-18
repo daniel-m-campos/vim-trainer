@@ -1,7 +1,7 @@
 // Spike: attempt recorder on top of CodeMirror 6 + @replit/codemirror-vim.
 //
 // Throwaway code. It exists to find out which codemirror-vim hooks are usable
-// for grading (docs/design/grading.md). Findings are in ./README.md.
+// for grading. Findings are in ./README.md.
 //
 // Design under test:
 //   keys          capture-phase `keydown` on a wrapper element around the

@@ -46,7 +46,7 @@ jobs:
             echo "content=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # build/ is not committed (ADR 0010). It is made in two stages (the two lines of
+      # build/ is generated, not committed. It is made in two stages (the two lines of
       # `make content`): (a) the Python build verifies every par in Neovim and writes build/;
       # (b) the browser replay checks every par in the emulator and rewrites part of build/.
       # Stage (a) depends only on content/ and the pinned Neovim, so its output is cached.

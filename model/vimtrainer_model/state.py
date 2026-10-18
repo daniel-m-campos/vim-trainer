@@ -74,7 +74,7 @@ def clone_state(state: dict) -> dict:
 def ensure_skill(state: dict, graph: dict, skill_id: str, lang: str) -> dict:
     """Return the (skill, lang) state, creating it with its initial status if missing.
 
-    Unlocking uses the max across languages (adaptive-model.md), so a new entry starts:
+    Unlocking uses the max across languages, so a new entry starts:
 
     - mastered, with its first review due at once, when the skill is mastered in another
       language: it is not re-locked and does not crowd the 4-7 active skills, and spaced

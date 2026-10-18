@@ -1,4 +1,4 @@
-// The stats screen (docs/design/ux.md "The stats screen"): Skills grid, Progress charts
+// The stats screen: Skills grid, Progress charts
 // and the Sessions table, rendered into a root element and driven by the keyboard.
 //
 //   const view = renderStatsView(root, state, graph, lang, { tab, selected, onSelect, onForce });
@@ -64,7 +64,7 @@ export interface SkillRow {
   status: Status;
   st: SkillState | null;
   confidence: number;
-  /** Best confidence in any other language (adaptive-model.md: shown as a faint marker). */
+  /** Best confidence in any other language, shown as a faint marker. */
   otherMax: number;
 }
 
@@ -88,7 +88,7 @@ export function trendOf(times: number[]): "up" | "down" | "flat" | null {
 function statusOf(state: ModelState, graph: SkillGraph, id: string, lang: string): Status {
   const own = state.skills[id]?.[lang];
   if (own) return own.status;
-  // Language not seen yet: unlocking is shared across languages (adaptive-model.md).
+  // Language not seen yet: unlocking is shared across languages.
   let best: Status = graph.skills[id]?.tier === 0 ? "active" : "locked";
   for (const st of Object.values(state.skills[id] ?? {})) if (STATUS_RANK[st.status] > STATUS_RANK[best]) best = st.status;
   return best;

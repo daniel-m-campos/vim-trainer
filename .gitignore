@@ -16,6 +16,6 @@ __pycache__/
 # Content pipeline: pinned source checkouts and CI scratch builds.
 content/.cache/
 
-# Generated exercise data (make content). Not committed since round 3 (ADR 0010): CI and
+# Generated exercise data (make content). Not committed: CI and
 # the deploy pipeline generate it; `make content` is the first step after `make setup`.
 /build/

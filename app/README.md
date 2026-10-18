@@ -142,7 +142,7 @@ What each file is for:
   builds the attempt record, including `seq` (the keys typed, from `replayKeys`) and `beatPar`.
 - `src/feedback.ts`: the issue URL. `REPO` is the one place that names the GitHub repo.
 - `src/grading.ts`: pure functions. Key tokens, pass checks and the efficiency `band()`
-  (`"beat"` when keys < par). `placementPass()` is the placement key cap (ADR 0011);
+  (`"beat"` when keys < par). `placementPass()` is the placement key cap (a pass needs keys <= max(2 × par, par + 6));
   `unrecoverable()` gives the reason for the "not quite — u to undo" nudge, or null. `displayKeys` is what the strip shows; `replayKeys` is the
   same string with a `jk` escape written as `<Esc>`, so Neovim can replay the logged `seq`.
 - `src/storage.ts`: localStorage load/save and JSON export/import.

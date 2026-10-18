@@ -189,7 +189,7 @@ Python x.normal exercises.
 
 ## Round 4: targets and wording from the mock-user QA
 
-The QA ids are from `docs/design/qa-findings.md`. Before and after are two scratch
+The QA ids refer to the mock-user QA notes, which are not in this repository. Before and after are two scratch
 builds of all skills, `content/.cache/scratch-4-base` (main) and `content/.cache/scratch-4`
 (this change), each 1644 exercises. Every (lang, skill) count is the same in both: 40 for
 all skills except py t.brace 25, py v.blockedit 29, py x.normal 23, py a.macro 20 and cpp

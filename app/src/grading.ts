@@ -1,4 +1,4 @@
-// Grading (docs/design/grading.md). Pure functions only: the recorder produces
+// Grading. Pure functions only: the recorder produces
 // KeyEvents, this module turns them into pass/fail, key counts, display strings,
 // efficiency bands and the one hint shown on the result strip.
 
@@ -28,7 +28,7 @@ const isInsertish = (m: Mode) => m === "insert" || m === "replace";
 
 /**
  * Turn raw key events into counted tokens. Each Vim notation token is one key
- * (grading.md: Shift is not separate; <C-v> is one). With the `jk` escape preference, a
+ * (Shift is not separate; <C-v> is one). With the `jk` escape preference, a
  * `j` `k` pair typed in insert mode that leaves insert mode counts as one key.
  */
 export function tokenize(events: KeyEvent[], escape: EscapePref, finalMode: Mode): Token[] {
@@ -90,7 +90,7 @@ export interface Snapshot {
   mode: Mode;
 }
 
-/** Pass conditions by kind (grading.md). Called after each completed command. */
+/** Pass conditions by kind. Called after each completed command. */
 export function checkPass(ex: Exercise, snap: Snapshot, tokens: Token[]): boolean {
   if (snap.mode !== "normal") return false;
   switch (ex.kind) {
@@ -220,7 +220,7 @@ export function isGiveUp(events: KeyEvent[]): boolean {
 // --- clock --------------------------------------------------------------------
 
 /**
- * Attempt clock (grading.md "Time"): milliseconds since start minus every paused stretch.
+ * Attempt clock: milliseconds since start minus every paused stretch.
  * Pauses are keyed by reason ("hidden" for visibilitychange, "away" while stats or
  * settings cover the exercise) and overlap freely; the clock runs only when no
  * reason holds. `now` is injectable for tests.
@@ -290,7 +290,7 @@ interface Detector {
   text: string;
 }
 
-// Generic detectors (grading.md), run over normal-mode keys only so typed text cannot trigger them.
+// Generic detectors, run over normal-mode keys only so typed text cannot trigger them.
 const DETECTORS: Detector[] = [
   { re: /(?:j{4,}|k{4,})/, text: "relative numbers show the distance, so {count}j or {count}k reaches the line in two or three keys." },
   { re: /(?:l{5,}|h{5,})/, text: "f{char}, t{char} or w reach a spot on the line in fewer keys than repeated l or h." },

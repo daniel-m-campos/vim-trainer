@@ -1,5 +1,5 @@
 // vim-trainer app: first visit, placement, the practice loop with its result
-// strip, stats, settings and the session summary (docs/design/ux.md).
+// strip, stats, settings and the session summary.
 //
 // Keyboard ownership: while the editor has focus every key goes to Vim. The
 // trainer's own keys are only live when focus is elsewhere: on the result strip
@@ -162,7 +162,7 @@ function skillState(skill: string, lang = S().lang): SkillState | null {
 }
 
 const STATUS_RANK: Record<string, number> = { mastered: 4, review: 3, active: 2, introduced: 1, locked: 0 };
-/** Unlocking is shared across languages (adaptive-model.md): best status over all languages. */
+/** Unlocking is shared across languages: best status over all languages. */
 function skillStatus(skill: string): string {
   let best = "locked";
   for (const s of Object.values(saved.model.skills[skill] ?? {})) if ((STATUS_RANK[s.status] ?? 0) > (STATUS_RANK[best] ?? 0)) best = s.status;
@@ -259,7 +259,7 @@ function placementQueue(): { skill: string; id: string }[] {
   const tierOf = new Map(nodes.map((n) => [n.id, n.tier]));
   const skills = avail.sort((a, b) => (tierOf.get(a) ?? 99) - (tierOf.get(b) ?? 99));
   const picks: string[] = [];
-  // One per tier 1-9, then three more from tiers 3-4, then anything left (adaptive-model.md).
+  // One per tier 1-9, then three more from tiers 3-4, then anything left.
   // A second language (some skills mastered elsewhere) fills after the tier pass with
   // the skills that weigh most in this language instead.
   for (let tier = 1; tier <= 9; tier++) {
@@ -393,7 +393,7 @@ function revealMidHint(): void {
   if (!cur || cur.phase !== "solving") return;
   const hints = exerciseHints(cur.ex);
   const text = hints[0]?.text ?? `the target is highlighted; ${skillInfo(cur.skill).keys} is the skill being drilled.`;
-  cur.hintUsed = true; // logged: a hinted attempt does not move confidence (adaptive-model.md)
+  cur.hintUsed = true; // logged: a hinted attempt does not move confidence
   const el = $("#midhint");
   el.textContent = text;
   el.hidden = false;
@@ -540,7 +540,7 @@ function mountExercise(ex: Exercise, skill: string, role: Role, retry: boolean):
   cur?.editor.destroy();
   setEscCue(false);
   if (broke === "yes" && document.getElementById("broke")) broke = "seen"; // the note was shown on the last exercise
-  // kind=ex only passes through a ':' command (grading.md), which the task text does not say.
+  // kind=ex only passes through a ':' command, which the task text does not say.
   $("#task").innerHTML = taskHtml(ex.task) + (ex.kind === "ex" ? ` <span class="req">using an Ex <kbd>:</kbd> command</span>` : "");
   const want: Route = role === "placement" ? "placement" : "practice";
   if (hashRoute() !== want) history.replaceState(null, "", `#${want}`); // a load that finished after a route change
@@ -626,7 +626,7 @@ function finish(me: Current, ok: boolean, snap: Snapshot): void {
     } catch (err) {
       console.error("applyAttempt failed", err);
     }
-  } // warm-ups are not counted (adaptive-model.md)
+  } // warm-ups are not counted
   if (me.role !== "placement") {
     if (!me.retry) session.count++; // a retry is another attempt at the same exercise
     recordSession();
@@ -867,7 +867,7 @@ function renderStats(): void {
     },
     onTab: (t) => (statsTab = t),
     // "Drill this": the skill becomes the next exercise; the attempt goes through
-    // M.applyAttempt, which activates a locked skill (adaptive-model.md, Unlocking).
+    // M.applyAttempt, which activates a locked skill.
     onForce: (id) => {
       afterPlacement = false;
       forceSkill(id);

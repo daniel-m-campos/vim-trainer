@@ -1,7 +1,7 @@
 name: difftest
 
 # Nightly differential test: random key sequences in headless Neovim vs the browser
-# emulator (docs/design/differential-testing.md). Report-only for now (STRICT= turns off
+# emulator. Report-only for now (STRICT= turns off
 # --strict): the emulator still has a class-a backlog and every fresh seed finds new
 # shapes, so a red nightly would carry no signal. The summary lands in the job summary and
 # the findings in the uploaded artifact; locally `make difftest` stays strict for triage.
@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
 
-      # The fuzzer samples its buffers from build/, which is not committed (ADR 0010).
+      # The fuzzer samples its buffers from build/, which is generated, not committed.
       # Same two stages and the same cache as ci.yml (keep the key in step with it): the
       # nvim stage is restored or rebuilt and saved, then the browser replay always runs.
       - name: Neovim version (cache key)

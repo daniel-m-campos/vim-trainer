@@ -1,4 +1,4 @@
-"""Quality gates from docs/design/content-pipeline.md ("Quality gates (all automated)").
+"""Quality gates for generated exercises, all automated.
 
 Gates 1 (licence), 2 (size) and 7 (secrets) live next to the data they check, in
 ``sources`` and ``snippets``. This module holds the per-exercise gates:
@@ -16,7 +16,7 @@ changed column, ``x`` per char of the changed middle, ``i`` + new middle + ``<Es
 a line strategy (``S`` + retyped line + ``<Esc>``); deleted lines cost ``dd`` each and
 inserted lines ``o`` + text + ``<Esc>``. Text that every solution must type (the new
 string, the new name) is subtracted from both sides, so a long replacement does not hide
-a pointless drill. The gate is the doc's ``par.count < retype_cost / 3``.
+a pointless drill. The gate is ``par.count < retype_cost / 3``.
 
 Multi-line drafts. When the same text goes onto every changed line (``:norm Iself.``,
 ``<C-v>3jA,``), the naive baseline types it once per line while par types it once. A

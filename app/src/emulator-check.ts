@@ -1,5 +1,4 @@
-// Harness for e2e/emulator.mjs (the browser half of the par oracle, content-pipeline.md "Emulator
-// oracle"): mount an exercise exactly as the practice screen does, let Playwright type
+// Harness for e2e/emulator.mjs (the browser half of the par oracle): mount an exercise exactly as the practice screen does, let Playwright type
 // keys, and report whether the exercise passed. Loaded only by emulator-check.html.
 
 import { mountEditor, type EditorHandle } from "./editor.ts";

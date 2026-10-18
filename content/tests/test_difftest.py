@@ -295,7 +295,7 @@ def test_seeded_known_list():
                  "S<Esc>", "Axy<CR>", "==", "vas", "V]}", "va<", "o<C-w>", "v*", ":m<CR>"):
         assert compare.is_known(_finding(keys), known), keys
     for keys in ("dd", "ciwx<Esc>", ":%s/a/b/g<CR>", "df}", ":s/x/word/<CR>", "<Esc>{", "gUw",
-                 # fixed in round 4 and pruned from known.jsonl (docs/design/differential-testing.md)
+                 # fixed in round 4 and pruned from known.jsonl
                  "j<NL>x", ":.,+2j<CR>", "yb"):
         assert not compare.is_known(_finding(keys), known), keys
     assert compare.load_known(KNOWN.parent / "missing.jsonl") == []

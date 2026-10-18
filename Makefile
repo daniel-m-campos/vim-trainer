@@ -5,7 +5,7 @@
 #
 #   make setup    install everything (uv projects, npm packages, Playwright Chromium)
 #   make content  generate build/ (needs nvim) and replay every par in the browser.
-#                 build/ is NOT committed (ADR 0010): run this once after setup, and again
+#                 build/ is generated, NOT committed: run this once after setup, and again
 #                 after any change under content/. test, e2e and difftest need it.
 #   make dev      run the app at http://localhost:5173/
 #   make vectors  generate the model's shared scenarios into model/.cache/vectors/ (not committed;
@@ -98,7 +98,7 @@ e2e-all:
 emulator:
 	cd app && node e2e/emulator.mjs --alternates
 
-# Differential test of the browser emulator against nvim (docs/design/differential-testing.md).
+# Differential test of the browser emulator against nvim.
 SEED ?= $(shell date +%Y%m%d)
 COUNT ?= 2000
 # STRICT= (empty) makes it report-only: the nightly job runs that way while the class-a

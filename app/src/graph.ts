@@ -1,4 +1,4 @@
-// Skill graph. model/gen_graph.py generates it from docs/design/skill-graph.md and
+// Skill graph. model/gen_graph.py generates it from model/skill-graph.md and
 // writes an identical copy to app/src/model/skill-graph.json, which is bundled here
 // (no fetch, so the model always gets a well-formed graph).
 
@@ -21,7 +21,7 @@ export function baseGraph(): SkillGraph {
  * support are disabled), then every skill with no exercises in `withContent` disabled.
  *
  * Note: content exists for 26 Python and 16 C++ skills (tiers 1-8) only. Disabling the rest makes the
- * model treat them as satisfied prerequisites (adaptive-model.md: disabled prereqs count as met), so the
+ * model treat them as satisfied prerequisites (disabled prereqs count as met), so the
  * drillable skills unlock and focus never lands on a skill with nothing to practise.
  * Drop the second step once tier 0 and the other skills have content.
  */

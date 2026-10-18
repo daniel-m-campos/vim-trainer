@@ -1,7 +1,7 @@
 # Spike: codemirror-vim key logger
 
-Throwaway. It answers the "To research" items about key capture in
-`docs/design/grading.md`, `tech-stack.md` and `ux.md`. Keep it until the
+Throwaway. It answers the open questions about key capture for grading.
+Keep it until the
 real attempt recorder exists, then delete it.
 
 ## Run
@@ -116,7 +116,7 @@ All checks pass in Chromium, Firefox and WebKit (Playwright builds, headless).
    - the doc (`Text.eq`) or the cursor changed since the last emission.
 
    Grading checks the pass condition on this event only. That gives exactly
-   the grading.md semantics: `ci"ret` is not a pass, and the `<Esc>` that
+   the grading semantics: `ci"ret` is not a pass, and the `<Esc>` that
    finishes it is.
 3. **Mode.** Derive the mode from state inside the same check, and emit a mode
    event only when it changes. Ignore the signal's payload.
