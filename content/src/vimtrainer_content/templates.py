@@ -368,17 +368,20 @@ def _kwarg_find(win: Window, name, value, old: str, text: str, motions: list[str
         template="change_kwarg_value", skill=skill, kind="edit",
         task=f"Change the value of `{_text(name)}=` from `{old}` to `{text}`",
         lines=win.lines, cursor=[row + 1, start], expect={"lines": _replace(win.lines, row, v0, v1, text)},
-        variants=[f"{fk}l{m}{text}<Esc>" for m in motions],
+        # Finding the value's first character (`fT` for `True`) is the same skill as finding
+        # its `=`, and often a key shorter, so it competes as a canonical variant; the oracle
+        # drops it where that character occurs earlier on the line.
+        variants=[f"{fk}l{m}{text}<Esc>" for m in motions] + [f"f{old[0]}{m}{text}<Esc>" for m in motions],
         alternates=[f"f={';' * (k - 1)}l{motions[0]}{text}<Esc>"] if k > 1 else [],
         idioms=[f"{j}{m}{text}<Esc>" for j in ("W", "2W", "3W", "4W", "5W", "w", "2w", "3w", "4w", "5w", "6w",
-                                               f"f{old[0]}", f"2f{old[0]}", f"F{old[0]}", f"{fk}") for m in motions[:1]],
+                                               f"2f{old[0]}", f"F{old[0]}", f"{fk}") for m in motions[:1]],
         typed=len(text), params={"text": text, "char": "=", "n": k},
         target=[_range(row, v0, row, v1 - 1)], window=win, tags=["keyword-argument", "find", "change"],
         hints=[
             {"trigger": "^[0-9]*[wWeEl]{2,}", "text": f"{fk} jumps to the `=` of `{_text(name)}=`; l steps onto the value."},
             *([{"trigger": "^f=;", "text": f"A count on f ({fk}) replaces the ; presses."}] if k > 1 else []),
             {"trigger": "x{2,}|d[wWeEt]", "text": "c{motion} deletes and enters insert mode in one step."},
-            {"trigger": None, "text": f"{fk}l puts you on the value; {motions[0]} changes it."},
+            {"trigger": None, "text": f"{fk}l (or f{old[0]}) puts you on the value; {motions[0]} changes it."},
         ],
     )
 

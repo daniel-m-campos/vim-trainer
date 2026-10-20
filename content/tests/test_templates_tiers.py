@@ -436,6 +436,9 @@ def test_change_kwarg_value_find_variant(runner):
         line = d.lines[d.cursor[0] - 1]
         assert d.cursor[1] == len(line) - len(line.lstrip())
         assert re.match(r"[2-9]?f=l", d.variants[0])
+        # Finding the old value's first character competes as a variant of the same skill.
+        old = re.search(r"from `([^`]+)`", d.task).group(1)
+        assert any(v.startswith(f"f{old[0]}") for v in d.variants), d.variants
         _assert_solvable(d, runner, alternates=False)
 
 
