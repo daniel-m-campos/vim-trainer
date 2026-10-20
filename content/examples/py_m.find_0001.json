@@ -1,0 +1,56 @@
+{
+  "id": "py/m.find/0001",
+  "skill": "m.find",
+  "lang": "python",
+  "kind": "cursor",
+  "task": "Move the cursor to the second `+` on this line",
+  "start": {
+    "lines": [
+      "class Point:",
+      "    def __init__(self, x, y):",
+      "        self.x = x",
+      "        self.y = y",
+      "",
+      "    def moved(self, dx, dy):",
+      "        return Point(x=self.x + dx, y=self.y + dy)"
+    ],
+    "cursor": [
+      7,
+      8
+    ]
+  },
+  "expect": {
+    "cursor": [
+      7,
+      45
+    ]
+  },
+  "par": {
+    "keys": "2f+",
+    "count": 3,
+    "verified": "nvim 0.12.5 2026-10-11"
+  },
+  "alternates": [
+    "f+;"
+  ],
+  "hints": [
+    "a count before f jumps to the nth match"
+  ],
+  "tags": [
+    "operator"
+  ],
+  "source": {
+    "repo": "author",
+    "path": "hand-written",
+    "commit": null,
+    "license": "own"
+  },
+  "emulator": {
+    "vscodevim": "unknown",
+    "ideavim": "unknown"
+  },
+  "params": {
+    "char": "+",
+    "n": 2
+  }
+}

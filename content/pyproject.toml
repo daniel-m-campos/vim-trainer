@@ -1,0 +1,31 @@
+[project]
+name = "vimtrainer-content"
+version = "0.1.0"
+description = "vim-trainer content pipeline: exercises, Neovim par oracle, best-par search"
+requires-python = ">=3.12"
+dependencies = [
+    "pynvim>=0.5",
+    "tree-sitter>=0.26.0",
+    "tree-sitter-cpp>=0.23.4",
+    "tree-sitter-python>=0.25.0",
+]
+
+[project.scripts]
+vimtrainer-oracle = "vimtrainer_content.oracle:main"
+vimtrainer-bench = "vimtrainer_content.bench:main"
+vimtrainer-par = "vimtrainer_content.par_search:main"
+vimtrainer-content = "vimtrainer_content.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["uv_build>=0.8,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "vimtrainer_content"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore:'get_child_watcher' is deprecated:DeprecationWarning"]

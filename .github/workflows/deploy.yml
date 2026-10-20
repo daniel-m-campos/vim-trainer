@@ -1,0 +1,83 @@
+name: deploy
+
+# Builds the static site (app/dist, with build/ inside it) and publishes it to GitHub Pages
+# at https://daniel-m-campos.github.io/vim-trainer/. Pages must be set to "GitHub Actions"
+# as its source once (Settings > Pages > Build and deployment > Source). The app uses relative paths (Vite base "./") and
+# hash routing, so it works under the /vim-trainer/ subpath with no 404.html fallback.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; a newer push waits instead of cancelling a deploy halfway.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  # Neovim, uv and Node pins live in .github/actions/setup/action.yml.
+  PLAYWRIGHT_BROWSERS_PATH: "0"
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # Neovim, uv, Node, source cache, uv sync, npm ci, Playwright Chromium.
+      - uses: ./.github/actions/setup
+
+      # The content build steps below are copied from ci.yml (same cache key), so a deploy
+      # after a green CI run on the same content restores the nvim stage instead of rebuilding.
+      - name: Neovim version (cache key)
+        id: nvim
+        run: echo "version=$(nvim --version | head -1 | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Restore content build (nvim stage)
+        id: content-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: build
+          key: content-build-${{ runner.os }}-nvim-${{ steps.nvim.outputs.version }}-${{ hashFiles('content/**', '!content/.cache/**', '!content/.venv/**', '!**/__pycache__/**', '!content/tests/**', '!content/difftest/**', '!content/review/**', '!content/**/*.md', '.github/actions/setup/action.yml') }}
+
+      - name: Generate content, nvim stage (cache miss)
+        if: steps.content-cache.outputs.cache-hit != 'true'
+        run: cd content && uv run vimtrainer-content build
+
+      - name: Save content build (nvim stage)
+        if: steps.content-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build
+          key: ${{ steps.content-cache.outputs.cache-primary-key }}
+
+      - name: Generate content, browser replay
+        run: cd app && node e2e/emulator.mjs --write
+
+      # vite build; closeBundle copies build/ into app/dist/build and writes build/all.json.
+      - name: Build the site
+        run: make build
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: app/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

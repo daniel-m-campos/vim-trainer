@@ -1,0 +1,21 @@
+.DS_Store
+
+# Node (Playwright browsers live inside node_modules: PLAYWRIGHT_BROWSERS_PATH=0)
+node_modules/
+app/dist/
+app/e2e-failure-*.png
+test-results/
+playwright-report/
+
+# Python (uv)
+.venv/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+
+# Content pipeline: pinned source checkouts and CI scratch builds.
+content/.cache/
+
+# Generated exercise data (make content). Not committed: CI and
+# the deploy pipeline generate it; `make content` is the first step after `make setup`.
+/build/

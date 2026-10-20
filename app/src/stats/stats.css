@@ -1,0 +1,93 @@
+/* Stats screen (src/stats/statsView.ts). Dark only; colours are the tokens from
+   src/style.css (--bg --panel --rule --fg --muted --accent --mode --pass --fail).
+   Fallback values match those tokens so the view also renders on its own. */
+.sv {
+  --sv-bg: var(--bg, #0f1216);
+  --sv-panel: var(--panel, #151a20);
+  --sv-rule: var(--rule, #242b34);
+  --sv-fg: var(--fg, #d6dbe1);
+  --sv-muted: var(--muted, #7d8794);
+  --sv-accent: var(--accent, #d9a553);
+  --sv-series: var(--mode, #6fb3c9);
+  --sv-pass: var(--pass, #7fbf7f);
+  --sv-fail: var(--fail, #d98a7a);
+  --sv-mono: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  color: var(--sv-fg);
+  font-variant-numeric: tabular-nums;
+}
+.sv code { font-family: var(--sv-mono); color: var(--sv-fg); }
+.sv kbd { font: 12px var(--sv-mono); color: var(--sv-fg); background: var(--sv-panel); border: 1px solid var(--sv-rule); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; }
+.sv-muted { color: var(--sv-muted); }
+.sv-num { font-variant-numeric: tabular-nums; }
+
+.sv-tabs { display: flex; gap: 6px; margin: 10px 0 12px; border-bottom: 1px solid var(--sv-rule); }
+.sv-tab { font: 14px inherit; font-family: inherit; color: var(--sv-muted); background: none; border: none; border-bottom: 2px solid transparent; padding: 6px 10px 7px; cursor: pointer; text-transform: capitalize; }
+.sv-tab kbd { margin-right: 4px; }
+.sv-tab.sv-on { color: var(--sv-fg); border-bottom-color: var(--sv-accent); }
+.sv-tab:focus-visible { outline: 2px solid var(--sv-accent); outline-offset: 2px; }
+.sv-lead { margin: 4px 0 10px; font-size: 14px; color: var(--sv-muted); }
+.sv-keys { display: flex; flex-wrap: wrap; gap: 14px; color: var(--sv-muted); font-size: 13px; margin: 14px 0 0; }
+.sv-empty { color: var(--sv-muted); font-size: 14px; }
+
+/* Skills grid */
+.sv-tier h3 { font-size: 12px; font-weight: 500; color: var(--sv-muted); letter-spacing: .08em; text-transform: uppercase; margin: 16px 0 6px; }
+.sv-tiername { text-transform: none; letter-spacing: 0; margin-left: 6px; }
+.sv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.sv-cell { background: var(--sv-panel); border: 1px solid var(--sv-rule); border-radius: 6px; padding: 7px 9px 8px; display: grid; gap: 4px; cursor: pointer; font-size: 13px; min-width: 0; }
+.sv-cell-top { display: flex; align-items: baseline; gap: 6px; }
+.sv-cell-top code { font-size: 14px; }
+.sv-name { color: var(--sv-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12.5px; }
+.sv-conf { display: flex; align-items: center; gap: 6px; }
+.sv-meta { display: flex; align-items: center; gap: 8px; color: var(--sv-muted); font-size: 12px; }
+.sv-meta .sv-trend { margin-left: auto; color: var(--sv-fg); font-size: 14px; }
+.sv-bar { position: relative; flex: 1; height: 6px; background: var(--sv-rule); border-radius: 3px; }
+.sv-bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--sv-accent); border-radius: 3px; }
+.sv-bar b { position: absolute; top: -2px; bottom: -2px; width: 2px; margin-left: -1px; background: var(--sv-muted); border-radius: 1px; }
+.sv-cell.sv-locked { opacity: .42; }
+.sv-cell.sv-focus { border-color: var(--sv-accent); box-shadow: inset 0 0 0 1px var(--sv-accent); }
+.sv-cell.sv-sel { background: #1d242c; outline: 2px solid var(--sv-fg); outline-offset: 1px; opacity: 1; }
+.sv-focus-tag { margin-left: auto; font-size: 11px; color: var(--sv-bg); background: var(--sv-accent); border-radius: 3px; padding: 0 5px; letter-spacing: .04em; }
+
+/* Status pills: text plus tint, never colour alone */
+.sv-pill { font-size: 11.5px; border-radius: 3px; padding: 0 6px; border: 1px solid var(--sv-rule); color: var(--sv-muted); }
+.sv-pill-active, .sv-pill-introduced { color: var(--sv-series); border-color: color-mix(in srgb, var(--sv-series) 45%, transparent); }
+.sv-pill-introduced { border-style: dashed; }
+.sv-pill-mastered { color: var(--sv-pass); border-color: color-mix(in srgb, var(--sv-pass) 45%, transparent); }
+.sv-pill-review { color: var(--sv-accent); border-color: color-mix(in srgb, var(--sv-accent) 45%, transparent); }
+
+/* Progress cards and the history panel */
+.sv-card { background: var(--sv-panel); border: 1px solid var(--sv-rule); border-radius: 6px; padding: 10px 12px 8px; margin: 0 0 12px; }
+.sv-card.sv-detail { margin-top: 10px; border-color: var(--sv-fg); }
+.sv-card header { display: flex; align-items: baseline; gap: 8px; font-size: 14px; }
+.sv-card header code { font-size: 15px; }
+.sv-card header .sv-pill { margin-left: auto; }
+.sv-role { font-size: 11.5px; color: var(--sv-muted); text-transform: uppercase; letter-spacing: .08em; }
+.sv-diag { font-size: 13px; margin: 6px 0 0; }
+.sv-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 4px 16px; margin-top: 6px; }
+.sv-charts figure { margin: 0; min-width: 0; }
+.sv-charts figcaption { font-size: 12px; color: var(--sv-muted); margin: 2px 0 0 4px; }
+.sv-caption { margin: 2px 0 2px; font-size: 14px; }
+
+/* Charts (src/stats/charts.ts) */
+.sv-chart { display: block; width: 100%; height: auto; overflow: visible; font-variant-numeric: tabular-nums; }
+.sv-chart text { font-family: var(--sv-mono); }
+.sv-chart .sv-gridline { stroke: var(--sv-rule); stroke-width: 1; }
+.sv-chart .sv-axis { stroke: var(--sv-muted); stroke-width: 1; opacity: .6; }
+.sv-chart .sv-tick, .sv-chart .sv-unit { fill: var(--sv-muted); font-size: 11px; }
+.sv-chart .sv-label { fill: var(--sv-fg); font-size: 12px; paint-order: stroke; stroke: var(--sv-panel); stroke-width: 4px; stroke-linejoin: round; }
+.sv-chart .sv-label.sv-muted { fill: var(--sv-muted); }
+.sv-chart .sv-value { font-weight: 500; }
+.sv-chart .sv-line { fill: none; stroke: var(--sv-series); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.sv-chart .sv-dot { fill: var(--sv-series); stroke: var(--sv-panel); stroke-width: 2; }
+.sv-chart .sv-proj { fill: none; stroke: var(--sv-accent); stroke-width: 2; stroke-dasharray: 5 4; stroke-linecap: round; }
+.sv-chart .sv-proj-dot { fill: var(--sv-accent); stroke: var(--sv-panel); stroke-width: 2; }
+.sv-chart .sv-ref { stroke: var(--sv-muted); stroke-width: 1; stroke-dasharray: 2 3; }
+.sv-chart .sv-hit { fill: transparent; }
+.sv-chart .sv-hit:hover { fill: rgba(255, 255, 255, .04); }
+
+/* Sessions */
+.sv-sessions { width: 100%; border-collapse: collapse; font-size: 14px; }
+.sv-sessions th { text-align: left; font-weight: 500; color: var(--sv-muted); padding: 4px 8px; border-bottom: 1px solid var(--sv-rule); }
+.sv-sessions td { padding: 5px 8px; border-bottom: 1px solid rgba(36, 43, 52, .6); font-variant-numeric: tabular-nums; }
+.sv-sessions .sv-r { text-align: right; }
+.sv-sessions td code { margin-right: 6px; }

@@ -1,0 +1,3616 @@
+{
+ "version": 1,
+ "source": "model/skill-graph.md",
+ "targetBase": 1200,
+ "perKey": 180,
+ "langs": [
+  "lua",
+  "python",
+  "javascript",
+  "typescript",
+  "tsx",
+  "jsx",
+  "java",
+  "csharp",
+  "c",
+  "cpp",
+  "go",
+  "rust",
+  "html",
+  "json",
+  "yaml",
+  "markdown"
+ ],
+ "skills": {
+  "f.modes": {
+   "id": "f.modes",
+   "tier": 0,
+   "tierName": "Foundations (assumed; placement test confirms)",
+   "keys": "`i a I A o O Esc`",
+   "what": "enter insert at cursor / after / line start / line end / new line below / above",
+   "prereqs": [],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 0,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "f.hjkl": {
+   "id": "f.hjkl",
+   "tier": 0,
+   "tierName": "Foundations (assumed; placement test confirms)",
+   "keys": "`h j k l`",
+   "what": "basic movement",
+   "prereqs": [],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 1,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "f.undo": {
+   "id": "f.undo",
+   "tier": 0,
+   "tierName": "Foundations (assumed; placement test confirms)",
+   "keys": "`u Ctrl-r`",
+   "what": "undo, redo",
+   "prereqs": [],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 2,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "f.xdd": {
+   "id": "f.xdd",
+   "tier": 0,
+   "tierName": "Foundations (assumed; placement test confirms)",
+   "keys": "`x dd yy p P`",
+   "what": "delete char, delete line, yank line, paste after/before",
+   "prereqs": [],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 3,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "f.save": {
+   "id": "f.save",
+   "tier": 0,
+   "tierName": "Foundations (assumed; placement test confirms)",
+   "keys": "`:w :q :wq`",
+   "what": "write, quit",
+   "prereqs": [],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 4,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "m.word": {
+   "id": "m.word",
+   "tier": 1,
+   "tierName": "Horizontal motions",
+   "keys": "`w b e ge`",
+   "what": "next word start, prev word start, word end, prev word end",
+   "prereqs": [
+    "f.hjkl"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 5,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "m.WORD": {
+   "id": "m.WORD",
+   "tier": 1,
+   "tierName": "Horizontal motions",
+   "keys": "`W B E`",
+   "what": "same, but whitespace-delimited (skips punctuation)",
+   "prereqs": [
+    "m.word"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 6,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "m.line": {
+   "id": "m.line",
+   "tier": 1,
+   "tierName": "Horizontal motions",
+   "keys": "`0 ^ $`",
+   "what": "line start, first non-blank, line end",
+   "prereqs": [
+    "f.hjkl"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 7,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "m.find": {
+   "id": "m.find",
+   "tier": 1,
+   "tierName": "Horizontal motions",
+   "keys": "`f F t T`",
+   "what": "jump to / till a character forward or back, on the current line",
+   "prereqs": [
+    "m.line"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 8,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.2,
+    "javascript": 1.5,
+    "typescript": 1.5,
+    "tsx": 1.5,
+    "jsx": 1.5,
+    "java": 1.5,
+    "csharp": 1.5,
+    "c": 1.5,
+    "cpp": 1.5,
+    "go": 1.2,
+    "rust": 1.5,
+    "html": 1.2,
+    "json": 1.2,
+    "yaml": 1.2,
+    "markdown": 0.5
+   }
+  },
+  "m.repeatfind": {
+   "id": "m.repeatfind",
+   "tier": 1,
+   "tierName": "Horizontal motions",
+   "keys": "`; ,`",
+   "what": "repeat last f/t forward or back",
+   "prereqs": [
+    "m.find"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 9,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "m.count": {
+   "id": "m.count",
+   "tier": 1,
+   "tierName": "Horizontal motions",
+   "keys": "`3w 5l 2f,`",
+   "what": "counts prefix any motion",
+   "prereqs": [
+    "m.word"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 10,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "m.file": {
+   "id": "m.file",
+   "tier": 2,
+   "tierName": "Vertical and file motions",
+   "keys": "`gg G 42G :42`",
+   "what": "file start, end, line N",
+   "prereqs": [
+    "f.hjkl"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 11,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "m.para": {
+   "id": "m.para",
+   "tier": 2,
+   "tierName": "Vertical and file motions",
+   "keys": "`{ }`",
+   "what": "previous / next blank line (paragraph)",
+   "prereqs": [
+    "f.hjkl"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 12,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.5,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 0.8,
+    "csharp": 0.8,
+    "c": 0.8,
+    "cpp": 0.8,
+    "go": 1.0,
+    "rust": 0.8,
+    "html": 0.5,
+    "json": 0.5,
+    "yaml": 0.5,
+    "markdown": 1.5
+   }
+  },
+  "m.rel": {
+   "id": "m.rel",
+   "tier": 2,
+   "tierName": "Vertical and file motions",
+   "keys": "`5j 12k`",
+   "what": "relative line jumps, with `relativenumber` on",
+   "prereqs": [
+    "m.count"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 13,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "m.screen": {
+   "id": "m.screen",
+   "tier": 2,
+   "tierName": "Vertical and file motions",
+   "keys": "`Ctrl-d Ctrl-u Ctrl-f Ctrl-b`",
+   "what": "half-page / page scroll",
+   "prereqs": [
+    "f.hjkl"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 14,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "m.screenpos": {
+   "id": "m.screenpos",
+   "tier": 2,
+   "tierName": "Vertical and file motions",
+   "keys": "`H M L zz zt zb`",
+   "what": "cursor to screen top/middle/bottom; scroll line to centre/top/bottom",
+   "prereqs": [
+    "m.screen"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 15,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "m.match": {
+   "id": "m.match",
+   "tier": 2,
+   "tierName": "Vertical and file motions",
+   "keys": "`%`",
+   "what": "jump to matching bracket",
+   "prereqs": [
+    "f.hjkl"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full (VSC has edge cases)"
+   },
+   "order": 16,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.2,
+    "python": 0.3,
+    "javascript": 1.5,
+    "typescript": 1.5,
+    "tsx": 1.5,
+    "jsx": 1.5,
+    "java": 1.5,
+    "csharp": 1.5,
+    "c": 1.5,
+    "cpp": 1.5,
+    "go": 1.5,
+    "rust": 1.5,
+    "html": 1.0,
+    "json": 1.5,
+    "yaml": 1.5,
+    "markdown": 0.2
+   }
+  },
+  "m.search": {
+   "id": "m.search",
+   "tier": 2,
+   "tierName": "Vertical and file motions",
+   "keys": "`/ ? n N`",
+   "what": "search forward/back, next/prev match",
+   "prereqs": [
+    "f.hjkl"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 17,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "m.star": {
+   "id": "m.star",
+   "tier": 2,
+   "tierName": "Vertical and file motions",
+   "keys": "`* #`",
+   "what": "search word under cursor forward/back",
+   "prereqs": [
+    "m.search"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 18,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "m.sentence": {
+   "id": "m.sentence",
+   "tier": 2,
+   "tierName": "Vertical and file motions",
+   "keys": "`( )`",
+   "what": "sentence motions (prose, comments, docs)",
+   "prereqs": [
+    "m.para"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 19,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 0.2,
+    "python": 0.3,
+    "javascript": 0.2,
+    "typescript": 0.2,
+    "tsx": 0.2,
+    "jsx": 0.2,
+    "java": 0.2,
+    "csharp": 0.2,
+    "c": 0.2,
+    "cpp": 0.2,
+    "go": 0.2,
+    "rust": 0.2,
+    "html": 0.5,
+    "json": 0.0,
+    "yaml": 0.0,
+    "markdown": 1.5
+   }
+  },
+  "o.delete": {
+   "id": "o.delete",
+   "tier": 3,
+   "tierName": "Operators (the verbs)",
+   "keys": "`d{motion} D dd`",
+   "what": "delete; `D` to end of line",
+   "prereqs": [
+    "m.word",
+    "m.line"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 20,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "o.change": {
+   "id": "o.change",
+   "tier": 3,
+   "tierName": "Operators (the verbs)",
+   "keys": "`c{motion} C cc S s`",
+   "what": "delete then insert; `C` to end of line; `s` one char",
+   "prereqs": [
+    "o.delete"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 21,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "o.yank": {
+   "id": "o.yank",
+   "tier": 3,
+   "tierName": "Operators (the verbs)",
+   "keys": "`y{motion} Y yy`",
+   "what": "copy into a register",
+   "prereqs": [
+    "o.delete"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 22,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "o.put": {
+   "id": "o.put",
+   "tier": 3,
+   "tierName": "Operators (the verbs)",
+   "keys": "`p P ]p`",
+   "what": "paste after/before, with indent",
+   "prereqs": [
+    "o.yank"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full (`]p` verify)"
+   },
+   "order": 23,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "o.dot": {
+   "id": "o.dot",
+   "tier": 3,
+   "tierName": "Operators (the verbs)",
+   "keys": "`.`",
+   "what": "repeat the last change",
+   "prereqs": [
+    "o.change"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 24,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "o.indent": {
+   "id": "o.indent",
+   "tier": 3,
+   "tierName": "Operators (the verbs)",
+   "keys": "`>> << >{motion} ={motion} ==`",
+   "what": "shift and auto-indent",
+   "prereqs": [
+    "o.delete"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 25,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.5,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 0.5,
+    "rust": 0.8,
+    "html": 1.0,
+    "json": 1.2,
+    "yaml": 1.2,
+    "markdown": 0.5
+   }
+  },
+  "o.case": {
+   "id": "o.case",
+   "tier": 3,
+   "tierName": "Operators (the verbs)",
+   "keys": "`~ g~ gu gU gUiw guu`",
+   "what": "toggle / lower / upper case",
+   "prereqs": [
+    "o.delete"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 26,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "o.join": {
+   "id": "o.join",
+   "tier": 3,
+   "tierName": "Operators (the verbs)",
+   "keys": "`J gJ`",
+   "what": "join lines with / without space",
+   "prereqs": [
+    "o.delete"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 27,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "o.replace": {
+   "id": "o.replace",
+   "tier": 3,
+   "tierName": "Operators (the verbs)",
+   "keys": "`r R`",
+   "what": "replace one char / enter replace mode",
+   "prereqs": [
+    "f.modes"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 28,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "o.number": {
+   "id": "o.number",
+   "tier": 3,
+   "tierName": "Operators (the verbs)",
+   "keys": "`Ctrl-a Ctrl-x 5Ctrl-a`",
+   "what": "increment / decrement number under cursor",
+   "prereqs": [
+    "m.count"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 29,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 0.5,
+    "python": 0.8,
+    "javascript": 0.8,
+    "typescript": 0.8,
+    "tsx": 0.8,
+    "jsx": 0.8,
+    "java": 0.8,
+    "csharp": 0.8,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 0.8,
+    "rust": 0.8,
+    "html": 0.5,
+    "json": 1.2,
+    "yaml": 1.2,
+    "markdown": 1.0
+   }
+  },
+  "o.filter": {
+   "id": "o.filter",
+   "tier": 3,
+   "tierName": "Operators (the verbs)",
+   "keys": "`!{motion}cmd` `:.!cmd`",
+   "what": "pipe lines through a shell command",
+   "prereqs": [
+    "o.delete"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "none",
+    "ideavim": "verify",
+    "note": "none in VSC; IJ verify"
+   },
+   "order": 30,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "t.word": {
+   "id": "t.word",
+   "tier": 4,
+   "tierName": "Text objects (the nouns)",
+   "keys": "`iw aw iW aW`",
+   "what": "inner / a word",
+   "prereqs": [
+    "o.change"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 31,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "t.quote": {
+   "id": "t.quote",
+   "tier": 4,
+   "tierName": "Text objects (the nouns)",
+   "keys": "`i\" a\" i' a' i\\` a\\``",
+   "what": "inside / around quotes",
+   "prereqs": [
+    "o.change"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 32,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.5,
+    "python": 1.5,
+    "javascript": 1.5,
+    "typescript": 1.5,
+    "tsx": 1.5,
+    "jsx": 1.5,
+    "java": 1.2,
+    "csharp": 1.2,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.2,
+    "rust": 1.2,
+    "html": 1.5,
+    "json": 1.5,
+    "yaml": 1.5,
+    "markdown": 0.5
+   }
+  },
+  "t.paren": {
+   "id": "t.paren",
+   "tier": 4,
+   "tierName": "Text objects (the nouns)",
+   "keys": "`i( a( ib ab i) a)`",
+   "what": "inside / around parentheses",
+   "prereqs": [
+    "m.match"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 33,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.2,
+    "python": 1.5,
+    "javascript": 1.5,
+    "typescript": 1.5,
+    "tsx": 1.5,
+    "jsx": 1.5,
+    "java": 1.5,
+    "csharp": 1.5,
+    "c": 1.5,
+    "cpp": 1.5,
+    "go": 1.5,
+    "rust": 1.5,
+    "html": 0.5,
+    "json": 0.2,
+    "yaml": 0.2,
+    "markdown": 0.2
+   }
+  },
+  "t.bracket": {
+   "id": "t.bracket",
+   "tier": 4,
+   "tierName": "Text objects (the nouns)",
+   "keys": "`i[ a[ i] a]`",
+   "what": "square brackets",
+   "prereqs": [
+    "t.paren"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 34,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 0.8,
+    "python": 1.5,
+    "javascript": 1.5,
+    "typescript": 1.5,
+    "tsx": 1.5,
+    "jsx": 1.5,
+    "java": 1.2,
+    "csharp": 1.2,
+    "c": 1.2,
+    "cpp": 1.2,
+    "go": 1.2,
+    "rust": 1.2,
+    "html": 0.3,
+    "json": 1.5,
+    "yaml": 1.5,
+    "markdown": 1.0
+   }
+  },
+  "t.brace": {
+   "id": "t.brace",
+   "tier": 4,
+   "tierName": "Text objects (the nouns)",
+   "keys": "`i{ a{ iB aB i} a}`",
+   "what": "curly braces / blocks",
+   "prereqs": [
+    "t.paren"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 35,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.2,
+    "python": 0.3,
+    "javascript": 1.5,
+    "typescript": 1.5,
+    "tsx": 1.5,
+    "jsx": 1.5,
+    "java": 1.5,
+    "csharp": 1.5,
+    "c": 1.5,
+    "cpp": 1.5,
+    "go": 1.5,
+    "rust": 1.5,
+    "html": 1.0,
+    "json": 1.5,
+    "yaml": 1.5,
+    "markdown": 0.2
+   }
+  },
+  "t.angle": {
+   "id": "t.angle",
+   "tier": 4,
+   "tierName": "Text objects (the nouns)",
+   "keys": "`i< a<`",
+   "what": "angle brackets (generics, HTML)",
+   "prereqs": [
+    "t.paren"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 36,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 0.0,
+    "python": 0.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.5,
+    "csharp": 1.5,
+    "c": 1.5,
+    "cpp": 1.5,
+    "go": 0.3,
+    "rust": 1.5,
+    "html": 1.0,
+    "json": 0.0,
+    "yaml": 0.0,
+    "markdown": 0.0
+   }
+  },
+  "t.tag": {
+   "id": "t.tag",
+   "tier": 4,
+   "tierName": "Text objects (the nouns)",
+   "keys": "`it at`",
+   "what": "XML/HTML tag contents / whole tag",
+   "prereqs": [
+    "t.brace"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full (JSX verify)"
+   },
+   "order": 37,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 0.0,
+    "python": 0.0,
+    "javascript": 1.2,
+    "typescript": 1.2,
+    "tsx": 1.2,
+    "jsx": 1.2,
+    "java": 0.3,
+    "csharp": 0.3,
+    "c": 0.0,
+    "cpp": 0.0,
+    "go": 0.3,
+    "rust": 0.0,
+    "html": 1.5,
+    "json": 0.0,
+    "yaml": 0.0,
+    "markdown": 0.5
+   }
+  },
+  "t.para": {
+   "id": "t.para",
+   "tier": 4,
+   "tierName": "Text objects (the nouns)",
+   "keys": "`ip ap`",
+   "what": "paragraph",
+   "prereqs": [
+    "m.para"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 38,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.5,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 0.8,
+    "csharp": 0.8,
+    "c": 0.8,
+    "cpp": 0.8,
+    "go": 1.0,
+    "rust": 0.8,
+    "html": 0.5,
+    "json": 0.5,
+    "yaml": 0.5,
+    "markdown": 1.5
+   }
+  },
+  "t.sentence": {
+   "id": "t.sentence",
+   "tier": 4,
+   "tierName": "Text objects (the nouns)",
+   "keys": "`is as`",
+   "what": "sentence",
+   "prereqs": [
+    "m.sentence"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 39,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 0.2,
+    "python": 0.3,
+    "javascript": 0.2,
+    "typescript": 0.2,
+    "tsx": 0.2,
+    "jsx": 0.2,
+    "java": 0.2,
+    "csharp": 0.2,
+    "c": 0.2,
+    "cpp": 0.2,
+    "go": 0.2,
+    "rust": 0.2,
+    "html": 0.5,
+    "json": 0.0,
+    "yaml": 0.0,
+    "markdown": 1.5
+   }
+  },
+  "t.compose": {
+   "id": "t.compose",
+   "tier": 4,
+   "tierName": "Text objects (the nouns)",
+   "keys": "`ci\" da( yap cit >ip`",
+   "what": "operator + text object fluency",
+   "prereqs": [
+    "t.word",
+    "t.quote",
+    "t.paren",
+    "t.bracket",
+    "t.brace",
+    "t.angle",
+    "t.tag",
+    "t.para",
+    "t.sentence"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 40,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "v.char": {
+   "id": "v.char",
+   "tier": 5,
+   "tierName": "Visual modes",
+   "keys": "`v` + motions + operator",
+   "what": "character-wise selection",
+   "prereqs": [
+    "o.delete"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 41,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "v.line": {
+   "id": "v.line",
+   "tier": 5,
+   "tierName": "Visual modes",
+   "keys": "`V`",
+   "what": "line-wise selection",
+   "prereqs": [
+    "v.char"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 42,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "v.block": {
+   "id": "v.block",
+   "tier": 5,
+   "tierName": "Visual modes",
+   "keys": "`Ctrl-v`",
+   "what": "column selection",
+   "prereqs": [
+    "v.line"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 43,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 0.8,
+    "python": 0.8,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.2,
+    "csharp": 1.2,
+    "c": 1.2,
+    "cpp": 1.2,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 0.8,
+    "json": 1.5,
+    "yaml": 1.5,
+    "markdown": 1.0
+   }
+  },
+  "v.blockedit": {
+   "id": "v.blockedit",
+   "tier": 5,
+   "tierName": "Visual modes",
+   "keys": "`Ctrl-v` then `I A c $ r`",
+   "what": "insert/append/change on every line of a block",
+   "prereqs": [
+    "v.block"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full (VSC `$A` verify)"
+   },
+   "order": 44,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "v.objects": {
+   "id": "v.objects",
+   "tier": 5,
+   "tierName": "Visual modes",
+   "keys": "`viw vi( vip`",
+   "what": "select by text object",
+   "prereqs": [
+    "t.compose"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 45,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "v.reselect": {
+   "id": "v.reselect",
+   "tier": 5,
+   "tierName": "Visual modes",
+   "keys": "`gv o`",
+   "what": "reselect last visual; swap selection end",
+   "prereqs": [
+    "v.char"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 46,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "v.ops": {
+   "id": "v.ops",
+   "tier": 5,
+   "tierName": "Visual modes",
+   "keys": "`> < = u U J ~ :` on selection",
+   "what": "operators on a selection",
+   "prereqs": [
+    "v.char"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 47,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "r.named": {
+   "id": "r.named",
+   "tier": 6,
+   "tierName": "Registers",
+   "keys": "`\"ayy \"ap \"Ayy`",
+   "what": "yank/put to a named register; uppercase appends",
+   "prereqs": [
+    "o.yank"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 48,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "r.yank0": {
+   "id": "r.yank0",
+   "tier": 6,
+   "tierName": "Registers",
+   "keys": "`\"0p`",
+   "what": "the yank register survives deletes",
+   "prereqs": [
+    "r.named"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 49,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "r.numbered": {
+   "id": "r.numbered",
+   "tier": 6,
+   "tierName": "Registers",
+   "keys": "`\"1p \"2p` and `\"1p...`",
+   "what": "last deletes, 1\u20139",
+   "prereqs": [
+    "r.named"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "partial",
+    "ideavim": "partial",
+    "note": "partial (verify)"
+   },
+   "order": 50,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "r.blackhole": {
+   "id": "r.blackhole",
+   "tier": 6,
+   "tierName": "Registers",
+   "keys": "`\"_d`",
+   "what": "delete without touching registers",
+   "prereqs": [
+    "r.named"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 51,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "r.system": {
+   "id": "r.system",
+   "tier": 6,
+   "tierName": "Registers",
+   "keys": "`\"+y \"+p \"*y`",
+   "what": "system clipboard",
+   "prereqs": [
+    "r.named"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 52,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "r.insert": {
+   "id": "r.insert",
+   "tier": 6,
+   "tierName": "Registers",
+   "keys": "`Ctrl-r a` in insert mode and `:`",
+   "what": "paste a register while typing",
+   "prereqs": [
+    "r.named"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 53,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "r.view": {
+   "id": "r.view",
+   "tier": 6,
+   "tierName": "Registers",
+   "keys": "`:reg :reg a`",
+   "what": "inspect registers",
+   "prereqs": [
+    "r.named"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 54,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "x.subst": {
+   "id": "x.subst",
+   "tier": 7,
+   "tierName": "Search, replace and Ex ranges",
+   "keys": "`:s/a/b/ :%s/a/b/g` flags `g c i e`",
+   "what": "substitute",
+   "prereqs": [
+    "m.search"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 55,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.5,
+    "yaml": 1.5,
+    "markdown": 1.5
+   }
+  },
+  "x.substrange": {
+   "id": "x.substrange",
+   "tier": 7,
+   "tierName": "Search, replace and Ex ranges",
+   "keys": "`:'<,'>s :5,20s :.,$s :.,+3s`",
+   "what": "ranges",
+   "prereqs": [
+    "x.subst"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 56,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "x.regex": {
+   "id": "x.regex",
+   "tier": 7,
+   "tierName": "Search, replace and Ex ranges",
+   "keys": "`\\< \\> \\( \\) \\1 & \\= .* \\s \\d`",
+   "what": "Vim regex essentials",
+   "prereqs": [
+    "x.subst"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 57,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "x.lastsearch": {
+   "id": "x.lastsearch",
+   "tier": 7,
+   "tierName": "Search, replace and Ex ranges",
+   "keys": "`/foo` then `:%s//bar/` and `cgn` + `.`",
+   "what": "reuse the search pattern; change-next-match repeatable",
+   "prereqs": [
+    "x.subst",
+    "o.dot"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "verify",
+    "ideavim": "full",
+    "note": "`gn` verify in VSC"
+   },
+   "order": 58,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "x.global": {
+   "id": "x.global",
+   "tier": 7,
+   "tierName": "Search, replace and Ex ranges",
+   "keys": "`:g/pat/d :g/pat/normal A;` `:v/pat/d`",
+   "what": "run a command on matching lines",
+   "prereqs": [
+    "x.subst"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "partial",
+    "ideavim": "full",
+    "note": "partial (VSC verify); IJ full"
+   },
+   "order": 59,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.5,
+    "yaml": 1.5,
+    "markdown": 1.5
+   }
+  },
+  "x.normal": {
+   "id": "x.normal",
+   "tier": 7,
+   "tierName": "Search, replace and Ex ranges",
+   "keys": "`:normal` `:'<,'>normal .`",
+   "what": "run normal-mode keys over a range",
+   "prereqs": [
+    "x.global"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "partial",
+    "ideavim": "full",
+    "note": "VSC partial, IJ full"
+   },
+   "order": 60,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "x.copymove": {
+   "id": "x.copymove",
+   "tier": 7,
+   "tierName": "Search, replace and Ex ranges",
+   "keys": "`:t :m :t. :m+1 :m'<-2`",
+   "what": "copy / move lines",
+   "prereqs": [
+    "x.substrange"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 61,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "x.cmdline": {
+   "id": "x.cmdline",
+   "tier": 7,
+   "tierName": "Search, replace and Ex ranges",
+   "keys": "`Ctrl-r Ctrl-w` `q:` `@:` `Ctrl-f` in `:`",
+   "what": "insert word under cursor, command history, repeat last Ex",
+   "prereqs": [
+    "x.subst"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "partial",
+    "ideavim": "partial",
+    "note": "partial"
+   },
+   "order": 62,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "a.dot": {
+   "id": "a.dot",
+   "tier": 8,
+   "tierName": "Repetition and automation",
+   "keys": "deliberate `.` patterns: `cw` + `n.`, `A;` + `j.`",
+   "what": "design edits to be repeatable",
+   "prereqs": [
+    "o.dot"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 63,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "a.macro": {
+   "id": "a.macro",
+   "tier": 8,
+   "tierName": "Repetition and automation",
+   "keys": "`qa ... q` `@a` `@@` `5@a`",
+   "what": "record and replay",
+   "prereqs": [
+    "r.named"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 64,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "a.macrorange": {
+   "id": "a.macrorange",
+   "tier": 8,
+   "tierName": "Repetition and automation",
+   "keys": "`:'<,'>normal @a`",
+   "what": "macro over a range",
+   "prereqs": [
+    "a.macro",
+    "x.normal"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "partial",
+    "ideavim": "full",
+    "note": "VSC partial"
+   },
+   "order": 65,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "a.macroedit": {
+   "id": "a.macroedit",
+   "tier": 8,
+   "tierName": "Repetition and automation",
+   "keys": "`\"ap` edit `\"ayy`",
+   "what": "paste, fix and re-yank a macro",
+   "prereqs": [
+    "a.macro"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 66,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "a.recursive": {
+   "id": "a.recursive",
+   "tier": 8,
+   "tierName": "Repetition and automation",
+   "keys": "`qaq` then `qa ... @a q`",
+   "what": "recursive macro to end of file",
+   "prereqs": [
+    "a.macro"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 67,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "n.marks": {
+   "id": "n.marks",
+   "tier": 9,
+   "tierName": "Marks, jumps and structural navigation",
+   "keys": "`ma 'a \\`a`",
+   "what": "set / jump to a mark (line / exact)",
+   "prereqs": [
+    "m.file"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 68,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "n.autmarks": {
+   "id": "n.autmarks",
+   "tier": 9,
+   "tierName": "Marks, jumps and structural navigation",
+   "keys": "`'' \\`\\` '. \\`. '^`",
+   "what": "last jump, last change, last insert",
+   "prereqs": [
+    "n.marks"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "partial",
+    "ideavim": "partial",
+    "note": "partial"
+   },
+   "order": 69,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "n.jumplist": {
+   "id": "n.jumplist",
+   "tier": 9,
+   "tierName": "Marks, jumps and structural navigation",
+   "keys": "`Ctrl-o Ctrl-i`",
+   "what": "jump back / forward",
+   "prereqs": [
+    "m.search"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 70,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "n.changelist": {
+   "id": "n.changelist",
+   "tier": 9,
+   "tierName": "Marks, jumps and structural navigation",
+   "keys": "`g; g,`",
+   "what": "previous / next change position",
+   "prereqs": [
+    "n.jumplist"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "verify",
+    "ideavim": "verify",
+    "note": "verify"
+   },
+   "order": 71,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "n.lastinsert": {
+   "id": "n.lastinsert",
+   "tier": 9,
+   "tierName": "Marks, jumps and structural navigation",
+   "keys": "`gi`",
+   "what": "insert where you last inserted",
+   "prereqs": [
+    "n.autmarks"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 72,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "n.unmatched": {
+   "id": "n.unmatched",
+   "tier": 9,
+   "tierName": "Marks, jumps and structural navigation",
+   "keys": "`[{ ]} [( ])`",
+   "what": "enclosing bracket",
+   "prereqs": [
+    "m.match"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 73,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.2,
+    "python": 0.3,
+    "javascript": 1.5,
+    "typescript": 1.5,
+    "tsx": 1.5,
+    "jsx": 1.5,
+    "java": 1.5,
+    "csharp": 1.5,
+    "c": 1.5,
+    "cpp": 1.5,
+    "go": 1.5,
+    "rust": 1.5,
+    "html": 1.0,
+    "json": 1.5,
+    "yaml": 1.5,
+    "markdown": 0.2
+   }
+  },
+  "n.section": {
+   "id": "n.section",
+   "tier": 9,
+   "tierName": "Marks, jumps and structural navigation",
+   "keys": "`[[ ]] [m ]m`",
+   "what": "section / method starts (brace languages)",
+   "prereqs": [
+    "m.para"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "partial",
+    "ideavim": "partial",
+    "note": "partial"
+   },
+   "order": 74,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 0.3,
+    "python": 0.0,
+    "javascript": 0.5,
+    "typescript": 0.5,
+    "tsx": 0.5,
+    "jsx": 0.5,
+    "java": 1.2,
+    "csharp": 1.2,
+    "c": 1.5,
+    "cpp": 1.5,
+    "go": 1.2,
+    "rust": 1.0,
+    "html": 0.0,
+    "json": 0.0,
+    "yaml": 0.0,
+    "markdown": 0.0
+   }
+  },
+  "n.folds": {
+   "id": "n.folds",
+   "tier": 9,
+   "tierName": "Marks, jumps and structural navigation",
+   "keys": "`zo zc za zR zM zj zk`",
+   "what": "open / close / toggle folds",
+   "prereqs": [
+    "m.file"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "partial",
+    "ideavim": "partial",
+    "note": "partial"
+   },
+   "order": 75,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "i.delete": {
+   "id": "i.delete",
+   "tier": 10,
+   "tierName": "Insert-mode efficiency",
+   "keys": "`Ctrl-w Ctrl-u Ctrl-h`",
+   "what": "delete word / to line start / char without leaving insert",
+   "prereqs": [
+    "f.modes"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 76,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "i.oneshot": {
+   "id": "i.oneshot",
+   "tier": 10,
+   "tierName": "Insert-mode efficiency",
+   "keys": "`Ctrl-o {cmd}`",
+   "what": "run one normal command, stay in insert",
+   "prereqs": [
+    "f.modes"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 77,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "i.register": {
+   "id": "i.register",
+   "tier": 10,
+   "tierName": "Insert-mode efficiency",
+   "keys": "`Ctrl-r \"` `Ctrl-r 0`",
+   "what": "paste a register",
+   "prereqs": [
+    "r.named"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 78,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "i.indent": {
+   "id": "i.indent",
+   "tier": 10,
+   "tierName": "Insert-mode efficiency",
+   "keys": "`Ctrl-t Ctrl-d`",
+   "what": "indent / dedent current line",
+   "prereqs": [
+    "f.modes"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 79,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "i.complete": {
+   "id": "i.complete",
+   "tier": 10,
+   "tierName": "Insert-mode efficiency",
+   "keys": "`Ctrl-n Ctrl-p`",
+   "what": "keyword completion",
+   "prereqs": [
+    "f.modes"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "partial",
+    "ideavim": "partial",
+    "note": "partial (editor completion takes over)"
+   },
+   "order": 80,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "i.escape": {
+   "id": "i.escape",
+   "tier": 10,
+   "tierName": "Insert-mode efficiency",
+   "keys": "`Ctrl-[` `Ctrl-c` and `jk`-style maps",
+   "what": "leave insert without reaching for Esc",
+   "prereqs": [
+    "f.modes"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 81,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "i.last": {
+   "id": "i.last",
+   "tier": 10,
+   "tierName": "Insert-mode efficiency",
+   "keys": "`Ctrl-a` `Ctrl-@`",
+   "what": "re-insert last inserted text",
+   "prereqs": [
+    "f.modes"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "verify",
+    "ideavim": "verify",
+    "note": "verify"
+   },
+   "order": 82,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": true,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "w.split": {
+   "id": "w.split",
+   "tier": 11,
+   "tierName": "Buffers, windows and files (editor-dependent)",
+   "keys": "`:sp :vs Ctrl-w s v`",
+   "what": "split windows",
+   "prereqs": [
+    "f.save"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full (maps to editor splits)"
+   },
+   "order": 83,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": false,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "w.move": {
+   "id": "w.move",
+   "tier": 11,
+   "tierName": "Buffers, windows and files (editor-dependent)",
+   "keys": "`Ctrl-w h j k l w p c o`",
+   "what": "move between / close windows",
+   "prereqs": [
+    "w.split"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "full",
+    "ideavim": "full",
+    "note": "full"
+   },
+   "order": 84,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": false,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "w.buffers": {
+   "id": "w.buffers",
+   "tier": 11,
+   "tierName": "Buffers, windows and files (editor-dependent)",
+   "keys": "`:ls :b N :bn :bp :bd Ctrl-^`",
+   "what": "buffer list and switching",
+   "prereqs": [
+    "f.save"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "partial",
+    "ideavim": "partial",
+    "note": "partial"
+   },
+   "order": 85,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": false,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "w.tabs": {
+   "id": "w.tabs",
+   "tier": 11,
+   "tierName": "Buffers, windows and files (editor-dependent)",
+   "keys": "`:tabnew gt gT`",
+   "what": "tab pages",
+   "prereqs": [
+    "w.split"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "partial",
+    "ideavim": "partial",
+    "note": "partial"
+   },
+   "order": 86,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": false,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "w.args": {
+   "id": "w.args",
+   "tier": 11,
+   "tierName": "Buffers, windows and files (editor-dependent)",
+   "keys": "`:args :argdo`",
+   "what": "multi-file operations",
+   "prereqs": [
+    "x.global"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "none",
+    "ideavim": "full",
+    "note": "none in VSC"
+   },
+   "order": 87,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": false,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "w.quickfix": {
+   "id": "w.quickfix",
+   "tier": 11,
+   "tierName": "Buffers, windows and files (editor-dependent)",
+   "keys": "`:copen ]q [q :cdo`",
+   "what": "quickfix navigation",
+   "prereqs": [
+    "x.global"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "none",
+    "ideavim": "full",
+    "note": "none in VSC"
+   },
+   "order": 88,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": false,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "nv.lsp": {
+   "id": "nv.lsp",
+   "tier": 12,
+   "tierName": "Neovim-native (real Neovim only)",
+   "keys": "`grn gra grr gri gd K Ctrl-]`",
+   "what": "default LSP maps (0.11+)",
+   "prereqs": [
+    "w.quickfix"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "none",
+    "ideavim": "none",
+    "note": "tier 12: Neovim only"
+   },
+   "order": 89,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": false,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "nv.diag": {
+   "id": "nv.diag",
+   "tier": 12,
+   "tierName": "Neovim-native (real Neovim only)",
+   "keys": "`]d [d Ctrl-w d`",
+   "what": "diagnostics",
+   "prereqs": [
+    "nv.lsp"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "none",
+    "ideavim": "none",
+    "note": "tier 12: Neovim only"
+   },
+   "order": 90,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": false,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  },
+  "nv.comment": {
+   "id": "nv.comment",
+   "tier": 12,
+   "tierName": "Neovim-native (real Neovim only)",
+   "keys": "`gcc gc{motion}`",
+   "what": "built-in commenting (0.10+)",
+   "prereqs": [
+    "o.delete"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "none",
+    "ideavim": "none",
+    "note": "tier 12: Neovim only"
+   },
+   "order": 91,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": false,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 0.5,
+    "json": 0.5,
+    "yaml": 0.5,
+    "markdown": 0.0
+   }
+  },
+  "nv.treesitter": {
+   "id": "nv.treesitter",
+   "tier": 12,
+   "tierName": "Neovim-native (real Neovim only)",
+   "keys": "`af if ac ic` via mini.ai / textobjects",
+   "what": "syntax-aware text objects (plugin)",
+   "prereqs": [
+    "t.compose"
+   ],
+   "emulator": {
+    "neovim": "full",
+    "vscodevim": "none",
+    "ideavim": "none",
+    "note": "tier 12: Neovim only"
+   },
+   "order": 92,
+   "targetBase": 1200,
+   "perKey": 180,
+   "enabled": false,
+   "langWeights": {
+    "lua": 1.0,
+    "python": 1.0,
+    "javascript": 1.0,
+    "typescript": 1.0,
+    "tsx": 1.0,
+    "jsx": 1.0,
+    "java": 1.0,
+    "csharp": 1.0,
+    "c": 1.0,
+    "cpp": 1.0,
+    "go": 1.0,
+    "rust": 1.0,
+    "html": 1.0,
+    "json": 1.0,
+    "yaml": 1.0,
+    "markdown": 1.0
+   }
+  }
+ },
+ "tips": {
+  "f.modes": "Use `A` to append at the end of a line and `O` to open a line above, instead of moving first and then pressing `i`.",
+  "f.undo": "After an undo, `Ctrl-r` redoes it; you never need to retype what you just undid.",
+  "m.word": "Reach for `w`, `b` and `e` before holding `l`: one key per word instead of one per character.",
+  "m.WORD": "`W` and `B` skip over punctuation like `foo.bar(baz)` in one hop.",
+  "m.line": "`^` lands on the first non-blank character, which is where you usually want to be in indented code.",
+  "m.find": "`f(` jumps straight to the opening parenthesis of a call on the current line.",
+  "m.repeatfind": "After `f,`, press `;` to hop to the next comma instead of typing `f,` again.",
+  "m.count": "Put a count before a motion: `3w` moves three words in two keystrokes.",
+  "m.file": "`gg` and `G` jump to the start and end of the file; `42G` goes straight to line 42.",
+  "m.para": "`}` jumps to the next blank line, which in most code means the next function or block.",
+  "m.rel": "Turn on `relativenumber` and jump to any visible line with `{count}j` or `{count}k`.",
+  "m.match": "Press `%` on a bracket to jump to its partner, handy for finding the end of a long call.",
+  "m.search": "`/name<CR>` is often the fastest way to reach a line you cannot see.",
+  "m.star": "`*` searches for the word under the cursor; then `n` walks through every use.",
+  "o.delete": "`D` deletes to the end of the line; `dw` and `d$` compose with any motion.",
+  "o.change": "`cw` replaces a word and leaves you in insert mode, saving a separate `dw` and `i`.",
+  "o.yank": "`yiw` copies the word under the cursor without moving to its start first.",
+  "o.dot": "Make an edit once, then press `.` on the next spot: the cheapest repeat in Vim.",
+  "o.indent": "`>ip` indents the whole paragraph; `=ip` re-indents it.",
+  "o.case": "`gUiw` uppercases the word under the cursor, great for constants.",
+  "o.join": "`J` joins the next line onto this one with a single space.",
+  "o.number": "`Ctrl-a` increments the number under (or after) the cursor; `5Ctrl-a` adds five.",
+  "t.word": "`ciw` changes the whole word from anywhere inside it.",
+  "t.quote": "`ci\"` changes a string's contents from anywhere inside the quotes.",
+  "t.paren": "`ci(` rewrites all the arguments of a call in one go.",
+  "t.bracket": "`di[` empties a list or index expression without touching the brackets.",
+  "t.brace": "`di{` clears the body of a block or object literal.",
+  "t.tag": "`cit` changes the text inside an HTML or JSX tag.",
+  "t.para": "`yap` copies a whole paragraph or function, including the trailing blank line.",
+  "t.compose": "Think in verb plus noun: `da(`, `yi\"`, `>ip` all work the same way.",
+  "v.line": "`V` then `j`/`k` selects whole lines; `>` indents the selection.",
+  "v.block": "`Ctrl-v` selects a column; it is Vim's native multi-cursor.",
+  "v.blockedit": "`Ctrl-v`, select lines, `$A;<Esc>` appends a semicolon to every line.",
+  "v.reselect": "`gv` reselects the last visual selection, so you can apply a second operator.",
+  "r.named": "`\"ayy` yanks into register a; `\"ap` pastes it back even after other yanks.",
+  "r.yank0": "`\"0p` pastes what you last yanked, even after `dd` overwrote the default register.",
+  "r.blackhole": "`\"_d` deletes without clobbering your yank.",
+  "r.insert": "In insert mode, `Ctrl-r 0` pastes your last yank without leaving insert.",
+  "x.subst": "`:%s/old/new/g` renames every occurrence in the file at once.",
+  "x.lastsearch": "Search with `/foo`, then `cgn` and `.` to change matches one at a time.",
+  "x.global": "`:g/pattern/d` deletes every line that matches, in one command.",
+  "x.normal": "`:'<,'>normal A;` appends a semicolon to every selected line.",
+  "x.copymove": "`:m+1` moves the current line down one; `:t.` duplicates it.",
+  "a.dot": "Design edits to be repeatable: `A;<Esc>` then `j.` beats editing each line by hand.",
+  "a.macro": "Record with `qa`, stop with `q`, replay with `@a`, then `@@` to repeat.",
+  "n.marks": "`ma` sets a mark; `'a` jumps back to that line from anywhere in the file.",
+  "n.jumplist": "`Ctrl-o` takes you back to where you were before a jump or search.",
+  "n.lastinsert": "`gi` resumes inserting exactly where you last left insert mode.",
+  "n.unmatched": "`[{` jumps to the start of the enclosing block from anywhere inside it.",
+  "i.delete": "In insert mode, `Ctrl-w` deletes the previous word without leaving insert.",
+  "i.oneshot": "`Ctrl-o` runs one normal-mode command and drops you back into insert.",
+  "i.escape": "`Ctrl-[` leaves insert mode without reaching for the Escape key.",
+  "nv.comment": "`gcc` toggles a comment on the current line; `gcip` comments a paragraph."
+ }
+}

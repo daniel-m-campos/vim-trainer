@@ -1,0 +1,21 @@
+{
+  "id": "blank_runs",
+  "note": "runs of blank lines, trailing blanks",
+  "lines": [
+    "first = 1",
+    "",
+    "",
+    "",
+    "second = 2",
+    "",
+    "",
+    "third = 3",
+    "",
+    ""
+  ],
+  "cursor": [
+    1,
+    0
+  ],
+  "options": {}
+}

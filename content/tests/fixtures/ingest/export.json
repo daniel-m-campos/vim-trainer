@@ -1,0 +1,22 @@
+{
+ "version": 1,
+ "settings": {},
+ "placementDone": true,
+ "sessions": [],
+ "model": {
+  "log": [
+   {"t": 1, "ex": "py/o.delete/0001", "skill": "o.delete", "lang": "python", "ok": true, "ms": 900, "keys": 3, "par": 6,
+    "hint": false, "retry": false, "undo": 0, "seq": "3dd", "beatPar": true},
+   {"t": 2, "ex": "py/t.paren/0001", "skill": "t.paren", "lang": "python", "ok": true, "ms": 800, "keys": 3, "par": 3,
+    "hint": false, "retry": false, "undo": 0, "seq": "dib", "beatPar": false,
+    "flag": {"reason": "wrong-par", "note": "dib is the same length as di("}},
+   {"t": 3, "ex": "py/t.quote/0001", "skill": "t.quote", "lang": "python", "ok": true, "ms": 700, "keys": 5, "par": 15,
+    "hint": false, "retry": false, "undo": 0, "seq": "ci\"x<Esc>", "beatPar": true},
+   {"t": 4, "ex": "py/o.delete/0001", "skill": "o.delete", "lang": "python", "ok": true, "ms": 1500, "keys": 6, "par": 6,
+    "hint": false, "retry": false, "undo": 0, "seq": "dddddd", "beatPar": false,
+    "flag": {"reason": "wording", "note": "say which lines"}},
+   {"t": 5, "ex": "py/m.rel/0001", "skill": "m.rel", "lang": "python", "ok": true, "ms": 500, "keys": 2, "par": 2,
+    "hint": false, "retry": false, "undo": 0, "seq": "7j", "beatPar": false}
+  ]
+ }
+}

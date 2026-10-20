@@ -1,0 +1,100 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Neovim, uv and Node pins live in .github/actions/setup/action.yml.
+  PLAYWRIGHT_BROWSERS_PATH: "0"
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      # Full history so the PR diff below can find the merge base with the target branch.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Neovim, uv, Node, source cache, uv sync, npm ci, Playwright Chromium.
+      - uses: ./.github/actions/setup
+
+      # Does this PR touch the content pipeline or its toolchain? Pushes to main and manual
+      # runs always answer yes. A plain git diff instead of a paths-filter action: no third
+      # party code, no extra permission, and the rule is readable in one line.
+      - name: Did content change?
+        id: changes
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "content=true" >> "$GITHUB_OUTPUT"
+          elif git diff --name-only --no-renames "origin/${BASE_REF}...HEAD" | grep -qE '^(content/|\.github/|Makefile$)'; then
+            echo "content=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "content=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # build/ is generated, not committed. It is made in two stages (the two lines of
+      # `make content`): (a) the Python build verifies every par in Neovim and writes build/;
+      # (b) the browser replay checks every par in the emulator and rewrites part of build/.
+      # Stage (a) depends only on content/ and the pinned Neovim, so its output is cached.
+      # The key leaves out the content/ files stage (a) never reads: tests, difftest, review, *.md.
+      # The cache must hold the tree BEFORE stage (b): (b) depends on app/src/vimfixes*.ts
+      # and runs on every build, cached or not.
+      - name: Neovim version (cache key)
+        id: nvim
+        run: echo "version=$(nvim --version | head -1 | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Restore content build (nvim stage)
+        id: content-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: build
+          key: content-build-${{ runner.os }}-nvim-${{ steps.nvim.outputs.version }}-${{ hashFiles('content/**', '!content/.cache/**', '!content/.venv/**', '!**/__pycache__/**', '!content/tests/**', '!content/difftest/**', '!content/review/**', '!content/**/*.md', '.github/actions/setup/action.yml') }}
+
+      - name: Generate content, nvim stage (cache miss)
+        if: steps.content-cache.outputs.cache-hit != 'true'
+        run: cd content && uv run vimtrainer-content build
+
+      # Saved here, before the replay below changes build/. The key is the one computed at
+      # restore time: hashing content/ again now would also see files the build just wrote.
+      - name: Save content build (nvim stage)
+        if: steps.content-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build
+          key: ${{ steps.content-cache.outputs.cache-primary-key }}
+
+      - name: Generate content, browser replay
+        run: cd app && node e2e/emulator.mjs --write
+
+      - name: Unit tests (content, model, app + TS model mirror, typecheck)
+        run: make test
+
+      # Rebuilds both stages from scratch into a scratch directory and diffs against build/.
+      - name: Content build is deterministic
+        if: steps.changes.outputs.content == 'true'
+        run: make content-check
+
+      - name: End-to-end (Playwright, Chromium)
+        run: make e2e
+
+      - name: Upload e2e failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-failures
+          path: app/e2e-failure-*.png
+          if-no-files-found: ignore

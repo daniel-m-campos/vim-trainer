@@ -1,0 +1,12 @@
+{
+  "id": "one_line",
+  "note": "a single line",
+  "lines": [
+    "x = compute(a, b)"
+  ],
+  "cursor": [
+    1,
+    4
+  ],
+  "options": {}
+}

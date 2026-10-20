@@ -1,0 +1,20 @@
+{
+  "id": "brackets_alone",
+  "note": "brackets alone on lines",
+  "lines": [
+    "call(",
+    "    a,",
+    "    b,",
+    ")",
+    "{",
+    "    x;",
+    "}",
+    "[",
+    "]"
+  ],
+  "cursor": [
+    2,
+    4
+  ],
+  "options": {}
+}

@@ -1,0 +1,15 @@
+{
+  "id": "trailing_ws",
+  "note": "trailing spaces and a tab, a whitespace-only line",
+  "lines": [
+    "value = 1   ",
+    "name = 'a'\t",
+    "    ",
+    "end"
+  ],
+  "cursor": [
+    1,
+    0
+  ],
+  "options": {}
+}

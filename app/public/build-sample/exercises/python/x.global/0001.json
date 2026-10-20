@@ -1,0 +1,64 @@
+{
+  "id": "py/x.global/0001",
+  "skill": "x.global",
+  "lang": "python",
+  "kind": "ex",
+  "task": "Delete every line that calls `print`",
+  "start": {
+    "lines": [
+      "def total(items, rate):",
+      "    print(\"debug: start\")",
+      "    principal = 0",
+      "    for item in items:",
+      "        print(item)",
+      "        principal += item.price * item.qty",
+      "    print(\"debug: done\", principal)",
+      "    return principal * (1 + rate)"
+    ],
+    "cursor": [
+      1,
+      0
+    ]
+  },
+  "expect": {
+    "lines": [
+      "def total(items, rate):",
+      "    principal = 0",
+      "    for item in items:",
+      "        principal += item.price * item.qty",
+      "    return principal * (1 + rate)"
+    ]
+  },
+  "par": {
+    "keys": ":g/print/d<CR>",
+    "count": 11,
+    "verified": "nvim 0.12.5 2026-10-11"
+  },
+  "alternates": [
+    ":g/print(/d<CR>"
+  ],
+  "hints": [
+    {
+      "trigger": "dd",
+      "text": ":g/print/d deletes every matching line in one command."
+    },
+    ":g/pattern/d deletes every matching line"
+  ],
+  "tags": [
+    "debug",
+    "cleanup"
+  ],
+  "source": {
+    "repo": "author",
+    "path": "hand-written",
+    "commit": null,
+    "license": "own"
+  },
+  "emulator": {
+    "vscodevim": "ok",
+    "ideavim": "ok"
+  },
+  "params": {
+    "pattern": "print"
+  }
+}

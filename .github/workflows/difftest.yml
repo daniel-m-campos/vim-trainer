@@ -1,0 +1,97 @@
+name: difftest
+
+# Nightly differential test: random key sequences in headless Neovim vs the browser
+# emulator. Report-only for now (STRICT= turns off
+# --strict): the emulator still has a class-a backlog and every fresh seed finds new
+# shapes, so a red nightly would carry no signal. The summary lands in the job summary and
+# the findings in the uploaded artifact; locally `make difftest` stays strict for triage.
+# Switch back to strict once a fresh seed passes clean (round 4).
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: Seed (empty = today's date, YYYYMMDD)
+        default: ""
+      count:
+        description: Number of key sequences
+        default: "2000"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: difftest
+  cancel-in-progress: false
+
+env:
+  PLAYWRIGHT_BROWSERS_PATH: "0"
+
+jobs:
+  difftest:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+
+      # The fuzzer samples its buffers from build/, which is generated, not committed.
+      # Same two stages and the same cache as ci.yml (keep the key in step with it): the
+      # nvim stage is restored or rebuilt and saved, then the browser replay always runs.
+      - name: Neovim version (cache key)
+        id: nvim
+        run: echo "version=$(nvim --version | head -1 | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Restore content build (nvim stage)
+        id: content-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: build
+          key: content-build-${{ runner.os }}-nvim-${{ steps.nvim.outputs.version }}-${{ hashFiles('content/**', '!content/.cache/**', '!content/.venv/**', '!**/__pycache__/**', '!content/tests/**', '!content/difftest/**', '!content/review/**', '!content/**/*.md', '.github/actions/setup/action.yml') }}
+
+      - name: Generate content, nvim stage (cache miss)
+        if: steps.content-cache.outputs.cache-hit != 'true'
+        run: cd content && uv run vimtrainer-content build
+
+      - name: Save content build (nvim stage)
+        if: steps.content-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build
+          key: ${{ steps.content-cache.outputs.cache-primary-key }}
+
+      - name: Generate content, browser replay
+        run: cd app && node e2e/emulator.mjs --write
+
+      # Three fixed cases with known nvim results: fails fast if the worker protocol broke.
+      - name: Browser worker self-test
+        run: cd app && npm run difftest:selftest
+
+      # Scheduled runs have no inputs: the seed is empty (Makefile default, today) and the
+      # count is 2000. The env names are not SEED/COUNT on purpose: an empty SEED in the
+      # environment counts as set for the Makefile's `SEED ?=` and would pass no seed.
+      - name: Differential test (Neovim vs emulator)
+        env:
+          INPUT_SEED: ${{ inputs.seed }}
+          INPUT_COUNT: ${{ inputs.count || '2000' }}
+        run: |
+          if [ -n "$INPUT_SEED" ]; then
+            make difftest SEED="$INPUT_SEED" COUNT="$INPUT_COUNT" STRICT=
+          else
+            make difftest COUNT="$INPUT_COUNT" STRICT=
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          f=$(ls content/.cache/difftest/*/summary.md 2>/dev/null | head -1)
+          if [ -n "$f" ]; then head -40 "$f" >> "$GITHUB_STEP_SUMMARY"; else echo "no summary written" >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Upload findings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: difftest-${{ github.run_id }}
+          path: content/.cache/difftest/
+          if-no-files-found: warn

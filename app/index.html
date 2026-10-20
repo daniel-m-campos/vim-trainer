@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>vim-trainer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" />
+  </head>
+  <body>
+    <div class="mobile">vim-trainer needs a physical keyboard. Phones and tablets are not supported.</div>
+    <div class="app">
+      <header class="hdr" id="hdr">
+        <span class="brand">vim-trainer</span>
+        <a class="ctx" href="#settings" id="hdr-ctx">python &middot; neovim</a>
+        <span class="focus" id="hdr-focus"></span>
+        <nav class="nav"><a href="#stats" id="nav-stats"><kbd>s</kbd> stats</a><a href="#settings" id="nav-settings"><kbd>,</kbd> settings</a></nav>
+      </header>
+      <main id="main">
+        <section class="practice" id="practice" hidden>
+          <p class="task" id="task"></p>
+          <section class="editor" aria-label="editor">
+            <div class="code" id="code"></div>
+            <div class="modeline"><span class="mode" id="mode">NORMAL</span><span id="progress"></span><span class="pos" id="pos"></span></div>
+          </section>
+          <footer class="foot" id="foot" tabindex="-1"></footer>
+        </section>
+        <section class="page" id="page" hidden></section>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
