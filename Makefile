@@ -102,7 +102,7 @@ emulator:
 SEED ?= $(shell date +%Y%m%d)
 COUNT ?= 2000
 # STRICT= (empty) makes it report-only: the nightly job runs that way while the class-a
-# backlog in known.jsonl is being fixed, because every fresh seed still finds new shapes.
+# backlog is being fixed, because every fresh seed still finds new shapes.
 STRICT ?= --strict
 difftest: need-content
 	cd content && uv run vimtrainer-content difftest --seed $(SEED) --count $(COUNT) $(STRICT)
