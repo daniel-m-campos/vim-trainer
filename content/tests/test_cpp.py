@@ -407,3 +407,58 @@ def test_type_roles_pick_names_that_fit(rules):
         if n.type == "identifier" and templates._text(n) in ("coins", "head"):
             found[templates._text(n)] = templates._new_name(win, templates._text(n), n, "k")
     assert found["coins"] in cpp.ROLE_NAMES["many"] and found["head"] in cpp.ROLE_NAMES["ptr"]
+
+
+
+# snippet quality and task wording ========================================================================
+
+MEMBERS = """\
+namespace bank {
+
+class Account {
+   public:
+    void open();
+    void deposit(int amount);
+    int balance();
+   private:
+    int balance_{0};
+    bool open_{false};
+};
+
+int settle(Account& account, int amount) {
+    account.deposit(amount);
+    int fee = amount / 100;
+    log_fee(fee);
+    return account.balance() - fee;
+}
+
+}  // namespace bank
+"""
+
+
+def test_comment_out_drills_only_take_statements_in_function_bodies(monkeypatch):
+    monkeypatch.setattr(templates, "MAX_PER_WINDOW", 8)
+    lines = MEMBERS.splitlines()
+    win = snippets.Window(lines=lines, source=SOURCE, first_line=1, last_line=len(lines),
+                          tree=cpp.parse("\n".join(lines)))
+    drafts = [d for d in cpp.generate(win) if d.template == "prefix_each_line" and d.params["text"] == "// "]
+    rows = {r["start"][0] for d in drafts for r in d.target}
+    assert drafts and rows <= {14, 15, 16, 17}, rows  # settle's body, never the class members
+
+
+def test_cpp_angle_pairs_nested_by_the_tree_say_inner(monkeypatch):
+    monkeypatch.setattr(templates, "MAX_PER_WINDOW", 20)
+    text = "int f(std::map<int, std::vector<std::string>> const& m, int n) {\n    return n < 3 ? 1 : 2;\n}\n"
+    lines = text.splitlines()
+    win = snippets.Window(lines=lines, source=SOURCE, first_line=1, last_line=len(lines), tree=cpp.parse(text))
+    tasks = [d.task for d in cpp.generate(win) if d.skill == "t.angle"]
+    assert any("`std::string` inside the inner angle brackets" in t for t in tasks), tasks
+    assert not any("inner" in t and "int, std::vector" in t for t in tasks), tasks
+
+
+def test_cpp_indent_task_counts_lines_without_blanks(drafts):
+    for d in (d for d in drafts if d.template == "indent_block"):
+        (rng,) = d.target
+        n = rng["end"][0] - rng["start"][0] + 1
+        assert f"these {n} lines one level" in d.task
+        assert all(d.lines[r].strip() for r in range(rng["start"][0] - 1, rng["end"][0]))

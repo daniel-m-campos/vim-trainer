@@ -6,7 +6,12 @@ Gates 1 (licence), 2 (size) and 7 (secrets) live next to the data they check, in
 - gate 3, oracle pass, and gate 4, no shorter par: ``judge_par``, plus, for cursor
   drills, ``cursor_probes`` / ``cursor_probe_problem`` (every 1- and 2-key motion);
 - gate 5, anti-shortcut: ``naive_cost`` and ``anti_shortcut_problem``;
-- gate 6, unambiguous target: ``target_problem``;
+- gate 6, unambiguous target: ``target_problem``. Besides the highlight checks, a target
+  the task quotes must be the only one of its kind: an inner text object's quoted text
+  (``the text `x` inside the quotes``) that occurs more than once in the window needs
+  "under the cursor", one nested in a pair of the same kind needs "inner", and a quoted
+  call, keyword or expression (``the `f` call``, ```name=```, ``Change `x = 1` to``)
+  that occurs more than once needs "on this line" and must occur once on that line;
 - gate 8, per-(language, skill) minimum: ``is_thin``.
 
 Anti-shortcut model. ``naive_cost`` estimates the keystrokes of someone who only knows
@@ -97,7 +102,7 @@ def target_problem(exercise: dict[str, Any], target: Sequence[dict[str, list[int
     lines = exercise["start"]["lines"]
     if not target:
         return "no target highlight"
-    problem = _destination_problem(lines, task)
+    problem = _destination_problem(lines, task) or ambiguity_problem(exercise, target, task)
     if problem:
         return problem
     rows = set()
@@ -121,6 +126,51 @@ def target_problem(exercise: dict[str, Any], target: Sequence[dict[str, list[int
     if exercise["kind"] == oracle.Kind.EDIT and not changed <= rows:
         return f"rows {sorted(changed - rows)} change outside the highlight"
     return None
+
+
+def ambiguity_problem(exercise: dict[str, Any], target: Sequence[dict[str, list[int]]], task: str) -> str | None:
+    """Gate 6, quoted targets: why the task does not single out its target, or None.
+
+    See the module docstring. ``target[0]`` is where the target starts; for an inner text
+    object it starts on the opening delimiter.
+    """
+    lines = exercise["start"]["lines"]
+    row, col = target[0]["start"][0] - 1, target[0]["start"][1]
+    inner = _INNER.search(task)
+    if inner:
+        return _inner_problem(lines, row, col, inner, exercise.get("lang", "python"))
+    for rx, needle in _QUOTED:
+        found = rx.search(task)
+        if found:
+            return _repeat_problem(lines, row, needle(found.group(1)), task)
+    return None
+
+
+def nested_in_same_pair(lines: Sequence[str], row: int, col: int, lang: str = "python") -> bool:
+    """True when the bracket at ``(row, col)`` sits inside another pair of the same kind.
+
+    Strings and trailing comments are skipped; a character that is not ``(``, ``[`` or ``{``
+    is never nested. Templates use it to say "the inner parentheses"; gate 6
+    requires that word.
+    """
+    o = lines[row][col] if row < len(lines) and col < len(lines[row]) else ""
+    c = _BRACKETS.get(o)
+    if c is None:
+        return False
+    depth = 0
+    for r, line in enumerate(lines[:row + 1]):
+        for ch in _code_chars(line[:col] if r == row else line, lang):
+            if ch == o:
+                depth += 1
+            elif ch == c:
+                depth = max(depth - 1, 0)
+    return depth > 0
+
+
+def occurrences(lines: Sequence[str], needle: str) -> tuple[int, dict[int, int]]:
+    """(occurrences of ``needle`` in the window, row -> occurrences on that row)."""
+    rows = {r: ln.count(needle) for r, ln in enumerate(lines) if needle in ln}
+    return sum(rows.values()), rows
 
 
 def judge_par(
@@ -209,6 +259,51 @@ def _destination_problem(lines: Sequence[str], task: str) -> str | None:
     if hits != 1:
         return f"destination `{quote}` matches {hits} lines"
     return None
+
+
+_BRACKETS: Final = {"(": ")", "[": "]", "{": "}"}  # not "<": a less-than would read as an opening angle
+_CLOSER: Final = {**_BRACKETS, "<": ">"}  # for the inner-text needle only, where the task already says "angle"
+_INNER: Final = re.compile(r"\bthe text(?: `([^`]+)`)? inside the (inner )?(quotes|parentheses|square brackets|braces|"
+                           r"angle brackets)")
+# Quoted targets other than inner text objects: (task pattern, needle to count in the window).
+_QUOTED: Final = (
+    (re.compile(r"argument of the `([^`]+)` call"), lambda name: f"{name}("),
+    (re.compile(r"the value of `([^`]+=)`"), lambda name: name),
+    (re.compile(r"^Turn (?:the call )?`([^`]+)`(?: on this line)? into"), lambda whole: whole),
+    (re.compile(r"^Turn the `([^`]+)` call(?: on this line)? into"), lambda name: f"{name}("),
+    (re.compile(r"^Delete the subscript after `([^`]+)`"), lambda name: f"{name}["),
+    (re.compile(r"^Change `([^`]+)`(?: on this line)? to `"), lambda old: old),
+)
+_STRING_LITERAL: Final = re.compile(r"'(?:\\.|[^'\\])*'?|\"(?:\\.|[^\"\\])*\"?")
+
+
+def _inner_problem(lines: Sequence[str], row: int, col: int, found: re.Match, lang: str) -> str | None:
+    quoted, inner_word, delims = found.groups()
+    cursor = "under the cursor" in found.string
+    if delims != "quotes" and not inner_word and nested_in_same_pair(lines, row, col, lang):
+        return f"target {lines[row][col]!r} is nested in a pair of the same kind: say \"inner\""
+    if quoted is None or col >= len(lines[row]):
+        return None
+    o = lines[row][col]
+    total, _ = occurrences(lines, f"{o}{quoted}{_CLOSER.get(o, o)}")
+    if total > 1 and not cursor:
+        return f"`{quoted}` inside the {delims} occurs {total} times: say \"under the cursor\""
+    return None
+
+
+def _repeat_problem(lines: Sequence[str], row: int, needle: str, task: str) -> str | None:
+    total, rows = occurrences(lines, needle)
+    if total <= 1:
+        return None
+    if "on this line" in task and rows.get(row, 0) == 1:
+        return None
+    return f"`{needle}` occurs {total} times ({rows.get(row, 0)} on the target line): say \"on this line\""
+
+
+def _code_chars(line: str, lang: str) -> str:
+    """``line`` without its string literals and its trailing comment."""
+    code = _STRING_LITERAL.sub("", line)
+    return code.split("//" if lang == "cpp" else "#", 1)[0]
 
 
 def _inside(rng: dict[str, list[int]], line: int, col: int) -> bool:

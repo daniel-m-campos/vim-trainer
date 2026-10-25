@@ -110,3 +110,22 @@ def test_cpp_is_wired_into_the_build():
     assert (spec.windows, spec.frequency, spec.generate) == (cpp.windows, cpp.node_frequency, cpp.generate)
     assert spec.skills == cpp.TARGET_SKILLS
     assert "t.angle" not in build.LANGS["python"].skills
+
+
+def test_quality_gate_counts_rejected_windows_and_their_drafts_per_skill():
+    from test_snippets import CPP_CODE, CPP_HEADER
+
+    from vimtrainer_content.lang import cpp
+
+    source = {"repo": "fixture/q", "path": "q.h", "commit": None, "license": "MIT"}
+    spec = build.LANGS["cpp"]
+    wins = [w for text in (CPP_HEADER, CPP_CODE) for w in cpp.windows(text, source)]
+    report = build.Report()
+    kept = build._quality_windows(wins, spec, spec.skills, report)
+    assert [w.lines[0] for w in kept] == ["namespace darts {"]
+    assert report.rejections[("snippet-window", "-", "declaration-only")] == 1
+    lost = {k: n for k, n in report.rejections.items() if k[0] == "snippet"}
+    expected = {}
+    for d in cpp.generate(wins[0]):
+        expected[("snippet", d.skill, d.template)] = expected.get(("snippet", d.skill, d.template), 0) + 1
+    assert lost == expected and lost

@@ -187,9 +187,9 @@ Python x.normal exercises.
   every `x` to `y` (3 occurrences)". The text does not name `:s`, which fits a drill that
   also accepts `/\<x\><CR>cgny<Esc>..`. (Superseded in round 4: see below.)
 
-## Round 4: targets and wording from the mock-user QA
+## Targets and wording from the QA pass
 
-The QA ids refer to the mock-user QA notes, which are not in this repository. Before and after are two scratch
+The QA ids refer to QA notes that are not in this repository. Before and after are two scratch
 builds of all skills, `content/.cache/scratch-4-base` (main) and `content/.cache/scratch-4`
 (this change), each 1644 exercises. Every (lang, skill) count is the same in both: 40 for
 all skills except py t.brace 25, py v.blockedit 29, py x.normal 23, py a.macro 20 and cpp
@@ -284,3 +284,49 @@ most common new names are now `result`, `value`, `items`, `values` and `process`
 Tests: `content/tests/test_templates_wording.py` (Python, one test per rule) and the
 round-4 block at the end of `content/tests/test_cpp.py`. Drafts whose buffer a rule changes
 are replayed in Neovim.
+
+## Snippet quality and task wording
+
+Before is `build/` from main (1639 exercises). After is `make content` with this change
+(1637). Every par passes in the browser in both.
+
+### Snippet quality gate (QA #12)
+
+`snippets.quality_problem` runs on every window of both languages. It rejects scaffold
+(`TODO`, `Waiting to be implemented`, `NotImplementedError`, Exercism instruction
+comments) and windows with fewer than 20 code tokens. For C++ it also rejects windows
+with fewer than 3 statements and fewer than 40 code tokens. That catches headers that hold
+only prototypes. Windows also no longer start inside a comment block that began above
+them, and no longer end on comment-only lines.
+
+Windows dropped: C++ 76 of 253 (73 declaration-only, 3 scaffold), Python 3 of 237 (thin).
+The drafts those windows would have made are counted in `stats/gates.json` under
+`snippet`. There are 824 of them, most from C++ m.find, t.word, x.copymove and m.match.
+Only cpp o.case changed count, from 40 to 38. No skill fell below the minimum of 20. py
+x.normal was at 18 before this change and is still at 18.
+
+### Wording
+
+- QA #6: an inner text object whose quoted text occurs more than once in the window now
+  says "under the cursor". A pair nested in a pair of the same kind says "the inner
+  parentheses". A quoted call, keyword or expression that repeats says "on this line".
+  When the cursor line holds it twice, no draft is made. Gate 6 (`gates.ambiguity_problem`)
+  enforces all three rules. Before the template change, the gate flagged 1093 of 13282
+  drafts. After it flags 0, and 8 drafts are no longer made. In the build, 161 tasks say
+  "under the cursor", 36 say "inner" and 42 say "on this line".
+- QA #26: o.indent says "Indent these N lines one level (shift right)" or "Outdent these
+  N lines one level (shift left)". Blocks with a blank line are no longer drafted, so N is
+  the number of highlighted lines and matches `N>>`.
+- QA #22: x.lastsearch reads "Search for the whole word `x`, then change each of its N
+  matches to `y`". a.dot reads "Change one `x` to `y`, then repeat that change on the other
+  N-1 occurrences". Both are kind "edit", which does not rule out an Ex command, so both
+  end with "(a `:s` also passes)".
+- QA #51: the prefix tasks describe the start buffer as it is: "Add `self.` at the start of
+  each of these 3 assignments" and "Add `const` at the start of ...". The earlier text was
+  "Put ... back".
+- QA #53: C++ x.normal comment-out drills only take statement runs inside a function or
+  lambda body. Class members, prototypes and namespace-level declarations no longer get
+  them. 34 of the 40 cpp x.normal exercises are still comment-out drills.
+
+Tests: the round-6 blocks at the end of `test_snippets.py`, `test_gates.py`,
+`test_templates_tiers.py`, `test_cpp.py` and `test_build.py`.
