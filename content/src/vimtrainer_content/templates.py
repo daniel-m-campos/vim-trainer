@@ -341,12 +341,13 @@ def change_kwarg_value(win: Window, node: tree_sitter.Node, skill: str, lang: La
         return
     motions = [f"ct{d}"] if d in (",", ")") else []
     motions += ["cw", "ce", "cE", "cW"] + (["C"] if v1 == len(line) else [])
-    variants = [f"{m}{text}<Esc>" for m in motions]
+    tails = _kwarg_tails(old, text, motions)
+    variants = list(tails)
     where = on_this_line(win.lines, row, f"{_text(name)}=")
     if where is None:
         return
     if skill == "m.find":
-        yield from _kwarg_find(win, name, value, old, text, motions, skill, where)
+        yield from _kwarg_find(win, name, value, old, text, motions, tails, skill, where)
         return
     yield Draft(
         template="change_kwarg_value", skill=skill, kind="edit",
@@ -364,8 +365,18 @@ def change_kwarg_value(win: Window, node: tree_sitter.Node, skill: str, lang: La
     )
 
 
+def _kwarg_tails(old: str, text: str, motions: list[str]) -> list[str]:
+    """Key tails that change a keyword value once the cursor is on it: one per change motion,
+    plus ``ci'`` / ``ci"`` with the unquoted text when the old and new values share quotes."""
+    tails = [f"{m}{text}<Esc>" for m in motions]
+    q = old[0]
+    if q in "'\"" and len(old) > 1 and old[-1] == q and len(text) > 1 and text[0] == q and text[-1] == q:
+        tails.append(f"ci{q}{text[1:-1]}<Esc>")
+    return tails
+
+
 def _kwarg_find(
-    win: Window, name, value, old: str, text: str, motions: list[str], skill: str, where: str,
+    win: Window, name, value, old: str, text: str, motions: list[str], tails: list[str], skill: str, where: str,
 ) -> Iterator[Draft]:
     """m.find form of change_kwarg_value: cursor on the line's first non-blank, ``{k}f=l`` first."""
     row, v0, v1 = value.start_point.row, value.start_point.column, value.end_point.column
@@ -383,7 +394,7 @@ def _kwarg_find(
         # Finding the value's first character (`fT` for `True`) is the same skill as finding
         # its `=`, and often a key shorter, so it competes as a canonical variant; the oracle
         # drops it where that character occurs earlier on the line.
-        variants=[f"{fk}l{m}{text}<Esc>" for m in motions] + [f"f{old[0]}{m}{text}<Esc>" for m in motions],
+        variants=[f"{fk}l{t}" for t in tails] + [f"f{old[0]}{t}" for t in tails],
         alternates=[f"f={';' * (k - 1)}l{motions[0]}{text}<Esc>"] if k > 1 else [],
         idioms=[f"{j}{m}{text}<Esc>" for j in ("W", "2W", "3W", "4W", "5W", "w", "2w", "3w", "4w", "5w", "6w",
                                                f"2f{old[0]}", f"F{old[0]}", f"{fk}") for m in motions[:1]],
