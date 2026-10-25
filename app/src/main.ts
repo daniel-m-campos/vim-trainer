@@ -101,7 +101,8 @@ let onboarding = false; // first visit: every route shows the setup questions un
 let fromOnboarding = false; // the placement intro follows the setup questions in this page load
 let langChanged = false; // the language changed in settings: Esc goes to practice, not back to old stats
 let cur: Current | null = null;
-let session = { startMs: Date.now(), sinceT: nowSec(), count: 0, warmupsLeft: WARMUPS, seen: new Set<string>(), recorded: false };
+// solved / skipped / beat count first attempts (not retries), like count; the summary shows them (QA #35).
+let session = { startMs: Date.now(), sinceT: nowSec(), count: 0, solved: 0, skipped: 0, beat: 0, warmupsLeft: WARMUPS, seen: new Set<string>(), recorded: false };
 /** The placement in progress; persist() mirrors it into saved.placement so a reload resumes it. */
 let placement: PlacementProgress | null = null;
 let forced: string | null = null;
@@ -116,7 +117,8 @@ let statsView: StatsViewHandle | null = null;
 let onboard = { step: 0, sel: 0 };
 let settingsMsg = "";
 let resetArmed = false;
-let summaryData: { minutes: number; exercises: number; improved: { skill: string; delta: number }[]; mastered: string[]; unlocked: string[]; tip: string | null } | null = null;
+let pendingImport: Saved | null = null; // a checked import file waiting for y / n in settings (QA #19)
+let summaryData: { minutes: number; exercises: number; solved: number; skipped: number; beat: number; improved: { skill: string; delta: number }[]; mastered: string[]; unlocked: string[]; tip: string | null } | null = null;
 let loadSeq = 0;
 let advancing = false; // space/enter on the strip: ignore the strip until the next exercise renders
 let escCueTimer: ReturnType<typeof setTimeout> | null = null;
@@ -289,6 +291,7 @@ function show(v: View): void {
     statsView.destroy();
     statsView = null;
   }
+  if (v !== view) window.scrollTo(0, 0); // a new screen starts at its top, not the last one's scroll (QA #43)
   view = v;
   // The attempt clock does not run while stats or settings cover the exercise.
   if (cur?.phase === "solving") cur.editor.recorder.setAway(v !== "practice");
@@ -308,6 +311,18 @@ function renderHeader(): void {
   // A warm-up is not the focus skill: say so, so the header never names a skill the exercise is not (QA #4).
   const label = cur?.role === "warmup" ? "warm-up" : "focus";
   $("#hdr-focus").innerHTML = info ? `${label}: ${code(info.keys)} &nbsp;${esc(info.name)}` : "";
+  renderNav();
+}
+
+/** The header's stats / settings links: hidden on their own page, and the key shown only where onKey handles it (QA #24); called by renderHeader. */
+function renderNav(): void {
+  const sKey = view === "practice" || view === "summary";
+  const commaKey = sKey || view === "stats" || view === "message";
+  const stats = $("#nav-stats"), settings = $("#nav-settings");
+  stats.hidden = view === "stats" || view === "onboarding";
+  settings.hidden = view === "settings";
+  stats.innerHTML = `${sKey ? "<kbd>s</kbd> " : ""}stats`;
+  settings.innerHTML = `${commaKey ? "<kbd>,</kbd> " : ""}settings`;
 }
 
 const MODE_LABEL: Record<Mode, string> = {
@@ -410,7 +425,8 @@ function renderResult(): void {
   if (!cur || !cur.result) return;
   const r = cur.result;
   const ex = cur.ex;
-  const status = r.ok ? `<span class="ok">&#10003; correct</span>` : `<span class="fail">&#10007; gave up</span>`;
+  // r.note is set only when the "only a : command" rule rejected a matching buffer (QA #40).
+  const status = r.ok ? `<span class="ok">&#10003; correct</span>` : `<span class="fail">&#10007; gave up${r.note ? ": needs an Ex (:) command" : ""}</span>`;
   const you = r.tokens.length
     ? `<span class="you">you ${code(displayKeys(r.tokens))} <span class="dim">${r.keys} keys &middot; ${fmtSeconds(r.ms)}${r.ok ? ` &middot; ${BAND_LABEL[r.band]}` : ""}</span></span>`
     : `<span class="you dim">no keys</span>`;
@@ -468,7 +484,7 @@ function flagPickerHtml(): string {
     `<span class="flag-opt${cur?.flagReason === r ? " sel" : ""}" data-r="${r}"><kbd>${i + 1}</kbd> ${esc(label)}</span>`).join("");
   return `<div class="keys flagpick" id="flagpick"><span>flag:</span>${opts}
     <input type="text" id="flag-note" maxlength="300" placeholder="optional note" autocomplete="off">
-    <span><kbd>enter</kbd> open issue</span><span><kbd>Esc</kbd> cancel</span></div>`;
+    <span><kbd>tab</kbd> note</span><span><kbd>enter</kbd> open issue</span><span><kbd>Esc</kbd> cancel</span></div>`;
 }
 
 /** Click and enter handlers for the picker's DOM; called by renderResult after it renders the picker. */
@@ -489,12 +505,15 @@ function openFlagPicker(): void {
   renderResult();
 }
 
-/** 1-4 (or a click) in the picker: mark the reason and move focus to the note; called by onKey and the click handlers. */
+/**
+ * 1-4 (or a click) in the picker: mark the reason; called by onKey and the click handlers.
+ * Focus stays on the strip, so a second digit changes the reason instead of typing into
+ * the note (QA #48); tab, or a click on the note, moves into it.
+ */
 function pickFlagReason(reason: FlagReason): void {
   if (!cur?.flagging) return;
   cur.flagReason = reason;
   document.querySelectorAll<HTMLElement>("#flagpick .flag-opt").forEach((el) => el.classList.toggle("sel", el.dataset.r === reason));
-  $("#flag-note").focus();
 }
 
 /** Esc in the picker: back to the plain strip; called by onKey and confirmFlag. */
@@ -628,7 +647,12 @@ function finish(me: Current, ok: boolean, snap: Snapshot): void {
     }
   } // warm-ups are not counted
   if (me.role !== "placement") {
-    if (!me.retry) session.count++; // a retry is another attempt at the same exercise
+    if (!me.retry) {
+      session.count++; // a retry is another attempt at the same exercise
+      if (ok) session.solved++;
+      else session.skipped++;
+      if (record.beatPar) session.beat++;
+    }
     recordSession();
   }
   persist();
@@ -698,7 +722,7 @@ async function nextExercise(): Promise<void> {
 }
 
 function startSession(): void {
-  session = { startMs: Date.now(), sinceT: nowSec(), count: 0, warmupsLeft: WARMUPS, seen: new Set(), recorded: false };
+  session = { startMs: Date.now(), sinceT: nowSec(), count: 0, solved: 0, skipped: 0, beat: 0, warmupsLeft: WARMUPS, seen: new Set(), recorded: false };
   summaryData = null;
   void nextExercise();
 }
@@ -775,6 +799,9 @@ function endSession(): void {
   summaryData = {
     minutes: Math.max(0, Math.round((Date.now() - session.startMs) / 60000)),
     exercises: session.count,
+    solved: session.solved,
+    skipped: session.skipped,
+    beat: session.beat,
     improved: sum.improved,
     mastered: sum.mastered,
     unlocked: sum.unlocked,
@@ -808,6 +835,7 @@ function renderSummary(): void {
   $("#page").innerHTML = `
     <h1>Session done</h1>
     <p class="lead">${d.minutes} min &middot; ${d.exercises} exercises</p>
+    <p id="summary-counts">${d.solved} solved, ${d.skipped} skipped${d.beat ? ` &middot; ${d.beat} beat par` : ""}</p>
     <h2>Skills improved</h2>${improved}
     ${unlock.length ? `<p>${unlock.join(" &middot; ")}</p>` : ""}
     ${d.tip ? `<h2>Try in your editor today</h2><p>${esc(d.tip)}</p>` : ""}
@@ -926,7 +954,7 @@ function renderSettings(): void {
           It reaches us only if you attach that file to an issue at
           <a href="${ISSUES_URL}" target="_blank" rel="noopener" id="issues-link">github.com/${esc(REPO)}/issues</a>.</p>
       </fieldset>
-      <div class="msg" id="settings-msg">${esc(settingsMsg)}</div>
+      <div class="msg" id="settings-msg">${pendingImport ? importAskHtml(pendingImport) : esc(settingsMsg)}</div>
     </form>
     <div class="keysline"><span><kbd>tab</kbd> move between controls</span><span><kbd>Esc</kbd> back</span></div>
     <p class="note version" id="app-version">vim-trainer ${esc(VERSION)}</p>`;
@@ -934,35 +962,38 @@ function renderSettings(): void {
   const form = $("#settings-form") as HTMLFormElement;
   form.addEventListener("change", (e) => {
     const t = e.target as HTMLInputElement;
+    if (t.type === "file") return; // the import file has its own handler below
     if (t.name === "lang") s.lang = t.value;
     if (t.name === "profile") s.profile = t.value as EditorProfile;
     settingsMsg = "saved; applies from the next exercise.";
+    pendingImport = null; // the question line is replaced below: the file is dropped
     if (t.name === "lang") onLangChange(); // may replace settingsMsg (a language with no placement yet)
     else if (t.name === "profile") refreshGraph();
     if (t.name === "rel") s.relativeNumbers = t.value === "yes";
     if (t.name === "escape") s.escape = t.value as EscapePref;
     persist();
     $("#settings-msg").textContent = settingsMsg;
+    $("#settings-msg").classList.remove("fade");
     renderHeader();
   });
-  $("#btn-export").addEventListener("click", () => exportJson(saved));
+  $("#btn-export").addEventListener("click", () => {
+    pendingImport = null; // the message below replaces the y / n question: drop the file so y cannot answer it blind
+    flashSettingsMsg(`saved ${exportJson(saved)}`);
+  });
   $("#btn-import").addEventListener("click", () => ($("#file-import") as HTMLInputElement).click());
   $("#file-import").addEventListener("change", async (e) => {
     const f = (e.target as HTMLInputElement).files?.[0];
     if (!f) return;
     try {
-      saved = parseImport(await f.text(), LANGS.map(([k]) => k));
-      saved.settings = { ...DEFAULTS, ...saved.settings };
-      placement = saved.placement?.lang === saved.settings.lang && !placed() ? knownQueue(saved.placement) : null;
-      onboarding = false; // an imported save answers the setup questions
-      refreshGraph();
-      persist();
-      settingsMsg = `imported ${saved.model.log.length} attempts.`;
+      pendingImport = parseImport(await f.text(), LANGS.map(([k]) => k)); // checked now, saved only on y
     } catch (err) {
       settingsMsg = `import failed: ${(err as Error).message}`;
     }
     renderSettings();
+    if (pendingImport) (document.activeElement as HTMLElement | null)?.blur(); // y / n reach onKey, not a button
   });
+  document.getElementById("import-yes")?.addEventListener("click", () => answerImport(true));
+  document.getElementById("import-no")?.addEventListener("click", () => answerImport(false));
   $("#btn-reset").addEventListener("click", () => {
     if (!resetArmed) {
       resetArmed = true;
@@ -972,6 +1003,37 @@ function renderSettings(): void {
     history.replaceState(null, "", "#practice"); // reload into the first-visit questions, not settings
     location.reload();
   });
+}
+
+/** The y / n question an import file waits on; rendered by renderSettings while pendingImport is set. */
+function importAskHtml(next: Saved): string {
+  return `replace your ${saved.model.log.length} attempts with the file's ${next.model.log.length}?
+    <button type="button" id="import-yes"><kbd>y</kbd> replace</button> <button type="button" id="import-no"><kbd>n</kbd> keep mine</button>`;
+}
+
+/** y / n (or the buttons) on the import question: save the checked file over everything, or drop it; called by onKey and the buttons. */
+function answerImport(yes: boolean): void {
+  if (!pendingImport) return;
+  if (yes) {
+    saved = pendingImport;
+    saved.settings = { ...DEFAULTS, ...saved.settings };
+    placement = saved.placement?.lang === saved.settings.lang && !placed() ? knownQueue(saved.placement) : null;
+    onboarding = false; // an imported save answers the setup questions
+    refreshGraph();
+    persist();
+    settingsMsg = `imported ${saved.model.log.length} attempts.`;
+  } else settingsMsg = "import cancelled; nothing changed.";
+  pendingImport = null;
+  renderSettings();
+  renderHeader();
+}
+
+/** A settings message that fades after a few seconds (the export confirmation, QA #42); called by the export button. */
+function flashSettingsMsg(text: string): void {
+  const el = $("#settings-msg");
+  el.textContent = text;
+  el.classList.remove("fade");
+  setTimeout(() => el.textContent === text && el.classList.add("fade"), 2500);
 }
 
 /** Points the "Sources & attribution" link at GitHub when this host does not serve ATTRIBUTION.md; called by renderSettings. */
@@ -1012,6 +1074,7 @@ function openSettings(): void {
   show("settings");
   settingsMsg = "";
   resetArmed = false;
+  pendingImport = null;
   renderSettings();
 }
 
@@ -1184,9 +1247,10 @@ function onKey(e: KeyboardEvent): void {
         // from the first advance until the next exercise has rendered.
         if (advancing || e.repeat) return handled();
         if (cur.flagging) {
-          // The picker owns the strip: digits pick, enter sends, Esc cancels, the rest is ignored.
+          // The picker owns the strip: digits pick, tab goes to the note, enter sends, Esc cancels, the rest is ignored.
           const opt = FLAG_REASONS[Number(k) - 1];
           if (/^[1-4]$/.test(k) && opt) pickFlagReason(opt[0]);
+          else if (k === "Tab") $("#flag-note").focus();
           else if (k === "Enter") confirmFlag();
           else if (k === "Escape") closeFlagPicker();
           return handled();
@@ -1214,7 +1278,8 @@ function onKey(e: KeyboardEvent): void {
       return;
     }
     case "settings":
-      if (k === "Escape") handled(), goBack();
+      if (pendingImport && (k === "y" || k === "n")) handled(), answerImport(k === "y");
+      else if (k === "Escape") handled(), goBack();
       return;
     case "summary":
       if (k === "Enter") handled(), startSession();

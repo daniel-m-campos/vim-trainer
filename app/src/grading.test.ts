@@ -55,6 +55,12 @@ test("insert-mode <Space> displays as a space but still counts once", () => {
   assert.equal(t.length, 5);
 });
 
+test("a command-line <Space> displays as a space, like the par (QA #39); the replay form keeps <Space>", () => {
+  const t = tokenize([ev(":"), ...["s", "/", "a", "<Space>", "b"].map((k) => ev(k, "normal", true))], "esc", "normal");
+  assert.equal(displayKeys(t), ":s/a b");
+  assert.equal(replayKeys(t), ":s/a<Space>b");
+});
+
 test("jk escape counts as one key when it leaves insert mode", () => {
   const events = [ev("i"), ev("x", "insert"), ev("j", "insert"), ev("k", "insert"), ev("w", "normal")];
   assert.equal(tokenize(events, "jk", "normal").length, 4);

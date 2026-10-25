@@ -202,6 +202,9 @@ for (const [engine, type] of Object.entries(engines)) {
     await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("Session done"), null, { timeout: 5000 });
     const summary = await text(page, "#page");
     check(engine, `summary counts ${SESSION} exercises`, summary.includes(`${SESSION} exercises`), summary);
+    const split = (await text(page, "#summary-counts").catch(() => "")).match(/^(\d+) solved, (\d+) skipped/);
+    check(engine, `QA #35: the summary splits the ${SESSION} into solved and skipped (at least the one give-up)`,
+      !!split && Number(split[1]) + Number(split[2]) === SESSION && Number(split[2]) >= 1, await text(page, "#summary-counts").catch(() => ""));
 
     await page.reload();
     await page.waitForSelector("#practice:not([hidden])", { timeout: 8000 });
@@ -220,7 +223,25 @@ for (const [engine, type] of Object.entries(engines)) {
     await page.waitForSelector(".choice", { timeout: 8000 });
     check(engine, "reset returns to the first visit", (await text(page, "#page")).includes("Which language"));
     await page.locator("#nav-settings").click();
+    // QA #19: the import asks first; n keeps the fresh state, y replaces it.
     await page.locator("#file-import").setInputFiles(file);
+    await page.waitForFunction(() => document.querySelector("#settings-msg")?.textContent?.includes("replace your 0 attempts"), null, { timeout: 5000 });
+    const asked = await page.evaluate(() => ({ msg: document.querySelector("#settings-msg").textContent.replace(/\s+/g, " ").trim(), log: window.vimTrainer.saved().model.log.length }));
+    check(engine, `QA #19: import asks 'replace your 0 attempts with the file's ${log.length}?' and saves nothing yet`,
+      asked.msg.startsWith(`replace your 0 attempts with the file's ${log.length}?`) && asked.log === 0, JSON.stringify(asked));
+    await page.keyboard.press("n");
+    await page.waitForFunction(() => document.querySelector("#settings-msg")?.textContent?.includes("cancelled"), null, { timeout: 5000 });
+    check(engine, "QA #19: n cancels the import and keeps the empty log", (await page.evaluate(() => window.vimTrainer.saved().model.log.length)) === 0);
+    await page.locator("#file-import").setInputFiles(file);
+    await page.waitForFunction(() => document.querySelector("#settings-msg")?.textContent?.includes("replace your"), null, { timeout: 5000 });
+    await Promise.all([page.waitForEvent("download"), page.locator("#btn-export").click()]);
+    await page.keyboard.press("y");
+    await page.waitForTimeout(300);
+    check(engine, "QA #19: export drops a pending import, so a later y leaves the log unchanged",
+      (await page.evaluate(() => window.vimTrainer.saved().model.log.length)) === 0);
+    await page.locator("#file-import").setInputFiles(file);
+    await page.waitForFunction(() => document.querySelector("#settings-msg")?.textContent?.includes("replace your"), null, { timeout: 5000 });
+    await page.keyboard.press("y");
     await page.waitForFunction(() => document.querySelector("#settings-msg")?.textContent?.includes("imported"), null, { timeout: 5000 });
     const imported = await page.evaluate(() => window.vimTrainer.saved());
     check(engine, "import restores the exported state", JSON.stringify(imported.model) === JSON.stringify(exported.model) && imported.sessions.length === 1);

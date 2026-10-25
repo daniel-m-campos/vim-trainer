@@ -205,6 +205,12 @@ function keepVimCursor(view: () => EditorView | undefined): Extension {
   });
 }
 
+/** Start the exercise with no pending count, operator or key buffer, whatever was pressed before it mounted (QA #38); called by mountEditor. */
+function clearPendingInput(view: EditorView): void {
+  const vim = (getCM(view) as unknown as { state: { vim?: { inputState: object } | null } } | null)?.state.vim;
+  if (vim) vim.inputState = new (vim.inputState.constructor as new () => object)();
+}
+
 export function mountEditor(parent: HTMLElement, ex: Exercise, opts: { relativeNumbers: boolean; escape: EscapePref }): EditorHandle {
   resetVimGlobals(opts.escape);
   const doc = ex.start.lines.join("\n");
@@ -248,6 +254,7 @@ export function mountEditor(parent: HTMLElement, ex: Exercise, opts: { relativeN
   view.dispatch({ effects: EditorView.scrollIntoView(anchor, { y: "center" }) });
   const recorder = attachRecorder(view, parent);
   blockInsertCorner(getCM(view) as unknown as BlockCM); // also ensures the vim adapter exists before the first key
+  clearPendingInput(view);
   view.focus();
 
   return {

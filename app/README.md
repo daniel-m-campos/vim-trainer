@@ -61,14 +61,15 @@ result strip flags the attempt and opens a prefilled GitHub issue. The functions
 
 1. `onKey(e)` in `src/main.ts`. The single `keydown` listener for the whole page. In the
    `"practice"` view with `cur.phase === "result"`, the key `!` calls `openFlagPicker()`. While
-   the picker is open, the same branch sends `1`-`4` to `pickFlagReason`, `Enter` to
-   `confirmFlag` and `Esc` to `closeFlagPicker`, and swallows every other key.
+   the picker is open, the same branch sends `1`-`4` to `pickFlagReason`, `Tab` to the note
+   field, `Enter` to `confirmFlag` and `Esc` to `closeFlagPicker`, and swallows every other key.
 2. `openFlagPicker()` sets `cur.flagging = true` and calls `renderResult()`. `renderResult`
    puts `flagPickerHtml()` where the key legend was, then `wireFlagPicker()` adds the click
    handlers and the note field's `Enter` handler. `onKey` ignores keys aimed at an `<input>`,
    so the note field needs its own handler.
-3. `pickFlagReason(reason)` stores the reason in `cur.flagReason`, marks it in the DOM and
-   moves focus to the note field.
+3. `pickFlagReason(reason)` stores the reason in `cur.flagReason` and marks it in the DOM.
+   Focus stays on the strip, so another digit changes the reason; `Tab`, or a click on the note
+   field, moves into it.
 4. `confirmFlag()` builds `{reason, note}` and finds the logged copy of the attempt by
    exercise id and time `t`. A practice attempt is in `saved.model.log`. A first placement
    attempt waits in `placement.records` until placement ends. Warm-ups and placement
@@ -81,6 +82,20 @@ result strip flags the attempt and opens a prefilled GitHub issue. The functions
    are URL-encoded and the encoded body is capped at 6000 characters. `confirmFlag` passes
    it to `window.open`, then `closeFlagPicker()` redraws the strip as flagged, with a link
    to the form (and "popup blocked" when `window.open` returned null).
+
+## Reading note: small functions added for the QA fixes
+
+- `renderNav()` in `src/main.ts` hides the header link for the page you are on and shows
+  the `s` / `,` key only on screens where `onKey` handles it.
+- `importAskHtml(next)` / `answerImport(yes)` in `src/main.ts`: an import file is checked by
+  `parseImport`, held in `pendingImport`, and saved only after `y` (or the button); `n`
+  drops it.
+- `flashSettingsMsg(text)` in `src/main.ts` shows a settings message that fades out, used
+  for the export confirmation; `exportJson()` in `src/storage.ts` returns the file name.
+- `clearPendingInput(view)` in `src/editor.ts` gives each exercise an empty codemirror-vim
+  input state, so no count or operator carries over.
+- `neutralFoundMessage(cm)` in `src/vimfixes.ts` recolours codemirror-vim's red
+  "Found N matches" message after `:s` to the muted colour.
 
 ## Reading note: placement per language
 
