@@ -5,6 +5,9 @@
 #
 # keys    the player's sequence, generalised: counts -> {{k}} (expands to 1-9),
 #         typed insert text -> {{text}} (needs a "text" param on the exercise)
+#         the character after f/t/F/T -> {{old0}} (first character of the text the
+#         exercise's target covers), {{char}} (its "char" param) or {{text0}} (first
+#         character of its "text" param), checked in that order; else kept as typed
 # seq     the player's sequence as typed; from: the exercise it beat
 # status  "new" until a human looks at it (`vimtrainer-content review --idioms`);
 #         set "ok" to keep it, "rejected" to stop par_search from using it

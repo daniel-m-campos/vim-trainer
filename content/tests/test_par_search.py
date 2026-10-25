@@ -2,7 +2,20 @@
 
 import copy
 
-from vimtrainer_content import par_search
+from vimtrainer_content import ingest, par_search
+
+
+def _kwarg_exercise():
+    """A minimal m.find change_kwarg_value exercise: `reverse=True` -> `reverse=False`."""
+    line = "    groups.sort(reverse=True)"
+    return {
+        "id": "py/m.find/test", "skill": "m.find", "kind": "edit",
+        "start": {"lines": [line], "cursor": [1, 0]},
+        "expect": {"lines": [line.replace("True", "False")]},
+        "target": [{"start": [1, 24], "end": [1, 27]}],
+        "params": {"text": "False", "char": "=", "n": 1},
+        "par": {"keys": "f=lcwFalse<Esc>", "count": 11},
+    }
 
 
 # candidates =======================================================================================
@@ -31,6 +44,53 @@ def test_candidates_derive_relative_line_count(examples):
     keys = par_search.candidates(examples["py/m.rel/0001"])
     assert {"7j", "10G", ":10<CR>"} <= set(keys)
     assert not any(k.endswith("k") and k[0].isdigit() for k in keys)
+
+
+def test_target_text_reads_first_range_inclusive():
+    assert par_search.target_text(_kwarg_exercise()) == "True"
+    assert par_search.target_text({"start": {"lines": ["x"]}}) == ""
+
+
+def test_context_exposes_first_characters():
+    ctx = par_search._context(_kwarg_exercise())
+    assert (ctx["old0"], ctx["text0"], ctx["char"]) == ("T", "F", "=")
+
+
+def test_expand_skips_missing_first_character():
+    ex = _kwarg_exercise()
+    del ex["target"], ex["params"]["text"]
+    assert par_search._expand("f{{old0}}cw{{text}}<Esc>", par_search._context(ex)) == []
+    assert par_search._expand("f{{text0}}", par_search._context(ex)) == []
+
+
+def test_candidates_expand_old0_idiom(monkeypatch):
+    idioms = {**par_search.IDIOMS, "m.find": (*par_search.IDIOMS["m.find"], "f{{old0}}cw{{text}}<Esc>")}
+    monkeypatch.setattr(par_search, "IDIOMS", idioms)
+    assert "fTcwFalse<Esc>" in par_search.candidates(_kwarg_exercise())
+
+
+def test_learned_find_idiom_dedupes_against_builtins():
+    ex = _kwarg_exercise()
+    idiom = ingest.generalise("F=", ex["params"], par_search.target_text(ex))
+    assert idiom == "F{{char}}"
+    merged = par_search.merge_idioms(par_search._BUILTIN_IDIOMS, {"m.find": (idiom, "f{{old0}}cw{{text}}<Esc>")})
+    assert merged["m.find"].count("F{{char}}") == 1
+    assert merged["m.find"][-1] == "f{{old0}}cw{{text}}<Esc>"
+
+
+def test_learned_toml_round_trip(tmp_path, monkeypatch):
+    toml = tmp_path / "idioms_learned.toml"
+    toml.write_text('[[idiom]]\nskill = "m.find"\nkeys = "f{{old0}}cw{{text}}<Esc>"\n'
+                    'seq = "fTcwFalse<Esc>"\nfrom = "py/m.find/d14d324bb9"\nstatus = "new"\n')
+    learned = par_search.load_learned(toml)
+    assert learned == {"m.find": ("f{{old0}}cw{{text}}<Esc>",)}
+    monkeypatch.setattr(par_search, "LEARNED", learned)
+    ex = _kwarg_exercise()
+    assert par_search.learned_keys(ex) == ["fTcwFalse<Esc>"]
+    ex["start"]["lines"] = ["    datetime.time(hour=17)"]
+    ex["target"] = [{"start": [1, 23], "end": [1, 24]}]
+    ex["params"]["text"] = "100"
+    assert par_search.learned_keys(ex) == ["f1cw100<Esc>"]
 
 
 # best_par =========================================================================================
