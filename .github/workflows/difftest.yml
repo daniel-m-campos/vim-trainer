@@ -1,11 +1,11 @@
 name: difftest
 
 # Nightly differential test: random key sequences in headless Neovim vs the browser
-# emulator. Report-only for now (STRICT= turns off
-# --strict): the emulator still has a class-a backlog and every fresh seed finds new
-# shapes, so a red nightly would carry no signal. The summary lands in the job summary and
-# the findings in the uploaded artifact; locally `make difftest` stays strict for triage.
-# Switch back to strict once a fresh seed passes clean (round 4).
+# emulator. Report-only (STRICT= turns off --strict): a fresh seed still finds new
+# divergence shapes (seed 20261026: 16 minimised class-a shapes and 272 unminimised
+# findings), so a red nightly would carry no signal yet. The summary lands in the job
+# summary and the findings in the uploaded artifact; locally `make difftest` stays strict
+# for triage. Switch to strict once a fresh seed passes clean.
 on:
   schedule:
     - cron: "0 3 * * *"
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
 
       # The fuzzer samples its buffers from build/, which is generated, not committed.
@@ -45,7 +45,7 @@ jobs:
 
       - name: Restore content build (nvim stage)
         id: content-cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: build
           key: content-build-${{ runner.os }}-nvim-${{ steps.nvim.outputs.version }}-${{ hashFiles('content/**', '!content/.cache/**', '!content/.venv/**', '!**/__pycache__/**', '!content/tests/**', '!content/difftest/**', '!content/review/**', '!content/**/*.md', '.github/actions/setup/action.yml') }}
@@ -56,7 +56,7 @@ jobs:
 
       - name: Save content build (nvim stage)
         if: steps.content-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: build
           key: ${{ steps.content-cache.outputs.cache-primary-key }}
@@ -90,7 +90,7 @@ jobs:
 
       - name: Upload findings
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: difftest-${{ github.run_id }}
           path: content/.cache/difftest/

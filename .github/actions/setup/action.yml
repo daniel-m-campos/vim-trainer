@@ -1,7 +1,7 @@
 name: setup
 description: >-
   Pinned Neovim, uv, Node, the pinned content-source cache, Python and Node
-  dependencies, and Playwright Chromium. Shared by ci.yml and difftest.yml.
+  dependencies, and Playwright Chromium. Shared by ci.yml, deploy.yml and difftest.yml.
   The caller checks out the repo first and sets PLAYWRIGHT_BROWSERS_PATH=0 in its env.
 
 inputs:
@@ -29,13 +29,13 @@ runs:
     - shell: bash
       run: nvim --version | head -1
 
-    - uses: astral-sh/setup-uv@v6
+    - uses: astral-sh/setup-uv@v10.3.2
       with:
         version: "0.10.0"
         enable-cache: true
         cache-dependency-glob: "**/uv.lock"
 
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v7
       with:
         node-version: "26"
         cache: npm
@@ -43,7 +43,7 @@ runs:
 
     # Every pinned clone (content/.cache/<source name>); the key changes with any pin.
     - name: Cache pinned content sources
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: content/.cache/exercism-*
         key: content-sources-${{ hashFiles('content/sources.toml') }}

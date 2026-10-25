@@ -4,9 +4,18 @@ name: deploy
 # at https://daniel-m-campos.github.io/vim-trainer/. Pages must be set to "GitHub Actions"
 # as its source once (Settings > Pages > Build and deployment > Source). The app uses relative paths (Vite base "./") and
 # hash routing, so it works under the /vim-trainer/ subpath with no 404.html fallback.
+#
+# Runs only after the "ci" workflow (ci.yml) finishes green on main, and builds the exact
+# commit CI tested (workflow_run.head_sha), so a red push never reaches the site. A manual
+# run (workflow_dispatch) must be started on main (the github-pages environment accepts only
+# main); it deploys the head of main and skips the gate.
+# workflow_run fires from the default branch's copy of this file, so edits here take effect
+# once they are on main.
 
 on:
-  push:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -15,7 +24,7 @@ permissions:
   pages: write
   id-token: write
 
-# One deploy at a time; a newer push waits instead of cancelling a deploy halfway.
+# One deploy at a time; a newer green run waits instead of cancelling a deploy halfway.
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -26,10 +35,20 @@ env:
 
 jobs:
   build:
+    # The branch filter above matches the run's head branch only, so a fork PR from a branch
+    # named main would pass it: also require a non-PR run from this repository.
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event != 'pull_request' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      # The commit CI tested; on a manual run, the commit the run was started on.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       # Neovim, uv, Node, source cache, uv sync, npm ci, Playwright Chromium.
       - uses: ./.github/actions/setup
@@ -42,7 +61,7 @@ jobs:
 
       - name: Restore content build (nvim stage)
         id: content-cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: build
           key: content-build-${{ runner.os }}-nvim-${{ steps.nvim.outputs.version }}-${{ hashFiles('content/**', '!content/.cache/**', '!content/.venv/**', '!**/__pycache__/**', '!content/tests/**', '!content/difftest/**', '!content/review/**', '!content/**/*.md', '.github/actions/setup/action.yml') }}
@@ -53,7 +72,7 @@ jobs:
 
       - name: Save content build (nvim stage)
         if: steps.content-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: build
           key: ${{ steps.content-cache.outputs.cache-primary-key }}
@@ -65,9 +84,9 @@ jobs:
       - name: Build the site
         run: make build
 
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
 
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: app/dist
 
@@ -80,4 +99,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
