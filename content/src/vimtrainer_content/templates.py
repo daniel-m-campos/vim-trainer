@@ -22,6 +22,7 @@ from typing import Any, Final
 
 import tree_sitter
 
+from vimtrainer_content import gates
 from vimtrainer_content.lang import Language
 from vimtrainer_content.snippets import Window, pick, stable_hash
 
@@ -189,7 +190,7 @@ def change_inner(win: Window, node: tree_sitter.Node, skill: str, lang: Language
     c, noun = _PAIR[o], _NOUNS[node.type]
     yield Draft(
         template="change_inner", skill=skill, kind="edit",
-        task=f"Change {_inside_phrase(noun, _DELIM_NAMES[o], inner)} to `{text}`",
+        task=f"Change {_inside_phrase(noun, _DELIM_NAMES[o], inner, _which_pair(win, row, oc, inner))} to `{text}`",
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, oc + 1, cc, text)},
         variants=[f"ci{o}{text}<Esc>"], alternates=[f"ci{a}{text}<Esc>" for a in _ALIASES[o]],
         idioms=[f"{m}{text}<Esc>" for m in ("ciw", "ciW", "cw", "cW", "ce", "cE", f"ct{c}", f"cT{o}", "bcw",
@@ -214,10 +215,10 @@ def delete_inner(win: Window, node: tree_sitter.Node, skill: str, lang: Language
     col = _cursor_inside(win, node, row, oc, cc, o)
     if col is None:
         return
-    c, noun = _PAIR[o], _NOUNS[node.type]
+    c, noun, inner = _PAIR[o], _NOUNS[node.type], win.lines[row][oc + 1:cc]
     yield Draft(
         template="delete_inner", skill=skill, kind="edit",
-        task=f"Delete {_inside_phrase(noun, _DELIM_NAMES[o], win.lines[row][oc + 1:cc])}, keeping the {_DELIM_NAMES[o]}",
+        task=f"Delete {_inside_phrase(noun, _DELIM_NAMES[o], inner, _which_pair(win, row, oc, inner))}, keeping the {_DELIM_NAMES[o]}",
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, oc + 1, cc, "")},
         variants=[f"di{o}"], alternates=[f"di{a}" for a in _ALIASES[o]],
         idioms=["diw", "diW", "dw", "dW", "de", "dE", f"dt{c}", f"dT{o}", "bdt" + c, f"F{o}ldt{c}", f"T{o}dt{c}", "D"],
@@ -250,12 +251,15 @@ def delete_around(win: Window, node: tree_sitter.Node, skill: str, lang: Languag
         return  # `len(x)` -> `len` is not an edit anyone makes; user functions passed as callbacks are
     whole = f"{name}{win.lines[row][oc:cc + 1]}"
     short = len(whole) <= 48 and "`" not in whole
+    where = on_this_line(win.lines, row, whole if short else f"{name}{o}")
+    if where is None:
+        return  # the same text twice on the cursor line: the task could not say which
     if node.type == "subscript":
-        task = (f"Turn `{whole}` into `{name}` by deleting the subscript" if short
-                else f"Delete the subscript after `{name}`, square brackets included")
+        task = (f"Turn `{whole}`{where} into `{name}` by deleting the subscript" if short
+                else f"Delete the subscript after `{name}`{where}, square brackets included")
     else:
-        task = (f"Turn the call `{whole}` into the bare name `{name}`" if short
-                else f"Turn the `{name}` call into the bare name `{name}`: delete its arguments and parentheses")
+        task = (f"Turn the call `{whole}`{where} into the bare name `{name}`" if short
+                else f"Turn the `{name}` call{where} into the bare name `{name}`: delete its arguments and parentheses")
     yield Draft(
         template="delete_around", skill=skill, kind="edit", task=task,
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, oc, cc + 1, "")},
@@ -297,10 +301,13 @@ def change_nth_arg(win: Window, node: tree_sitter.Node, skill: str, lang: Langua
     fk = f"{k}f," if k > 1 else "f,"
     kd = line[cursor + 1:a1 + 1].count(d)
     fd = f"{kd}f{d}" if kd > 1 else f"f{d}"
-    fn = _text(call.child_by_field_name("function"))
+    fn = _call_name(_text(call.child_by_field_name("function")))
+    where = on_this_line(win.lines, row, f"{fn}(")
+    if where is None:
+        return
     yield Draft(
         template="change_nth_arg", skill=skill, kind="edit",
-        task=f"Change the {ordinal(n)} argument of the `{_call_name(fn)}` call from `{value}` to `{text}`",
+        task=f"Change the {ordinal(n)} argument of the `{fn}` call{where} from `{value}` to `{text}`",
         lines=win.lines, cursor=[row + 1, cursor], expect={"lines": _replace(win.lines, row, a0, a1, text)},
         variants=[f"{fk}w{m}{text}<Esc>" for m in (f"ct{d}", "cw", "ce", "cE", "cW")],
         alternates=[f"f,{';' * (k - 1)}wct{d}{text}<Esc>"] if k > 1 else [],
@@ -335,12 +342,15 @@ def change_kwarg_value(win: Window, node: tree_sitter.Node, skill: str, lang: La
     motions = [f"ct{d}"] if d in (",", ")") else []
     motions += ["cw", "ce", "cE", "cW"] + (["C"] if v1 == len(line) else [])
     variants = [f"{m}{text}<Esc>" for m in motions]
+    where = on_this_line(win.lines, row, f"{_text(name)}=")
+    if where is None:
+        return
     if skill == "m.find":
-        yield from _kwarg_find(win, name, value, old, text, motions, skill)
+        yield from _kwarg_find(win, name, value, old, text, motions, skill, where)
         return
     yield Draft(
         template="change_kwarg_value", skill=skill, kind="edit",
-        task=f"Change the value of `{_text(name)}=` from `{old}` to `{text}`",
+        task=f"Change the value of `{_text(name)}=`{where} from `{old}` to `{text}`",
         lines=win.lines, cursor=[row + 1, v0], expect={"lines": _replace(win.lines, row, v0, v1, text)},
         variants=variants, alternates=[f"dt{d}i{text}<Esc>"] if d in (",", ")") else [],
         idioms=[f"s{text}<Esc>", f"S{text}<Esc>", f"v{len(old) - 1}lc{text}<Esc>" if len(old) > 1 else "vc"],
@@ -354,7 +364,9 @@ def change_kwarg_value(win: Window, node: tree_sitter.Node, skill: str, lang: La
     )
 
 
-def _kwarg_find(win: Window, name, value, old: str, text: str, motions: list[str], skill: str) -> Iterator[Draft]:
+def _kwarg_find(
+    win: Window, name, value, old: str, text: str, motions: list[str], skill: str, where: str,
+) -> Iterator[Draft]:
     """m.find form of change_kwarg_value: cursor on the line's first non-blank, ``{k}f=l`` first."""
     row, v0, v1 = value.start_point.row, value.start_point.column, value.end_point.column
     line = win.lines[row]
@@ -366,7 +378,7 @@ def _kwarg_find(win: Window, name, value, old: str, text: str, motions: list[str
     d = line[v1] if v1 < len(line) else ""
     yield Draft(
         template="change_kwarg_value", skill=skill, kind="edit",
-        task=f"Change the value of `{_text(name)}=` from `{old}` to `{text}`",
+        task=f"Change the value of `{_text(name)}=`{where} from `{old}` to `{text}`",
         lines=win.lines, cursor=[row + 1, start], expect={"lines": _replace(win.lines, row, v0, v1, text)},
         # Finding the value's first character (`fT` for `True`) is the same skill as finding
         # its `=`, and often a key shorter, so it competes as a canonical variant; the oracle
@@ -534,15 +546,15 @@ def indent_block(win: Window, node: tree_sitter.Node, skill: str, lang: Language
         return
     under = pick((True, False), win.key, node.start_point, "indent")
     rows = range(start, end + 1)
-    if under and any(win.lines[r] and not win.lines[r].startswith("    ") for r in rows):
+    if any(not win.lines[r].strip() for r in rows):
+        return  # the highlight skips blank lines, so "these N lines" would not match N>> (QA #26)
+    if under and any(not win.lines[r].startswith("    ") for r in rows):
         return
     lines = [(ln[4:] if under else "    " + ln) if r in rows and ln else ln for r, ln in enumerate(win.lines)]
-    op, verb = (">>", "Indent") if under else ("<<", "Dedent")
+    op = ">>" if under else "<<"
     header = win.lines[parent.start_point.row].strip()
-    problem = "lost one level of indent" if under else "is indented one level too deep"
     yield Draft(
-        template="indent_block", skill=skill, kind="edit",
-        task=f"The body of {_quote(header)} {problem}. {verb} these {n} lines",
+        template="indent_block", skill=skill, kind="edit", task=indent_task(header, under, n),
         lines=lines, cursor=[start + 1, _indent(lines[start])], expect={"lines": win.lines},
         variants=[f"{op[0]}}}", f"{op[0]}G", f"{op[0]}ip", f"{n}{op}", f"{op[0]}{n - 1}j"],
         alternates=[f"V{n - 1}j{op[0]}"], idioms=[f"{op[0]}ap"],
@@ -553,6 +565,15 @@ def indent_block(win: Window, node: tree_sitter.Node, skill: str, lang: Language
             {"trigger": None, "text": f"{n}{op} or {op[0]}{n - 1}j shift {n} lines; {op[0]}}} shifts up to the next blank line."},
         ],
     )
+
+
+def indent_task(header: str, under: bool, n: int) -> str:
+    """o.indent task text: names the direction (indent: shift right, outdent: shift left) and the
+    number of highlighted lines, which have no blank line among them (QA #26). Used by
+    ``indent_block`` here and in lang/cpp.py."""
+    if under:
+        return f"The body of {_quote(header)} lost one level of indent. Indent these {n} lines one level (shift right)"
+    return f"The body of {_quote(header)} is indented one level too deep. Outdent these {n} lines one level (shift left)"
 
 
 def upper_word(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
@@ -599,7 +620,8 @@ def upper_inner(win: Window, node: tree_sitter.Node, skill: str, lang: Language)
     if col is None:
         return
     yield Draft(
-        template="upper_inner", skill=skill, kind="edit", task=f"Uppercase {_inside_phrase('string', 'quotes', inner)}",
+        template="upper_inner", skill=skill, kind="edit",
+        task=f"Uppercase {_inside_phrase('string', 'quotes', inner, _which_pair(win, row, oc, inner))}",
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, oc + 1, cc, inner.upper())},
         variants=[f"gUi{q}"], alternates=[f"vi{q}U", f"g~i{q}"],
         idioms=["gUiw", "gUiW", "gUt" + q, "gUT" + q, f"ci{q}{inner.upper()}<Esc>"],
@@ -788,8 +810,9 @@ def append_each_line(win: Window, node: tree_sitter.Node, skill: str, lang: Lang
 
 
 def prefix_each_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
-    """``<C-v>{n}jIself.<Esc>`` (v.blockedit) or ``V{n}j:norm Iself.<CR>`` (x.normal): put back the
-    ``self.`` that a run of 3+ attribute assignments lost (start = source with ``self.`` removed).
+    """``<C-v>{n}jIself.<Esc>`` (v.blockedit) or ``V{n}j:norm Iself.<CR>`` (x.normal): add ``self.``
+    to a run of 3+ assignments (start = source with ``self.`` removed; the task describes the
+    start buffer as it is, not as an earlier state, QA #51).
     With three lines the block insert (10 keys) still beats ``Iself.<Esc>j.j.`` (11)."""
     for run in _assignment_runs(win, node, 3):
         run = run[:8]
@@ -804,7 +827,7 @@ def prefix_each_line(win: Window, node: tree_sitter.Node, skill: str, lang: Lang
         k = len(rows) - 1
         down = f"{k}j" if k > 1 else "j"
         target = [_range(r, col, r, col + 4) for r in rows]
-        task = f"Put `self.` back at the start of each of these {k + 1} assignments"
+        task = f"Add `self.` at the start of each of these {k + 1} assignments"
         if skill == "v.blockedit":
             yield Draft(
                 template="prefix_each_line", skill=skill, kind="edit", task=task,
@@ -979,8 +1002,7 @@ def rename_all_dot(win: Window, node: tree_sitter.Node, skill: str, lang: Langua
     col = c0 + pick(range(len(old)), win.key, node.start_point, "dotcur")
     dots = "." * (len(hits) - 1)
     yield Draft(
-        template="rename_all_dot", skill=skill, kind="edit",
-        task=f"Rename `{old}` to `{new}` everywhere ({len(hits)} occurrences), one match at a time",
+        template="rename_all_dot", skill=skill, kind="edit", task=dot_task(skill, old, new, len(hits)),
         lines=win.lines, cursor=[row + 1, col], expect={"lines": [rx.sub(new, ln) for ln in win.lines]},
         variants=[f"*cgn{new}<Esc>{dots}", f"#cgn{new}<Esc>{dots}", f"*Ncgn{new}<Esc>{dots}"],
         alternates=[f"*ciw{new}<Esc>" + "n." * (len(hits) - 1), f"/\\<{old}\\><CR>cgn{new}<Esc>{dots}"],
@@ -995,6 +1017,15 @@ def rename_all_dot(win: Window, node: tree_sitter.Node, skill: str, lang: Langua
             {"trigger": None, "text": f"* searches for the word under the cursor; cgn{new}<Esc> changes a match; . repeats on the next."},
         ],
     )
+
+
+def dot_task(skill: str, old: str, new: str, n: int) -> str:
+    """rename_all_dot task text, one per skill (QA #22). x.lastsearch names the search; a.dot names
+    the repeat. Both are kind "edit", which accepts any keys that reach the result, so both say
+    that a `:s` passes too rather than leave it a guess."""
+    if skill == "x.lastsearch":
+        return f"Search for the whole word `{old}`, then change each of its {n} matches to `{new}` (a `:s` also passes)"
+    return f"Change one `{old}` to `{new}`, then repeat that change on the other {n - 1} occurrences (a `:s` also passes)"
 
 
 def join_lines(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
@@ -1104,7 +1135,10 @@ def increment(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
     if (parent is not None and parent.start_point.row == parent.end_point.row and len(context) <= 32
             and context.count(text) == 1 and line.count(context) == 1 and "`" not in context):
         rel = c0 - parent.start_point.column
-        task = f"Change `{context}` to `{context[:rel]}{new}{context[rel + len(text):]}`"
+        where = on_this_line(win.lines, row, context)
+        if where is None:
+            return
+        task = f"Change `{context}`{where} to `{context[:rel]}{new}{context[rel + len(text):]}`"
     elif len(re.findall(rf"(?<![\w.]){text}(?![\w.])", line)) == 1:
         task = f"Change the `{text}` on this line to `{new}`"
     else:
@@ -1438,13 +1472,43 @@ def _call_name(fn: str, width: int = 32) -> str:
     return fn if len(fn) <= width else re.split(r"\.|::|->", fn)[-1]
 
 
-def _inside_phrase(noun: str, delims: str, inner: str) -> str:
+def _inside_phrase(noun: str, delims: str, inner: str, which: tuple[bool, bool] = (False, False)) -> str:
     """'the text `abc` inside the quotes' or 'the text inside the parentheses of this tuple': the one
     wording every inner-text-object task uses (QA #49), quoting the old text without its delimiters
-    like the new one (QA #20). Called by the change/delete/upper inner templates here and in lang/cpp.py."""
+    like the new one (QA #20). Called by the change/delete/upper inner templates here and in lang/cpp.py.
+
+    ``which`` is ``(nested, repeated)`` from ``_which_pair``: a pair nested in one of the same
+    kind is "the inner parentheses", and a quoted text that occurs more than once in the window
+    is the one "under the cursor" (gate 6, QA #6)."""
+    nested, repeated = which
     quoted = f" `{inner}`" if 0 < len(inner) <= 40 and inner == inner.strip() and "`" not in inner else ""
+    pair = f"the inner {delims}" if nested else f"the {delims}"
+    if quoted and repeated:
+        return f"the text{quoted} inside {pair} under the cursor"
     of = "" if noun == "string" else f" of this {noun}"
-    return f"the text{quoted} inside the {delims}{of}"
+    return f"the text{quoted} inside {pair}{of}"
+
+
+def _which_pair(win: Window, row: int, oc: int, inner: str, nested: bool | None = None) -> tuple[bool, bool]:
+    """(nested, repeated) for the delimited pair opening at ``(row, oc)``: nested in a pair of the
+    same kind (``gates.nested_in_same_pair`` unless ``nested`` is given), and its delimited text
+    occurring more than once in the window. Read by ``_inside_phrase``; lang/cpp.py calls it too."""
+    o = win.lines[row][oc]
+    lang = "cpp" if win.root.type == "translation_unit" else "python"
+    if nested is None:
+        nested = gates.nested_in_same_pair(win.lines, row, oc, lang)
+    total, _ = gates.occurrences(win.lines, f"{o}{inner}{_PAIR.get(o, '>')}")
+    return nested, total > 1
+
+
+def on_this_line(lines: list[str], row: int, needle: str) -> str | None:
+    """How a task singles out a quoted ``needle`` on the cursor line: ``""`` when the window holds
+    it once, ``" on this line"`` when it is elsewhere too but once on this line, None when this
+    line holds it more than once (the template then makes no draft). Gate 6 checks the same."""
+    total, rows = gates.occurrences(lines, needle)
+    if total <= 1:
+        return ""
+    return " on this line" if rows.get(row, 0) == 1 else None
 
 
 def _replace(lines: list[str], row: int, c0: int, c1: int, text: str) -> list[str]:

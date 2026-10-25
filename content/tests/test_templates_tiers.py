@@ -9,7 +9,7 @@ import re
 
 import pytest
 
-from vimtrainer_content import build, oracle, snippets, templates
+from vimtrainer_content import build, gates, oracle, snippets, templates
 from vimtrainer_content.lang.python import LANG
 
 SOURCE = {"repo": "fixture/tiers", "path": "tiers.py", "commit": None, "license": "MIT"}
@@ -561,3 +561,89 @@ def test_rename_all_subst_is_always_ex(runner):
         dots = "." * (len(d.target) - 1)
         normal = _verdicts(d, [f"/\\<{d.params['old']}\\><CR>cgn{d.params['new']}<Esc>{dots}"], runner)[0]
         assert not normal.passed and "':'" in normal.reason
+
+
+# snippet quality and task wording ======================================================
+
+REPEATS = """
+def report(card, other):
+    first = value_of(card)
+    second = value_of(card)
+    pair = total(score(card, other), other)
+    return compare(first, second, pair)
+"""
+
+INDENTED = """
+def build(rows):
+    for row in rows:
+        cells = row.split(',')
+        name = cells[0]
+
+        value = cells[1]
+        print(name, value)
+    return rows
+
+
+def check(items):
+    for item in items:
+        name = item.name
+        value = item.value
+        print(name, value)
+    return items
+"""
+
+
+def test_inner_text_tasks_single_out_repeated_and_nested_pairs(monkeypatch):
+    monkeypatch.setattr(templates, "MAX_PER_WINDOW", 20)
+    drafts = [d for d in templates.generate(_window(REPEATS), LANG)
+              if d.template in ("change_inner", "delete_inner") and d.skill == "t.paren"]
+    tasks = [d.task for d in drafts]
+    assert any("`card` inside the parentheses under the cursor" in t for t in tasks), tasks
+    assert any("inside the inner parentheses" in t for t in tasks), tasks
+    for d in drafts:
+        assert gates.target_problem(d.exercise("python"), d.target, d.task) is None, d.task
+
+
+def test_change_nth_arg_says_on_this_line_when_the_call_repeats(monkeypatch):
+    monkeypatch.setattr(templates, "MAX_PER_WINDOW", 20)
+    snippet = """
+def report(card, other, limit):
+    first = combine(card, other, limit)
+    second = combine(other, card, limit)
+    third = combine(card, card, limit) + combine(other, other, limit)
+    return compare(first, second, third)
+"""
+    drafts = _drafts(snippet, "change_nth_arg")
+    tasks = [d.task for d in drafts]
+    assert any("the `combine` call on this line" in t for t in tasks), tasks
+    assert any("the `compare` call from" in t for t in tasks), tasks  # one call: no qualifier needed
+    assert not any(d.cursor[0] == 5 and "combine" in d.task for d in drafts)  # two on one line: no draft
+    for d in drafts:
+        assert gates.target_problem(d.exercise("python"), d.target, d.task) is None, d.task
+
+
+def test_indent_task_names_the_direction_and_counts_highlighted_lines():
+    drafts = _drafts(INDENTED, "indent_block")
+    assert drafts
+    for d in drafts:
+        (rng,) = d.target
+        rows = range(rng["start"][0] - 1, rng["end"][0])
+        assert all(d.lines[r].strip() for r in rows), d.task  # no blank line under the highlight
+        assert f"these {len(rows)} lines one level" in d.task
+        assert ("Indent" in d.task and "(shift right)" in d.task) or ("Outdent" in d.task and "(shift left)" in d.task)
+    assert not any(d.cursor[0] == 3 for d in drafts)  # the first loop body has a blank line
+
+
+def test_rename_all_dot_text_differs_per_skill():
+    drafts = _drafts(RENAMES, "rename_all_dot")
+    by_skill = {d.skill: d.task for d in drafts}
+    assert set(by_skill) == {"x.lastsearch", "a.dot"}
+    assert by_skill["x.lastsearch"].startswith("Search for the whole word `")
+    assert "repeat that change" in by_skill["a.dot"]
+    assert all("a `:s` also passes" in t for t in by_skill.values())  # kind "edit": an Ex command is not ruled out
+    assert {d.kind for d in drafts} == {"edit"}
+
+
+def test_prefix_task_describes_the_buffer_as_it_is():
+    for d in _drafts(ASSIGNMENTS, "prefix_each_line"):
+        assert d.task.startswith("Add `self.` at the start of each of these") and "back" not in d.task

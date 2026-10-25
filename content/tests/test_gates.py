@@ -164,3 +164,49 @@ def test_target_problem_rejects_ambiguous_destination():
     assert gates.target_problem(ex, rng, "Copy this line to just below `x = 2`") is None
     assert gates.target_problem(ex, rng, "Copy this line to just below `x = ...`") is None
     assert "matches 2 lines" in gates.target_problem(ex, rng, "Move this line above `return inv...`")
+
+
+# gate 6: quoted targets must be the only one of their kind (QA #6) ================================
+
+
+def test_ambiguity_inner_text_repeated_needs_under_the_cursor():
+    lines = ["a = f(card)", "b = g(card)", "c = 1"]
+    ex = dict(_edit(lines, [1, 6], ["a = f()", "b = g(card)", "c = 1"]), lang="python")
+    rng = [{"start": [1, 5], "end": [1, 10]}]
+    assert "under the cursor" in gates.target_problem(ex, rng, "Delete the text `card` inside the parentheses of this argument list, keeping the parentheses")
+    assert gates.target_problem(ex, rng, "Delete the text `card` inside the parentheses under the cursor, keeping the parentheses") is None
+
+
+def test_ambiguity_inner_text_repeated_in_angle_brackets_needs_under_the_cursor():
+    lines = ["a = f(x<int>(1), y<int>(2))", "c = 1"]
+    ex = dict(_edit(lines, [1, 8], ["a = f(x<long>(1), y<int>(2))", "c = 1"]), lang="python")
+    rng = [{"start": [1, 7], "end": [1, 12]}]
+    assert "under the cursor" in gates.target_problem(ex, rng, "Change the text `int` inside the angle brackets to `long`")
+    assert gates.target_problem(ex, rng, "Change the text `int` inside the angle brackets under the cursor to `long`") is None
+
+
+def test_ambiguity_nested_pair_needs_inner():
+    lines = ["x = outer(inner(abc), 2)", "y = 1"]
+    ex = dict(_edit(lines, [1, 17], ["x = outer(inner(), 2)", "y = 1"]), lang="python")
+    rng = [{"start": [1, 15], "end": [1, 19]}]
+    assert "inner" in gates.target_problem(ex, rng, "Delete the text `abc` inside the parentheses, keeping the parentheses")
+    assert gates.target_problem(ex, rng, "Delete the text `abc` inside the inner parentheses, keeping the parentheses") is None
+
+
+def test_nested_in_same_pair_skips_strings_and_comments():
+    assert not gates.nested_in_same_pair(["s = '(' + f(x)"], 0, 9)
+    assert not gates.nested_in_same_pair(["# note (", "f(x)"], 1, 1)
+    assert not gates.nested_in_same_pair(["// note (", "f(x);"], 1, 1, "cpp")
+    assert gates.nested_in_same_pair(["call(", "    f(x))"], 1, 5)
+
+
+def test_ambiguity_quoted_call_needs_on_this_line_and_one_hit_there():
+    lines = ["total = add(a, b)", "other = add(c, d)", "z = 0"]
+    ex = dict(_edit(lines, [1, 8], ["total = add(a, 0)", "other = add(c, d)", "z = 0"]), lang="python")
+    rng = [{"start": [1, 15], "end": [1, 15]}]
+    task = "Change the second argument of the `add` call from `b` to `0`"
+    assert "on this line" in gates.target_problem(ex, rng, task)
+    assert gates.target_problem(ex, rng, task.replace(" call", " call on this line")) is None
+    ex["start"]["lines"] = ["total = add(a, b) + add(c, d)", "z = 0"]
+    ex["expect"]["lines"] = ["total = add(a, 0) + add(c, d)", "z = 0"]
+    assert "2 on the target line" in gates.target_problem(ex, rng, task.replace(" call", " call on this line"))

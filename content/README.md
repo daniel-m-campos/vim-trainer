@@ -119,6 +119,17 @@ namespace's closing `}` and fail to parse. A trailing `}  // namespace x` commen
 with the `}` it follows. On the exercism corpus this gives 253 windows covering 4,775 of
 about 5,400 lines.
 
+A window never starts inside a comment block that began above it and never ends on
+comment-only lines (`snippets.trim_comment_edges`, both languages). The build then applies
+the snippet quality gate, `snippets.quality_problem`, to every window of both languages.
+It rejects scaffold (`TODO`, `Waiting to be implemented`, `NotImplementedError`, Exercism
+instruction comments) and windows with fewer than 20 code tokens. For C++ it also rejects
+declaration-only windows: fewer than 3 statements and fewer than 40 code tokens, which is
+a header of prototypes. A class declaration with more code than that passes. On the
+exercism corpus the gate drops 76 of 253 C++ windows (73 declaration-only, 3 scaffold)
+and 3 of 237 Python windows. `stats/gates.json` counts each dropped window under
+`snippet-window` and the drafts it would have made under `snippet`, per skill and template.
+
 ### Node -> skill mapping
 
 | node type | skill | template (exercise `template` field) |

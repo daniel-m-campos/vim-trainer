@@ -157,6 +157,7 @@ def build(
                         continue
                     windows.append(win)
         frequencies[lang_name] = _frequency(texts, spec)
+        windows = _quality_windows(windows, spec, lang_skills, report)
         report.windows += len(windows)
         drafts = [d for w in windows for d in spec.generate(w, lang) if d.skill in lang_skills]
         report.drafts += len(drafts)
@@ -267,6 +268,28 @@ def _frequency(texts: list[str], spec: LangBuild) -> dict[str, Any]:
     freq = spec.frequency(texts)
     freq["mapped"] = {t: freq["per100Lines"].get(t, 0.0) for t in sorted(spec.lang.nodes)}
     return freq
+
+
+def _quality_windows(
+    windows: Sequence[snippets.Window], spec: LangBuild, skills: Sequence[str], report: Report,
+) -> list[snippets.Window]:
+    """The windows that pass ``snippets.quality_problem``.
+
+    Each rejected window is counted once under ``("snippet-window", "-", reason)``, and the
+    drafts it would have made under ``("snippet", skill, template)``, so ``stats/gates.json``
+    shows what the gate costs each skill.
+    """
+    kept = []
+    for win in windows:
+        problem = snippets.quality_problem(win.lines, win.root)
+        if problem is None:
+            kept.append(win)
+            continue
+        report.rejections[("snippet-window", "-", problem.split(" (")[0])] += 1
+        for draft in spec.generate(win, spec.lang):
+            if draft.skill in skills:
+                report.rejections[("snippet", draft.skill, draft.template)] += 1
+    return kept
 
 
 def _schedule(drafts: Sequence[templates.Draft]) -> dict[str, collections.deque]:

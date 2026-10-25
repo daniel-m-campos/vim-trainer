@@ -290,7 +290,7 @@ def change_inner(win: Window, node: tree_sitter.Node, skill: str, lang: Language
     c, noun = _PAIR[o], _NOUNS[node.type]
     draft = Draft(
         template="change_inner", skill=skill, kind="edit",
-        task=f"Change {templates._inside_phrase(noun, _DELIM_NAMES[o], inner)} to `{text}`",
+        task=f"Change {templates._inside_phrase(noun, _DELIM_NAMES[o], inner, _which_pair(win, node, row, oc, inner))} to `{text}`",
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, oc + 1, cc, text)},
         variants=[f"ci{o}{text}<Esc>"], alternates=[f"ci{a}{text}<Esc>" for a in _ALIASES[o]],
         idioms=[f"{m}{text}<Esc>" for m in ("ciw", "ciW", "cw", "cW", "ce", "cE", f"ct{c}", f"cT{o}", "bcw",
@@ -318,10 +318,11 @@ def delete_inner(win: Window, node: tree_sitter.Node, skill: str, lang: Language
     col = _cursor_inside(win, node, row, oc, cc, o)
     if col is None:
         return
-    c, noun, delims = _PAIR[o], _NOUNS[node.type], _DELIM_NAMES[o]
+    c, noun, delims, inner = _PAIR[o], _NOUNS[node.type], _DELIM_NAMES[o], win.lines[row][oc + 1:cc]
+    which = _which_pair(win, node, row, oc, inner)
     draft = Draft(
         template="delete_inner", skill=skill, kind="edit",
-        task=f"Delete {templates._inside_phrase(noun, delims, win.lines[row][oc + 1:cc])}, keeping the {delims}",
+        task=f"Delete {templates._inside_phrase(noun, delims, inner, which)}, keeping the {delims}",
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, oc + 1, cc, "")},
         variants=[f"di{o}"], alternates=[f"di{a}" for a in _ALIASES[o]],
         idioms=["diw", "diW", "dw", "dW", "de", "dE", f"dt{c}", f"dT{o}", "bdt" + c, f"F{o}ldt{c}", f"T{o}dt{c}", "D"],
@@ -385,7 +386,8 @@ def upper_inner(win: Window, node: tree_sitter.Node, skill: str, lang: Language)
     if col is None:
         return
     draft = Draft(
-        template="upper_inner", skill=skill, kind="edit", task=f"Uppercase {templates._inside_phrase('string', 'quotes', inner)}",
+        template="upper_inner", skill=skill, kind="edit",
+        task=f"Uppercase {templates._inside_phrase('string', 'quotes', inner, _which_pair(win, node, row, oc, inner))}",
         lines=win.lines, cursor=[row + 1, col], expect={"lines": _replace(win.lines, row, oc + 1, cc, inner.upper())},
         variants=[f"gUi{q}"], alternates=[f"vi{q}U", f"g~i{q}"],
         idioms=["gUiw", "gUiW", "gUt" + q, "gUT" + q, f"ci{q}{inner.upper()}<Esc>"],
@@ -428,10 +430,13 @@ def change_nth_arg(win: Window, node: tree_sitter.Node, skill: str, lang: Langua
     fk = f"{k}f," if k > 1 else "f,"
     kd = line[cursor + 1:a1 + 1].count(d)
     fd = f"{kd}f{d}" if kd > 1 else f"f{d}"
-    fn = _text(call.child_by_field_name("function"))
+    fn = templates._call_name(_text(call.child_by_field_name("function")))
+    where = templates.on_this_line(win.lines, row, f"{fn}(")
+    if where is None:
+        return
     yield Draft(
         template="change_nth_arg", skill=skill, kind="edit",
-        task=f"Change the {templates.ordinal(n)} argument of the `{templates._call_name(fn)}` call from `{value}` to `{text}`",
+        task=f"Change the {templates.ordinal(n)} argument of the `{fn}` call{where} from `{value}` to `{text}`",
         lines=win.lines, cursor=[row + 1, cursor], expect={"lines": _replace(win.lines, row, a0, a1, text)},
         variants=[f"{fk}w{m}{text}<Esc>" for m in (f"ct{d}", "cw", "ce", "cE", "cW")],
         alternates=[f"f,{';' * (k - 1)}wct{d}{text}<Esc>"] if k > 1 else [],
@@ -498,8 +503,10 @@ def indent_block(win: Window, node: tree_sitter.Node, skill: str, lang: Language
     lines = win.lines
     start, end = orow + 1, crow - 1
     n = end - start + 1
-    if not 2 <= n <= 12 or lines[orow][ocol + 1:].strip() or lines[crow][:ccol].strip() or not lines[start].strip():
+    if not 2 <= n <= 12 or lines[orow][ocol + 1:].strip() or lines[crow][:ccol].strip():
         return
+    if any(not lines[r].strip() for r in range(start, end + 1)):
+        return  # the highlight skips blank lines, so "these N lines" would not match N>> (QA #26)
     rows = range(start, end + 1)
     base = _indent(lines[crow])
     body = [lines[r] for r in rows if lines[r].strip()]
@@ -507,12 +514,10 @@ def indent_block(win: Window, node: tree_sitter.Node, skill: str, lang: Language
         return
     under = pick((True, False), win.key, node.start_point, "indent")
     shifted = [(ln[4:] if under else "    " + ln) if r in rows and ln.strip() else ln for r, ln in enumerate(lines)]
-    op, verb = (">>", "Indent") if under else ("<<", "Dedent")
+    op = ">>" if under else "<<"
     o = op[0]
-    problem = "lost one level of indent" if under else "is indented one level too deep"
     yield Draft(
-        template="indent_block", skill=skill, kind="edit",
-        task=f"The body of {templates._quote(_header(win, node, orow))} {problem}. {verb} these {n} lines",
+        template="indent_block", skill=skill, kind="edit", task=templates.indent_task(_header(win, node, orow), under, n),
         lines=shifted, cursor=[start + 1, _indent(shifted[start])], expect={"lines": lines},
         variants=[f"{o}i{{", f"{o}iB", f"{n}{op}", f"{o}{n - 1}j"],
         alternates=[f"{o}i}}", f"V{n - 1}j{o}"], idioms=[f"{o}ip", f"{o}ap", f"{o}}}", f"{o}G"],
@@ -692,7 +697,8 @@ def rename_all_subst(win: Window, node: tree_sitter.Node, skill: str, lang: Lang
 def prefix_each_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
     """``V{n}j:norm I{prefix}<CR>`` over 3-8 consecutive one-line declarations or statements
     (x.normal): put back a prefix they all share (``const ``, ``static ``, ``this->``), or, when
-    they share none, comment them out with ``// ``."""
+    they share none and they are statements in a function body, comment them out with ``// ``
+    (never class members, prototypes or namespace-level declarations)."""
     _prime(win)
     for run in _statement_runs(win, node, templates.EX_MIN_LINES):
         rows = [item.start_point.row for item in run[:8]]
@@ -704,8 +710,10 @@ def prefix_each_line(win: Window, node: tree_sitter.Node, skill: str, lang: Lang
         if prefix is not None:
             start = [ln[:col] + ln[col + len(prefix):] if r in rows else ln for r, ln in enumerate(win.lines)]
             expect, tags = win.lines, ["declaration", "normal", "insert"]
-            task = f"Put `{prefix.strip()}` back at the start of each of these {n} lines"
+            task = f"Add `{prefix.strip()}` at the start of each of these {n} lines"
             target = [_range(r, col, r, col + min(len(prefix), len(start[r]) - col) - 1) for r in rows]
+        elif not _in_function_body(node):
+            continue  # commenting out member declarations or prototypes is not an edit anyone drills (QA #53)
         else:
             prefix, start = "// ", win.lines
             expect = [ln[:col] + prefix + ln[col:] if r in rows else ln for r, ln in enumerate(win.lines)]
@@ -1042,6 +1050,7 @@ def _body_items(node: tree_sitter.Node, depth: int = 0) -> list[tree_sitter.Node
 
 
 def _make_window(lines: list[str], start: int, end: int, source: dict[str, str]) -> Window | None:
+    start, end = snippets.trim_comment_edges(lines, start, end)
     chunk = lines[start:end + 1]
     while chunk and not chunk[0].strip():
         chunk, start = chunk[1:], start + 1
@@ -1236,6 +1245,31 @@ def _const_name(win: Window, node: tree_sitter.Node) -> tree_sitter.Node | None:
 def _enum_lines(win: Window, items: list[tree_sitter.Node]) -> bool:
     """True when every enumerator is alone on its line (``name,`` or ``name = value,``)."""
     return all(win.lines[c.start_point.row].strip().rstrip(",") == _text(c) for c in items)
+
+
+def _in_function_body(node: tree_sitter.Node) -> bool:
+    """True for a ``{}`` block that is, or sits inside, the body of a function or lambda."""
+    while node is not None and node.type == "compound_statement":
+        parent = node.parent
+        if parent is not None and parent.type in ("function_definition", "lambda_expression"):
+            return True
+        node = parent
+        while node is not None and node.type not in ("compound_statement", "function_definition",
+                                                       "lambda_expression", "translation_unit"):
+            node = node.parent
+    return False
+
+
+def _which_pair(win: Window, node: tree_sitter.Node, row: int, oc: int, inner: str) -> tuple[bool, bool]:
+    """``templates._which_pair`` with angle brackets nested by the tree (``vector<vector<int>>``):
+    a text-only count would read every less-than as an opening angle."""
+    nested = None
+    if node.type in _ANGLES:
+        up = node.parent
+        while up is not None and up.type not in _ANGLES:
+            up = up.parent
+        nested = up is not None
+    return templates._which_pair(win, row, oc, inner, nested)
 
 
 def _qualified(node: tree_sitter.Node) -> bool:

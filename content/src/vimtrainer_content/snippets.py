@@ -8,6 +8,15 @@ docstrings are shortened to their summary line so snippets stay code-dense.
 
 Windows are ASCII-only and tab-free. That keeps the oracle's byte columns equal to the
 browser's UTF-16 columns and avoids tabstop differences between Neovim and the emulator.
+
+A window never starts with the tail of a comment block that began above it, and never
+ends on comment-only lines: those describe code the window does not show. The snippet
+quality gate (``quality_problem``, applied by the build to both languages) rejects
+windows that are scaffold (``TODO``, ``Waiting to be implemented``, Exercism instruction
+comments), declaration-only (a header with prototypes and no statements) or too thin
+to drill (fewer than ``MIN_CODE_TOKENS`` code tokens). Brace balance at the window edges
+needs no check of its own: a window is whole sibling items, and one that does not parse
+on its own (``has_error``, which covers missing braces) is dropped.
 """
 
 from __future__ import annotations
@@ -28,6 +37,9 @@ MIN_LINES: Final = 8
 MAX_LINES: Final = 40
 MAX_COLS: Final = 100
 SOFT_LINES: Final = 16  # flush a window once it reaches this many lines
+MIN_CODE_TOKENS: Final = 20  # quality gate: tokens outside comments, includes, imports and punctuation
+MIN_STATEMENTS: Final = 3  # quality gate: statements that do something (not prototypes, not stubs) ...
+DECLARATION_TOKENS: Final = 40  # ... unless the declarations alone hold this many code tokens (a class)
 
 _HEADER: Final = re.compile(r"(?i)copyright|licen[cs]e|\bauthor\b|@author|spdx")
 _SECRETS: Final = (
@@ -40,6 +52,25 @@ _SECRETS: Final = (
     ("jwt", re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}")),
     ("assigned-secret", re.compile(r"(?i)(password|passwd|secret|api_?key|token)\s*=\s*['\"][^'\"]{8,}['\"]")),
 )
+_SCAFFOLD: Final = re.compile(
+    r"(?-i:\bTODO\b)|Waiting to be implemented|NotImplementedError|\byour (?:code|solution)\b|^\s*(?://|#)\s*INFO:",
+    re.IGNORECASE | re.MULTILINE,
+)
+_COMMENT_LINE: Final = re.compile(r"\s*(?://|#(?!include|define|if|endif|else|elif|pragma|undef)|/\*|\*(?:\s|/|$))")
+# Subtrees that hold no drillable code, and punctuation that does not count as a code token.
+_NOISE: Final = frozenset({
+    "comment", "preproc_include", "preproc_call", "import_statement", "import_from_statement",
+    "future_import_statement",
+})
+_PUNCTUATION: Final = frozenset({";", ",", "(", ")", "{", "}", "[", "]", ":", ".", "::", "->", "\"\"\"", '"', "'"})
+# Statements that do something, in both grammars (python, C++). A C++ declaration counts
+# only with an initializer; a bare prototype does not.
+_STATEMENTS: Final = frozenset({
+    "expression_statement", "return_statement", "if_statement", "for_statement", "for_range_loop",
+    "while_statement", "do_statement", "switch_statement", "with_statement", "try_statement",
+    "assert_statement", "raise_statement", "delete_statement", "case_statement", "break_statement",
+    "continue_statement",
+})
 _BODY_TYPES: Final = frozenset({
     "class_definition", "function_definition", "decorated_definition", "if_statement", "for_statement",
     "while_statement", "with_statement", "try_statement",
@@ -167,6 +198,54 @@ def size_problem(lines: list[str]) -> str | None:
     return None
 
 
+def quality_problem(lines: list[str], root: tree_sitter.Node) -> str | None:
+    """Snippet quality gate: why a window is not worth drilling, or None.
+
+    Parameters
+    ----------
+    lines
+        The window's lines.
+    root
+        The root of the window's own parse (Python or C++).
+
+    Returns
+    -------
+    str | None
+        ``"scaffold"`` (a TODO, a ``Waiting to be implemented`` stub, an Exercism
+        instruction comment), ``"declaration-only"`` (C++ only: fewer than ``MIN_STATEMENTS``
+        statements and fewer than ``DECLARATION_TOKENS`` code tokens: a header of
+        prototypes, empty bodies, one-line stubs; a class declaration big enough to drill
+        passes) or ``"thin"`` (fewer than ``MIN_CODE_TOKENS`` code tokens), with the
+        counts; None for a window that ships.
+    """
+    if _SCAFFOLD.search("\n".join(lines)):
+        return "scaffold"
+    tokens, statements = _code_size(root)
+    declares = root.type == "translation_unit"  # C++: Python has no prototypes or headers
+    if declares and statements < MIN_STATEMENTS and tokens < DECLARATION_TOKENS:
+        return f"declaration-only ({statements} statements, {tokens} code tokens)"
+    if tokens < MIN_CODE_TOKENS:
+        return f"thin ({tokens} code tokens)"
+    return None
+
+
+def trim_comment_edges(lines: list[str], start: int, end: int) -> tuple[int, int]:
+    """Shrink ``[start, end]`` (rows of ``lines``) so the span neither starts inside a comment
+    block that began above it nor ends on comment-only lines.
+
+    Returns
+    -------
+    tuple[int, int]
+        The new ``(start, end)``; ``start > end`` when nothing is left.
+    """
+    if start > 0 and _is_comment_line(lines[start - 1]):
+        while start <= end and _is_comment_line(lines[start]):
+            start += 1
+    while end >= start and (not lines[end].strip() or _is_comment_line(lines[end])):
+        end -= 1
+    return start, end
+
+
 def secret_findings(lines: list[str]) -> list[str]:
     """Quality gate 7: names of secret patterns found in the snippet."""
     text = "\n".join(lines)
@@ -253,9 +332,34 @@ def _body_statements(node: tree_sitter.Node) -> list[tree_sitter.Node]:
     return body.named_children if body else []
 
 
+def _is_comment_line(line: str) -> bool:
+    return bool(line.strip()) and bool(_COMMENT_LINE.match(line))
+
+
+def _code_size(root: tree_sitter.Node) -> tuple[int, int]:
+    """(code tokens, statements that do something) under ``root``, outside ``_NOISE`` subtrees."""
+    tokens = statements = 0
+    stack = [root]
+    while stack:
+        node = stack.pop()
+        if node.type in _NOISE:
+            continue
+        if node.type in _STATEMENTS or (node.type == "declaration" and _initialised(node)):
+            statements += 1
+        if node.child_count == 0:
+            tokens += node.type not in _PUNCTUATION
+        stack.extend(node.children)
+    return tokens, statements
+
+
+def _initialised(node: tree_sitter.Node) -> bool:
+    return any(k.type == "init_declarator" for k in node.named_children)
+
+
 def _make_window(
     lines: list[str], origin: list[int], start: int, end: int, source: dict[str, str],
 ) -> Window | None:
+    start, end = trim_comment_edges(lines, start, end)
     chunk = lines[start:end + 1]
     while chunk and not chunk[0].strip():
         chunk, start = chunk[1:], start + 1
