@@ -131,7 +131,7 @@ def parse_issue(text: str) -> Record | None:
     )
 
 
-def generalise(keys: str) -> str:
+def generalise(keys: str, params: dict[str, Any] | None = None, old: str | None = None) -> str:
     """The idiom behind a key sequence: counts become ``{{k}}``, typed text ``{{text}}``.
 
     A count is a digit run in Normal mode (``0`` alone is a motion) or any digit run on a
@@ -141,11 +141,39 @@ def generalise(keys: str) -> str:
     T r m ' ` " @ q`` and search patterns are kept as typed. Placeholders already in
     ``keys`` are kept; numeric ones (``{{down}}``, ``{{n}}``...) become ``{{k}}``.
 
+    Given the exercise's ``params`` and ``old`` (``par_search.target_text``), the
+    character after ``f t F T`` (also after an operator, as in ``dfT``) becomes a
+    placeholder when it equals ``old[0]`` (``{{old0}}``), ``params["char"]``
+    (``{{char}}``) or ``params["text"][0]`` (``{{text0}}``); otherwise it stays literal.
+    When several match, ``{{old0}}`` wins over ``{{char}}``, which wins over
+    ``{{text0}}``. ``old0`` comes first because every exercise with a target has it,
+    and jumping onto the text being changed is what such a find is for. ``char`` is the
+    template's own find character, so it beats ``text0``, which only matches when the
+    new text happens to share its first character with the find target.
+
+    Parameters
+    ----------
+    keys
+        The player's key sequence.
+    params
+        The exercise's ``params``; None keeps every find character literal.
+    old
+        The text under the exercise's first target range; None or ``""`` disables
+        ``{{old0}}``.
+
+    Returns
+    -------
+    str
+        The idiom, with ``{{...}}`` placeholders ``par_search`` expands per exercise.
+
     Examples
     --------
     >>> generalise('yy2jp'), generalise('ci"retrying %s<Esc>'), generalise('2f2')
     ('yy{{k}}jp', 'ci"{{text}}<Esc>', '{{k}}f2')
+    >>> generalise('fTcwFalse<Esc>', {"text": "False", "char": "="}, "True")
+    'f{{old0}}cw{{text}}<Esc>'
     """
+    finds = _find_placeholders(params or {}, old or "")
     toks = _tokens(keys)
     out: list[str] = []
     i, visual, recording = 0, False, False
@@ -169,7 +197,7 @@ def generalise(keys: str) -> str:
             i += 1 if recording else 2
             recording = not recording
         elif t in CHAR_ARG_KEYS:
-            out.extend(toks[i:i + 2])
+            out.extend(_char_arg(toks[i:i + 2], finds))
             i += 2
         elif t in ("v", "V", "<C-v>"):
             out.append(t)
@@ -183,13 +211,13 @@ def generalise(keys: str) -> str:
         elif t == "g":
             out.extend(toks[i:i + 2])
             second = toks[i + 1] if i + 1 < len(toks) else ""
-            i = _motion(toks, i + 2, "", out) if second in "~uUq?w" and second else i + 2
+            i = _motion(toks, i + 2, "", out, finds) if second in "~uUq?w" and second else i + 2
         elif not visual and t in INSERT_KEYS:
             out.append(t)
             i = _insert(toks, i + 1, out)
         elif not visual and t in OPERATORS:
             out.append(t)
-            i = _motion(toks, i + 1, t, out)
+            i = _motion(toks, i + 1, t, out, finds)
             if t == "c":
                 i = _insert(toks, i, out)
         else:
@@ -298,7 +326,25 @@ def _count(toks: list[str], i: int, out: list[str]) -> int:
     return i
 
 
-def _motion(toks: list[str], i: int, op: str, out: list[str]) -> int:
+def _find_placeholders(params: dict[str, Any], old: str) -> dict[str, str]:
+    """Find character -> placeholder, lowest precedence first so higher ones overwrite."""
+    text, char = params.get("text"), params.get("char")
+    pairs = [
+        (text[0] if isinstance(text, str) and text else "", "{{text0}}"),
+        (char if isinstance(char, str) and len(char) == 1 else "", "{{char}}"),
+        (old[:1], "{{old0}}"),
+    ]
+    return {c: name for c, name in pairs if c}
+
+
+def _char_arg(pair: list[str], finds: dict[str, str]) -> list[str]:
+    """A key and its character argument, the character generalised after ``f t F T``."""
+    if len(pair) == 2 and pair[0] in "fFtT" and pair[1] in finds:
+        return [pair[0], finds[pair[1]]]
+    return pair
+
+
+def _motion(toks: list[str], i: int, op: str, out: list[str], finds: dict[str, str]) -> int:
     """Append the motion after an operator (with its count) and return the index past it."""
     if i < len(toks) and toks[i].isdigit() and toks[i] != "0":
         i = _count(toks, i, out)
@@ -311,7 +357,7 @@ def _motion(toks: list[str], i: int, op: str, out: list[str]) -> int:
         end = i + 2
     else:
         end = i + 1  # includes the doubled operator: dd, cc, yy, >>
-    out.extend(toks[i:end])
+    out.extend(_char_arg(toks[i:end], finds))
     return end
 
 
@@ -351,7 +397,7 @@ def _apply(
     note = " (app rejected it -> emulator-divergences.md)" if divergence else ""
     if verdict.keys == ex["par"]["keys"] or verdict.keys in ex.get("alternates", []):
         return f"{head}: passes, already known{note}", False, divergence, ""
-    idiom = generalise(verdict.keys)
+    idiom = generalise(verdict.keys, ex.get("params"), par_search.target_text(ex))
     fresh = idiom not in known.get(ex["skill"], set())
     if verdict.count >= par:
         ex["alternates"] = [*ex.get("alternates", []), verdict.keys]

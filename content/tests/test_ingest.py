@@ -59,6 +59,25 @@ def test_generalise(keys, idiom):
     assert ingest.generalise(keys) == idiom
 
 
+KWARG_PARAMS = {"text": "False", "char": "=", "n": 1}
+
+
+@pytest.mark.parametrize(("keys", "params", "old", "idiom"), [
+    ("fTcwFalse<Esc>", KWARG_PARAMS, "True", "f{{old0}}cw{{text}}<Esc>"),
+    ("f1cw100<Esc>", {"text": "100", "char": "=", "n": 1}, "17", "f{{old0}}cw{{text}}<Esc>"),
+    ("f=lcwFalse<Esc>", KWARG_PARAMS, "True", "f{{char}}lcw{{text}}<Esc>"),
+    ("tFx", KWARG_PARAMS, "True", "t{{text0}}x"),
+    ("dfT", KWARG_PARAMS, "True", "df{{old0}}"),
+    ("f=", {"char": "=", "text": "=x"}, "=a", "f{{old0}}"),
+    ("f=", {"char": "=", "text": "=x"}, "", "f{{char}}"),
+    ("fQ", KWARG_PARAMS, "True", "fQ"),
+    ("rT", KWARG_PARAMS, "True", "rT"),
+    ("fTcwFalse<Esc>", None, None, "fTcw{{text}}<Esc>"),
+])
+def test_generalise_find_characters(keys, params, old, idiom):
+    assert ingest.generalise(keys, params, old) == idiom
+
+
 # parse ============================================================================================
 
 

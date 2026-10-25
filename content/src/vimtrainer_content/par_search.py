@@ -6,6 +6,12 @@ Values come from the exercise's optional ``params`` object plus a few derived fr
 exercise itself (see ``_context``). A list value expands into one candidate per item.
 A template whose placeholder has no value is skipped.
 
+Derived first characters let one idiom serve every sibling exercise: ``{{old0}}`` is the
+first character of ``old``, the text the first ``target`` range covers on the start lines,
+and ``{{text0}}`` the first character of ``params["text"]``. ``ingest.generalise`` writes
+them for the character after ``f t F T``, so a player's ``fTcwFalse<Esc>`` is learned as
+``f{{old0}}cw{{text}}<Esc>``.
+
 Player-found idioms in ``content/idioms_learned.toml`` (written by ``vimtrainer-content
 ingest``) are merged into ``IDIOMS`` at import, after the built-in ones. A learned
 idiom's ``{{k}}`` stands for a count and expands to 1-9, the same count at every
@@ -133,6 +139,28 @@ def learned_keys(exercise: oracle.Exercise) -> list[str]:
     return list(dict.fromkeys(k for t in LEARNED.get(exercise["skill"], ()) for k in _expand(t, ctx)))
 
 
+def target_text(exercise: oracle.Exercise) -> str:
+    """The start-lines text under the exercise's first ``target`` range, or ``""``.
+
+    Ranges are ``{"start": [line, col], "end": [line, col]}`` with 1-based lines and
+    0-based columns, inclusive at both ends (``templates._range``). A range spanning
+    several lines yields its first line from the start column on.
+
+    Examples
+    --------
+    >>> target_text({"start": {"lines": ["f(reverse=True)"]},
+    ...              "target": [{"start": [1, 10], "end": [1, 13]}]})
+    'True'
+    """
+    target = exercise.get("target") or []
+    lines = (exercise.get("start") or {}).get("lines") or []
+    if not target or not 1 <= target[0]["start"][0] <= len(lines):
+        return ""
+    (sl, sc), (el, ec) = target[0]["start"], target[0]["end"]
+    line = lines[sl - 1]
+    return line[sc:ec + 1] if el == sl else line[sc:]
+
+
 def candidates(exercise: oracle.Exercise) -> list[str]:
     """Candidate key strings for an exercise: canonical, alternates, then expanded idioms.
 
@@ -190,8 +218,13 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def _context(exercise: oracle.Exercise) -> dict[str, Any]:
-    """Placeholder values: exercise params plus values derived from start/expect."""
+    """Placeholder values: exercise params plus values derived from start/expect/target."""
     ctx: dict[str, Any] = dict(exercise.get("params") or {})
+    old = target_text(exercise)
+    if old:
+        ctx["old0"] = old[0]
+    if isinstance(ctx.get("text"), str) and ctx["text"]:
+        ctx["text0"] = ctx["text"][0]
     target = (exercise.get("expect") or {}).get("cursor")
     if target:
         delta = target[0] - exercise["start"]["cursor"][0]
