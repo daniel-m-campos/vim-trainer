@@ -27,7 +27,7 @@ const ROWS: [string, number, string, string, string][] = [
   ["m.count", 1, "3w", "counts", "m.word"],
   ["m.file", 2, "gg G", "file motions", "f.hjkl"],
   ["m.para", 2, "{ }", "paragraphs", "f.hjkl"],
-  ["m.rel", 2, "5j", "relative jumps", "m.count"],
+  ["m.rel", 2, "Nj Nk", "relative jumps", "m.count"],
   ["m.screen", 2, "<C-d>", "scrolling", "f.hjkl"],
   ["m.screenpos", 2, "H M L", "screen position", "m.screen"],
   ["m.match", 2, "%", "matching bracket", "f.hjkl"],

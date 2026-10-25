@@ -90,6 +90,8 @@ for (const [engine, type] of Object.entries(engines)) {
     check(engine, "placement intro lists 3 sample exercises", (await text(page, "#page")).includes("3 short exercises"));
     check(engine, "placement intro after setup says 'first visit 4 of 4' and the hash is #placement-intro",
       (await text(page, "#page")).includes("4 of 4") && new URL(page.url()).hash === "#placement-intro", page.url());
+    const introNav = await page.evaluate(() => [...document.querySelectorAll("#hdr .nav a")].map((a) => `${a.hidden ? "hidden:" : ""}${a.textContent}`).join("|"));
+    check(engine, "QA #24: the placement intro header shows no s / , keys (they do nothing there)", introNav === "stats|settings", introNav);
     await page.keyboard.press("Enter");
 
     // Placement 1: m.rel (cursor kind). Give up with Esc Esc.
@@ -177,8 +179,13 @@ for (const [engine, type] of Object.entries(engines)) {
       (await page.locator("#flagpick").count()) === 0 && (await page.evaluate(() => window.__opened.length)) === 0);
     await page.keyboard.type("!");
     await page.waitForSelector("#flagpick", { timeout: 2000 });
+    await page.keyboard.press("2");
     await page.keyboard.press("1");
-    check(engine, "picking a reason moves focus to the note field", await page.evaluate(() => document.activeElement?.id === "flag-note"));
+    const picked = await page.evaluate(() => ({ focus: document.activeElement?.id, sel: document.querySelector("#flagpick .flag-opt.sel")?.dataset.r, note: document.querySelector("#flag-note")?.value }));
+    check(engine, "QA #48: a second digit changes the reason; focus stays on the strip and the note stays empty",
+      picked.focus === "foot" && picked.sel === "wrong-par" && picked.note === "", JSON.stringify(picked));
+    await page.keyboard.press("Tab");
+    check(engine, "tab moves focus to the note field", await page.evaluate(() => document.activeElement?.id === "flag-note"));
     await page.keyboard.type("par looks long");
     await page.keyboard.press("Enter");
     await page.waitForSelector("#flagpick", { state: "detached", timeout: 2000 });
@@ -234,7 +241,10 @@ for (const [engine, type] of Object.entries(engines)) {
     check(engine, "result strip on a retry still says placement 2 of 3", (await text(page, "#progress")).includes("placement 2 of 3"), await text(page, "#progress"));
 
     // Double space (plus an r) while the next exercise loads: one advance, strip inert.
+    // Digits before and between them must not become a count in the next exercise (QA #38).
+    await page.keyboard.press("3");
     await page.keyboard.press(" ");
+    await page.keyboard.press("2");
     await page.keyboard.press(" ");
     await page.keyboard.press("r");
     const midLoad = await page.evaluate(() => ({ phase: window.vimTrainer.current()?.phase, task: document.querySelector("#task")?.textContent }));
@@ -247,6 +257,11 @@ for (const [engine, type] of Object.entries(engines)) {
     const after = await page.evaluate(() => ({ n: window.vimTrainer.current().editor.recorder.events.length, retry: window.vimTrainer.current().retry, prog: document.querySelector("#progress")?.textContent }));
     check(engine, "double space advanced once: placement 3 of 3, no stray keys, not a retry", after.n === 0 && !after.retry && after.prog.includes("placement 3 of 3"), JSON.stringify(after));
     check(engine, "ex-kind task says it wants a : command", (await text(page, "#task .req")).includes("Ex"), await text(page, "#task"));
+    const row0 = await page.evaluate(() => window.vimTrainer.current().editor.recorder.snapshot().cursor[0]);
+    await page.keyboard.press("j");
+    const row1 = await page.evaluate(() => window.vimTrainer.current().editor.recorder.snapshot().cursor[0]);
+    check(engine, "QA #38: digits typed on the strip are not a count: j moves one line", row1 === row0 + 1, `${row0} -> ${row1}`);
+    await page.keyboard.press("k");
 
     // 5dd deletes lines the target keeps: the footer nudges once; u undoes (nvim: back to the start, cursor 1:0).
     await page.keyboard.type("5dd");
@@ -267,9 +282,19 @@ for (const [engine, type] of Object.entries(engines)) {
     const exStrip = await text(page, "#result");
     check(engine, "ex give-up with a matching buffer says a : command was required (no empty diff)",
       exStrip.includes("gave up") && exStrip.includes("a : command was required") && (await page.locator("#result pre.diff").count()) === 0, exStrip);
+    const exStatus = await text(page, "#result .row1 .fail");
+    check(engine, "QA #40: the status line says why: 'needs an Ex (:) command'", exStatus.includes("gave up: needs an Ex (:) command"), exStatus);
     await page.keyboard.press("r");
     await waitTask(page, "print");
     await editorFocused(page);
+    // A :s that matches reports "Found N matches"; it is not an error, so not red (QA #21).
+    await page.keyboard.type(":%s/print/print/g");
+    await page.keyboard.press("Enter");
+    const found = await page.waitForFunction(() => {
+      const m = document.querySelector(".cm-vim-message");
+      return m?.textContent?.startsWith("Found ") && { text: m.textContent, color: getComputedStyle(m).color };
+    }, null, { timeout: 3000 }).then((h) => h.jsonValue(), () => null);
+    check(engine, "QA #21: ':%s' that matches shows 'Found N matches' in a neutral colour, not red", !!found && found.color !== "rgb(255, 0, 0)", JSON.stringify(found));
     await page.keyboard.type(":g/print/d");
     await page.keyboard.press("Enter");
     await waitResult(page);
@@ -297,6 +322,8 @@ for (const [engine, type] of Object.entries(engines)) {
     // Only skills with exercises are listed: the sample has 3 skills in 3 tiers.
     check(engine, "stats grid grouped by tier", (await page.locator(".sv-tier").count()) === 3, String(await page.locator(".sv-tier").count()));
     check(engine, "stats grid outlines the focus skill", (await page.locator(".sv-cell.sv-focus").count()) === 1);
+    const statsNav = await page.evaluate(() => [...document.querySelectorAll("#hdr .nav a")].map((a) => `${a.hidden ? "hidden:" : ""}${a.textContent}`).join("|"));
+    check(engine, "QA #24: on stats the header hides the stats link and keeps ', settings'", statsNav === "hidden:stats|, settings", statsNav);
     const pills = await page.locator(".sv-pill").allInnerTexts();
     check(engine, "no tile reads 'locked' with zero attempts (shown as 'untested')", !pills.includes("locked"), pills.join(","));
     await page.keyboard.press("Tab");
@@ -329,6 +356,8 @@ for (const [engine, type] of Object.entries(engines)) {
     const hdr = await text(page, "#hdr-focus");
     check(engine, "the first exercise is the announced skill and the header names it as the focus",
       hdr.startsWith("focus:") && hdr.includes(announcedKeys), `${announcedKeys} | ${hdr}`);
+    const practiceNav = await page.evaluate(() => [...document.querySelectorAll("#hdr .nav a")].map((a) => `${a.hidden ? "hidden:" : ""}${a.textContent}`).join("|"));
+    check(engine, "QA #24: practice shows 's stats' and ', settings'", practiceNav === "s stats|, settings", practiceNav);
     const lig = await page.evaluate(() => getComputedStyle(document.querySelector(".code .cm-content")).fontVariantLigatures);
     check(engine, "editor has code ligatures off", lig === "none", lig);
     // The attempt clock stops while stats and settings cover the exercise.
@@ -360,9 +389,13 @@ for (const [engine, type] of Object.entries(engines)) {
     await page.keyboard.press("q");
     await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("Session done"), null, { timeout: WAIT });
     check(engine, "q ends the session with a summary", (await text(page, "#page")).includes("1 exercises"), await text(page, "#page"));
+    const counts = await text(page, "#summary-counts").catch(() => "");
+    check(engine, "QA #35: the summary splits solved and skipped ('0 solved, 1 skipped', no beat-par count)", counts.trim() === "0 solved, 1 skipped", counts);
 
     await page.keyboard.press(",");
     check(engine, ", opens settings", (await text(page, "#page")).includes("Settings"));
+    const settingsNav = await page.evaluate(() => [...document.querySelectorAll("#hdr .nav a")].map((a) => `${a.hidden ? "hidden:" : ""}${a.textContent}`).join("|"));
+    check(engine, "QA #24: on settings the header hides the settings link and shows stats without its key", settingsNav === "stats|hidden:settings", settingsNav);
     const attr = page.locator("#attribution-link");
     const href = await attr.getAttribute("href").catch(() => null);
     check(engine, "settings has a 'Sources & attribution' link to ATTRIBUTION.md",
@@ -379,9 +412,17 @@ for (const [engine, type] of Object.entries(engines)) {
     await page.keyboard.press("Escape");
     check(engine, "Esc returns to the summary", await onPage("Session done"), await text(page, "#page"));
     // Stats opened from settings: Esc goes back to settings, then to the summary.
+    // A short window scrolled to the bottom of settings: stats opens at its top (QA #43).
     await page.keyboard.press(",");
-    await page.locator("#nav-stats").click();
+    const viewport = page.viewportSize();
+    await page.setViewportSize({ width: 900, height: 650 }); // settings scrolls; the stats selection fits without scrolling
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    const scrolledDown = await page.evaluate(() => window.scrollY);
+    await page.evaluate(() => document.querySelector("#nav-stats").click()); // a DOM click: Playwright's would scroll to the link
     await page.waitForFunction(() => document.querySelector("#page")?.textContent?.includes("Stats"));
+    const statsScroll = await page.evaluate(() => window.scrollY);
+    check(engine, "QA #43: stats opens at the top, not at settings' scroll position", scrolledDown > 0 && statsScroll === 0, `${scrolledDown} -> ${statsScroll}`);
+    await page.setViewportSize(viewport);
     await page.keyboard.press("Escape");
     check(engine, "Esc from stats opened in settings returns to settings", await onPage("Settings"), await text(page, "#page"));
     await page.keyboard.press("Escape");
@@ -433,6 +474,8 @@ for (const [engine, type] of Object.entries(engines)) {
     check(engine, "the '!' issue body lists the recent errors", errBody.includes("recent errors") && errBody.includes("e2e-injected boom"), errBody.slice(-400));
     await page.locator("#nav-settings").click();
     const [dl] = await Promise.all([page.waitForEvent("download"), page.locator("#btn-export").click()]);
+    const exportMsg = await text(page, "#settings-msg");
+    check(engine, "QA #42: export says 'saved vim-trainer-<date>.json'", /^saved vim-trainer-\d{4}-\d\d-\d\d\.json$/.test(exportMsg.trim()), exportMsg);
     const exportedErrs = JSON.parse(readFileSync(await dl.path(), "utf8")).errors ?? [];
     check(engine, "export carries the error buffer", exportedErrs.some((e) => e.message.includes("e2e-injected boom")), JSON.stringify(exportedErrs));
 

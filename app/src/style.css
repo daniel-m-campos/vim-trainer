@@ -133,6 +133,8 @@ table.skills td code { color: var(--fg); }
 .settings button { cursor: pointer; }
 .settings button.danger { border-color: var(--fail); color: var(--fail); }
 .settings .msg { color: var(--accent); font-size: 13px; min-height: 1.2em; }
+.settings .msg.fade { opacity: 0; transition: opacity .8s; }
+.settings .msg button { margin-left: 6px; }
 
 .mobile { display: none; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--rule); font-size: 14px; }
 @media (pointer: coarse) and (hover: none) { .mobile { display: block; } }

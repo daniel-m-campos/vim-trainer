@@ -1037,8 +1037,16 @@ function substituteNeedsPattern(orig: ExFn): ExFn {
     if (noPattern && !(Vim.getVimGlobalState_() as { query?: RegExp | null }).query) {
       throw new Error("E35: No previous regular expression"); // shown by codemirror-vim, caught by catchExErrors
     }
-    return orig.call(this, cm, params);
+    orig.call(this, cm, params);
+    neutralFoundMessage(cm);
   };
+}
+
+/** A successful `:s` leaves "Found N matches" in codemirror-vim's red error style; recolour it muted (QA #21). Called by substituteNeedsPattern. */
+function neutralFoundMessage(cm: CM): void {
+  const dialog = (cm as unknown as { state: { dialog?: HTMLElement | null } }).state.dialog;
+  const msg = dialog?.querySelector<HTMLElement>(".cm-vim-message");
+  if (msg?.textContent?.startsWith("Found ")) msg.style.color = "var(--muted)";
 }
 
 // Fix 3: `:d` leaves the cursor on the first non-blank of the line now in the range's place (codemirror-vim: column 0); wraps exCommands.delete in installVimFixes.

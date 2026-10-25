@@ -73,7 +73,8 @@ export function clear(): void {
   }
 }
 
-export function exportJson(data: Saved): void {
+/** Downloads `data` as a dated JSON file and returns the file name (settings shows it). */
+export function exportJson(data: Saved): string {
   const blob = new Blob([JSON.stringify(data, null, 1)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -82,6 +83,7 @@ export function exportJson(data: Saved): void {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  return a.download;
 }
 
 // Checks an export file and returns it upgraded. Throws a message naming the first bad

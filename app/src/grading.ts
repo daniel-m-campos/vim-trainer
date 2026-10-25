@@ -49,14 +49,14 @@ export function tokenize(events: KeyEvent[], escape: EscapePref, finalMode: Mode
   return out;
 }
 
-/** Display form: insert-mode spaces render as spaces, everything else as logged. */
+/** Display form: spaces typed in insert mode or on the : / command line render as spaces (as pars write them, QA #39), everything else as logged. */
 export function displayKeys(tokens: Token[]): string {
-  return tokens.map((t) => (t.key === "<Space>" && isInsertish(t.mode) ? " " : t.key)).join("");
+  return tokens.map((t) => (t.key === "<Space>" && (isInsertish(t.mode) || t.cmdline) ? " " : t.key)).join("");
 }
 
-/** Replayable form for the logged `seq` (main.ts finish and the flag issue): a `jk` escape becomes <Esc>, so Neovim replays it. */
+/** Replayable form for the logged `seq` (main.ts finish and the flag issue): a `jk` escape becomes <Esc>, so Neovim replays it; command-line spaces stay <Space> as before. */
 export function replayKeys(tokens: Token[]): string {
-  return displayKeys(tokens.map((t) => (t.key === "jk" ? { ...t, key: "<Esc>" } : t)));
+  return tokens.map((t) => (t.key === "jk" ? "<Esc>" : t.key === "<Space>" && isInsertish(t.mode) ? " " : t.key)).join("");
 }
 
 /** Split a par/alternate key string ("ci\"x<Esc>") into notation tokens. */
