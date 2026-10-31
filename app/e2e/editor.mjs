@@ -25,7 +25,7 @@ const { typeKeys, tokenize } = await import("./keys.mjs");
 
 const caseFile = (name) => JSON.parse(readFileSync(new URL(`./cases/${name}`, import.meta.url), "utf8"));
 // macros, :normal, auto-indent, Insert <C-w>, :j (vimfixes-macros-indent.ts) come last.
-const CASES = [...caseFile("editor.json"), ...caseFile("macros-indent.json")];
+const CASES = [...caseFile("editor.json"), ...caseFile("macros-indent.json"), ...caseFile("js-indent.json")];
 // Smoke: Playwright must accept the key name each of these tokens maps to (keys.mjs);
 // a bad name would otherwise throw only when a real exercise first uses the token.
 const SMOKE_KEYS = "<Nul><C-@><NL><F12><C-Space><C-Bslash><C-->";

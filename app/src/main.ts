@@ -1017,6 +1017,7 @@ function answerImport(yes: boolean): void {
   if (yes) {
     saved = pendingImport;
     saved.settings = { ...DEFAULTS, ...saved.settings };
+    saved.settings.lang = usableLang(saved.settings.lang);
     placement = saved.placement?.lang === saved.settings.lang && !placed() ? knownQueue(saved.placement) : null;
     onboarding = false; // an imported save answers the setup questions
     refreshGraph();
@@ -1295,13 +1296,22 @@ function onKey(e: KeyboardEvent): void {
 
 // --- boot ------------------------------------------------------------------------
 
+/**
+ * `lang` if it is in LANGS and build/ has exercises for it, else the default. A save from
+ * before validation may hold an unknown language, and a listed one may have no content
+ * yet (the picker disables those), which would open a placement with zero exercises.
+ * Boot and import call it.
+ */
+function usableLang(lang: string): string {
+  return LANGS.some(([k]) => k === lang) && skillsWithContent(index, lang).length > 0 ? lang : DEFAULTS.lang;
+}
+
 async function boot(): Promise<void> {
   index = await loadIndex();
   const prior = load();
   saved = prior ?? { version: 1, settings: { ...DEFAULTS }, model: M.newState(baseGraph()), placementDone: {}, sessions: [], errors: [] };
   saved.settings = { ...DEFAULTS, ...saved.settings };
-  // An import from before validation may hold an unknown language; fall back to the default.
-  if (!LANGS.some(([k]) => k === saved.settings.lang)) saved.settings.lang = DEFAULTS.lang;
+  saved.settings.lang = usableLang(saved.settings.lang);
   for (const e of pendingErrors.splice(0)) pushError(saved, e), (broke = "yes");
   // A placement saved mid-way resumes at the same index with its records (QA #18).
   if (saved.placement?.lang === saved.settings.lang && !placed()) placement = knownQueue(saved.placement);

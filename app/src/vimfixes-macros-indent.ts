@@ -1,6 +1,6 @@
 // Round 4 emulator fixes: macros, auto-indent, Insert-mode <C-w> and ex commands, where
 // codemirror-vim 6.4.0 differs from Neovim (the class a entries of content/difftest/known.jsonl). Every expected result was taken
-// from nvim 0.12; the cases live in e2e/cases/macros-indent.json, checked against nvim.
+// from nvim 0.12; the cases live in e2e/cases/macros-indent.json and js-indent.json, checked against nvim.
 // Installed once by installVimFixes() (vimfixes.ts), through the public Vim API and the
 // CodeMirror adapter's prototype, so the vendored package is untouched.
 //
@@ -9,7 +9,8 @@
 //           the first failure (run as a loop, not nested), and a key/time guard stops
 //           one that never fails. <Space> and <BS> wrap across lines ('whichwrap' b,s).
 // Family 2  :help 'autoindent', 'indentexpr', 'cindent', 'cinkeys'. <CR> in Insert/Replace
-//           mode, o, O and r<CR> indent the new line like Neovim's python and cpp indent;
+//           mode, o, O and r<CR> indent the new line like Neovim's python, cpp, javascript
+//           and typescript indent;
 //           an indent left unused (o<Esc>, S<Esc>, cc<Esc>, <CR><CR>) is dropped; typing
 //           } { ) ] # or : re-indents the line where Neovim's indent keys would.
 // Family 3  :help i_CTRL-W. Insert/Replace-mode <C-w> deletes Vim's span.
@@ -103,7 +104,7 @@ function indentWidth(text: string): number {
   return w;
 }
 
-/** The editor's language name ("python", "cpp") as its CodeMirror language reports it. */
+/** The editor's language name ("python", "cpp", "javascript", "typescript") as its CodeMirror language reports it. */
 function langOf(cm: CM): string {
   return cm.cm6.state.facet(language)?.name ?? "";
 }
@@ -511,26 +512,40 @@ function typeInsertChar(cm: CM, c: string): void {
 interface CodeLine {
   code: string;
   comment: number;
-  inString: boolean; // the line starts inside a (python triple-quoted / C block) string or comment
+  inString: boolean; // the line starts inside a (python triple-quoted / C block / JS template) string or comment
 }
 
-/** Blank out strings and comments so brackets and colons in them are ignored. */
+/**
+ * Blank out strings and comments so brackets and colons in them are ignored. C++,
+ * javascript and typescript share // and /* *\/; javascript `templates` are strings that
+ * span lines. typescript's are left as code: Neovim's typescript indent does not treat
+ * them as strings (their syntax group, typescriptTemplate, misses its string pattern).
+ */
 function maskCode(lines: string[], lang: string): CodeLine[] {
   const py = lang === "python";
+  const js = lang === "javascript" || lang === "typescript";
+  const quotes = py ? /^(?:'''|"""|'|")/ : lang === "javascript" ? /^(?:\/\*|'|"|`)/ : /^(?:\/\*|'|")/;
   let open: string | null = null; // the open multi-line string / block comment delimiter
   return lines.map((text) => {
     const inString = open !== null;
     let code = "";
     let comment = -1;
+    let operand = false; // the last code token is an operand (a / after it divides)
     for (let i = 0; i < text.length; ) {
       if (open) {
         if (text[i] === "\\" && open !== "*/") { code += "  "; i += 2; continue; }
-        if (text.startsWith(open, i)) { code += " ".repeat(open.length); i += open.length; open = null; continue; }
+        if (text.startsWith(open, i)) {
+          code += " ".repeat(open.length);
+          i += open.length;
+          operand ||= open !== "*/"; // a string is an operand; a comment changes nothing
+          open = null;
+          continue;
+        }
         code += " "; i++; continue;
       }
       const rest = text.slice(i);
       if (py ? rest[0] === "#" : rest.startsWith("//")) { comment = i; code += " ".repeat(text.length - i); break; }
-      const delim = py ? /^(?:'''|"""|'|")/.exec(rest)?.[0] : /^(?:\/\*|'|")/.exec(rest)?.[0];
+      const delim = quotes.exec(rest)?.[0];
       if (delim) {
         if (delim === "/*" && comment < 0) comment = i;
         open = delim === "/*" ? "*/" : delim;
@@ -538,21 +553,38 @@ function maskCode(lines: string[], lang: string): CodeLine[] {
         i += delim.length;
         continue;
       }
+      const regex = js && rest[0] === "/" && !operand ? regexLength(rest) : 0;
+      if (regex) { code += " ".repeat(regex); i += regex; operand = true; continue; }
+      if (/\S/.test(text[i])) operand = !/[=(,:[!?&|{;]/.test(text[i]) && !/\breturn$/.test(code + text[i]);
       code += text[i++];
     }
-    if (open && open.length === 1) open = null; // an unterminated '...' ends at the line end
+    if (open && open.length === 1 && open !== "`") open = null; // an unterminated '...' ends at the line end
     return { code, comment, inString };
   });
 }
 
-/** The innermost unclosed ( [ { before (line, ch), searching back to line `stop` (Vim's searchpair). */
-function openBracketBefore(code: CodeLine[], line: number, ch: number, stop: number): P | null {
+/** Length of the /regex/flags literal `rest` starts with, or 0 when its / closes nowhere on the line. */
+function regexLength(rest: string): number {
+  let inClass = false;
+  for (let i = 1; i < rest.length; i++) {
+    const c = rest[i];
+    if (c === "\\") i++;
+    else if (c === "[") inClass = true;
+    else if (c === "]") inClass = false;
+    else if (c === "/" && !inClass) return i + 1 + /^[a-z]*/.exec(rest.slice(i + 1))![0].length;
+  }
+  return 0;
+}
+
+/** The innermost unclosed ( [ { (only "(" when `parens`) before (line, ch), searching back to line `stop` (Vim's searchpair). */
+function openBracketBefore(code: CodeLine[], line: number, ch: number, stop: number, parens = false): P | null {
+  const [opens, closes] = parens ? ["(", ")"] : ["([{", ")]}"];
   let depth = 0;
   for (let l = line; l >= Math.max(0, stop); l--) {
     const t = code[l].code;
     for (let i = (l === line ? ch : t.length) - 1; i >= 0; i--) {
-      if (")]}".includes(t[i])) depth++;
-      else if ("([{".includes(t[i]) && depth-- === 0) return { line: l, ch: i };
+      if (closes.includes(t[i])) depth++;
+      else if (opens.includes(t[i]) && depth-- === 0) return { line: l, ch: i };
     }
   }
   return null;
@@ -656,10 +688,269 @@ function cppIndent(lines: string[], n: number): number {
   return open ? ind(s) + SW : -1; // continuation line; top level keeps the autoindent
 }
 
+/** The last token before (line, ch) in masked code (a word or one other character) and where it starts; null at the top. */
+function tokenBefore(code: CodeLine[], line: number, ch: number): (P & { tok: string }) | null {
+  for (let l = line; l >= 0; l--) {
+    const t = code[l].code;
+    let i = (l === line ? ch : t.length) - 1;
+    while (i >= 0 && /\s/.test(t[i])) i--;
+    if (i < 0) continue;
+    let s = i;
+    if (/[\w$]/.test(t[i])) while (s > 0 && /[\w$]/.test(t[s - 1])) s--;
+    return { line: l, ch: s, tok: t.slice(s, i + 1) };
+  }
+  return null;
+}
+
+/** Words after which a { opens an object literal, not a block (javascript.vim s:IsBlock). */
+const JS_EXPR_WORDS = "return const let import export extends yield default delete var await void typeof throw case new in instanceof".split(" ");
+/** A line starting with one of these continues the statement above (javascript.vim s:opfirst). */
+const JS_OPFIRST = /^(?:[<>=,.?^%|/&]|([-:+])(?!\1)|\*+|!=|in(?:stanceof)?\b)/;
+/** A line ending with one of these continues on the next line (javascript.vim s:continuation). */
+const JS_CONTINUATION = /(?:[<=,.~!?/*^%|&:]|(?<!\+)\+|(?<!-)-|(?<!=)>|\b(?:typeof|new|delete|void|in|instanceof|await))$/;
+
+/** True when the { at `brace` opens a block rather than an object literal (javascript.vim s:IsBlock). */
+function jsIsBlock(code: CodeLine[], brace: P): boolean {
+  const prev = tokenBefore(code, brace.line, brace.ch);
+  if (!prev) return true;
+  const before = tokenBefore(code, prev.line, prev.ch)?.tok ?? "";
+  if (/^[\w$]/.test(prev.tok)) return JS_EXPR_WORDS.indexOf(prev.tok) < (prev.line !== brace.line ? 1 : 0) || before === ".";
+  if (prev.tok === ">") return code[prev.line].code[prev.ch - 1] === "="; // =>
+  if (prev.tok === ":") return /^[A-Za-z_$][\w$]*$/.test(before) && !jsExprCol(code, prev); // a label
+  return !/[=~!<,.?^%|&([*+/-]/.test(prev.tok);
+}
+
+/** True when the : at `colon` is part of an expression (a ternary or an object key), not a label or case (javascript.vim s:ExprCol). */
+function jsExprCol(code: CodeLine[], colon: P): boolean {
+  if (code[colon.line].code[colon.ch - 1] === ":") return true;
+  let bal = 0;
+  let q: P | null = colon;
+  while ((q = tokenBefore(code, q.line, q.ch))) {
+    const t = code[q.line].code;
+    const c = t[q.ch];
+    if (c === ":") {
+      if (t[q.ch - 1] === ":") q = { line: q.line, ch: q.ch - 1 };
+      else bal--;
+    } else if (c === "?") {
+      if (/^\.(?!\d)/.test(t.slice(q.ch + 1, q.ch + 3))) continue; // ?. optional chaining
+      if (!bal) return true;
+      bal++;
+    } else if (c === "{") return !jsIsBlock(code, q);
+    else if (c === "}") {
+      q = openBracketBefore(code, q.line, q.ch, 0);
+      if (!q) return false;
+    }
+  }
+  return false;
+}
+
+/** True when the first code after the { at `brace` is a case or default label (javascript.vim s:IsSwitch). */
+function jsIsSwitch(code: CodeLine[], brace: P): boolean {
+  const rest = [code[brace.line].code.slice(brace.ch + 1), ...code.slice(brace.line + 1).map((c) => c.code)].join("\n");
+  return /^\s*(?:case|default)\b/.test(rest);
+}
+
+/** If the token `at` ends an unbraced if/for/while/with (...), else, do or => head, where to look further back; else null (javascript.vim s:OneScope). */
+function jsOneScope(code: CodeLine[], at: P & { tok: string }): (P & { tok: string }) | null {
+  const prev = (q: P) => tokenBefore(code, q.line, q.ch);
+  if (at.tok === ")") {
+    const paren = openBracketBefore(code, at.line, at.ch, 0);
+    const kw = paren && prev(paren);
+    if (!kw) return null;
+    const head = ["for", "if", "let", "while", "with"].includes(kw.tok) || (/^(?:await|each)$/.test(kw.tok) && prev(kw)?.tok === "for");
+    return head && prev(kw)?.tok !== "." ? kw : null;
+  }
+  if (at.tok === "else" || at.tok === "do") return prev(at)?.tok !== "." ? at : null;
+  if (at.tok !== ">" || code[at.line].code[at.ch - 1] !== "=") return null;
+  const param = tokenBefore(code, at.line, at.ch - 1); // => : back over the parameters
+  if (param?.tok !== ")") return param ?? at;
+  const paren = openBracketBefore(code, param.line, param.ch, 0);
+  return paren && { ...paren, tok: "(" };
+}
+
+/** How many unbraced scopes (if (a), else, x =>) line p and the lines above it leave open (javascript.vim s:IsContOne). */
+function jsBraceless(code: CodeLine[], lines: string[], p: number, open: P | null, cont: boolean): number {
+  const ind = (i: number) => indentWidth(lines[i]);
+  const top = open ? open.line : 0;
+  const pind = open ? ind(open.line) + SW : 0;
+  let at = tokenBefore(code, p, code[p].code.length);
+  let level = ind(p) + (cont ? 0 : 1);
+  let count = 0;
+  while (at && ((at.line > top && level > pind) || at.line === top)) {
+    const scope = ind(at.line) < level ? jsOneScope(code, at) : null;
+    if (scope) {
+      count++;
+      at = scope;
+    } else if (!cont || count || level < ind(p)) break;
+    else at = { line: at.line, ch: 0, tok: "" };
+    level = Math.min(level, ind(at.line));
+    at = tokenBefore(code, at.line, at.ch);
+  }
+  return count;
+}
+
+/**
+ * Family 2: Neovim's javascript indentexpr (runtime/indent/javascript.vim,
+ * GetJavascriptIndent) for line n, the common cases: the enclosing ( [ { sets the base
+ * (a block after `if (...)` measures from the `(` line), a switch body adds a level for
+ * its labels, and a statement left open (a trailing operator, `=>`, an unbraced if /
+ * for / while / else body) one more. A closing bracket goes back to its opener's line.
+ * -1 keeps the autoindent.
+ */
+function jsIndent(lines: string[], n: number): number {
+  const ind = (i: number) => indentWidth(lines[i]);
+  const code = maskCode(lines, "javascript");
+  if (code[n].inString) return -1; // inside a template literal or a block comment
+  // A line holding only a string literal is code (s:PrevCodeLine skips blank and comment lines only).
+  const noCode = (l: number) => !code[l].code.trim() && (code[l].inString || code[l].comment === lines[l].length - lines[l].trimStart().length || !lines[l].trim());
+  let p = n - 1;
+  while (p >= 0 && noCode(p)) p--;
+  if (p < 0) return 0;
+  const pline = (code[p].comment >= 0 ? lines[p].slice(0, code[p].comment) : lines[p]).trimEnd();
+  const lead = lines[n].length - lines[n].trimStart().length;
+  const line = code[n].comment === lead ? "" : lines[n].trimStart(); // a comment line counts as empty
+  const closer = /^[\])}]/.test(line);
+  const open = openBracketBefore(code, n, closer ? lead : 0, 0);
+  let numInd = open ? ind(open.line) : 0;
+  let isOp = 0, braceless = 0, switchOffset = 0;
+  if (!open || (code[open.line].code[open.ch] === "{" && jsIsBlock(code, open))) {
+    const close = open && tokenBefore(code, open.line, open.ch);
+    const paren = close?.tok === ")" ? openBracketBefore(code, close.line, close.ch, 0) : null;
+    if (open && close && paren) {
+      if (close.line === open.line) numInd = ind(paren.line);
+      if (!closer && tokenBefore(code, paren.line, paren.ch)?.tok === "switch" && jsIsSwitch(code, open)) {
+        switchOffset = SW;
+        if (!pline.endsWith(".") && /^(?:default|case)\b/.test(line)) return numInd + SW;
+      }
+    }
+    if (!closer && !/[{;]$/.test(pline)) {
+      if (JS_OPFIRST.test(line) || jsContinues(code, pline, p)) isOp = SW;
+      braceless = Math.max(0, jsBraceless(code, lines, p, open, isOp > 0) - (!isOp && line.startsWith("{") ? 1 : 0)) * SW;
+    }
+  }
+  if (closer) return numInd;
+  return (open ? numInd + SW + switchOffset : 0) + braceless + isOp;
+}
+
+/** True when `pline` (line p without its comment) ends with an operator that continues the statement (javascript.vim s:Continues). */
+function jsContinues(code: CodeLine[], pline: string, p: number): boolean {
+  const tok = JS_CONTINUATION.exec(pline.slice(-15))?.[0] ?? "";
+  if (tok === ":") return jsExprCol(code, { line: p, ch: pline.length - 1 });
+  if (/^[a-z]/.test(tok)) return tokenBefore(code, p, pline.length - tok.length)?.tok !== ".";
+  return tok !== "";
+}
+
+/** typescript.vim's patterns; a match may be followed by blanks and a // comment. */
+const TS_END = String.raw`\s*(?:\/\/.*)?$`;
+const TS_CONTINUATION = new RegExp(String.raw`(?:[\\*+/.:]|(?<!<%)[=-]|\W[|&?]|\|\||&&|[^=]=[^=].*,)` + TS_END);
+const TS_ONE_LINE_SCOPE = new RegExp(String.raw`\b(?:if|else|for|while)\b[^{;]*` + TS_END);
+const TS_BLOCK = new RegExp(String.raw`[{[]` + TS_END);
+
+/**
+ * Family 2: Neovim's typescript indentexpr (runtime/indent/typescript.vim,
+ * GetTypescriptIndent). Unlike javascript's it follows the previous code line: a line
+ * ending in { or [ indents, an unclosed ( aligns after it, a trailing operator starts a
+ * continuation, an unbraced if / else / for / while body indents one line, and a
+ * closing bracket goes back to its opener's line. -1 keeps the autoindent.
+ */
+function tsIndent(lines: string[], n: number): number {
+  const ind = (i: number) => indentWidth(lines[i]);
+  const code = maskCode(lines, "typescript");
+  const masked = (l: number, i: number) => (code[l].comment >= 0 && i >= code[l].comment) || code[l].code[i] !== lines[l][i];
+  // s:Match: the pattern matches line l outside strings and comments.
+  const matches = (l: number, re: RegExp) => {
+    const m = l >= 0 ? re.exec(lines[l]) : null;
+    return m !== null && !masked(l, m.index);
+  };
+  const prevNonBlank = (l: number) => {
+    while (l >= 0 && !lines[l].trim()) l--;
+    return l;
+  };
+  // s:PrevNonBlankNonString: the code line at or above `from`, skipping // and /* */ comment lines.
+  const prevCode = (from: number) => {
+    let inBlock = false;
+    let l = prevNonBlank(from);
+    for (; l >= 0; l = prevNonBlank(l - 1)) {
+      if (lines[l].includes("/*")) {
+        if (!inBlock) break;
+        inBlock = false;
+      } else if (!inBlock && lines[l].includes("*/")) inBlock = true;
+      else if (!inBlock && !/^\s*\/\//.test(lines[l])) break;
+    }
+    return l;
+  };
+  // s:GetMSL: the first line of the continued statement line l belongs to.
+  const msl = (l: number, inScope: boolean) => {
+    let found = l;
+    for (let q = prevCode(l - 1); q >= 0; q = prevCode(q - 1)) {
+      if (matches(q, TS_CONTINUATION)) found = q;
+      else if (inScope || !matches(q, TS_ONE_LINE_SCOPE)) break;
+    }
+    return found;
+  };
+  const line = lines[n];
+  const prevline = prevNonBlank(n - 1);
+  const close = /^\s*[\],})]/.exec(line);
+  if (close && !masked(n, close[0].length - 1)) {
+    const at = close[0].length - 1;
+    if (line[at] === ",") return -1;
+    const open = openBracketBefore(code, n, at, 0, line[at] === ")");
+    if (!open) return -1;
+    if (line[at] === ")" && open.ch !== lines[open.line].length - 1) return open.ch;
+    return ind(msl(open.line, false));
+  }
+  if (prevline >= 0 && /^\s*,/.test(lines[prevline])) return ind(prevline) - SW;
+  if (prevline >= 0 && /^\s+[?|:]/.test(line)) return ind(prevline) + (/^\s+\?/.test(lines[prevline]) ? 0 : SW);
+  if (code[n].inString) return -1; // in a block comment
+  if (!line.trim() && prevline >= 0 && code[prevline].inString) return ind(prevline) - 1;
+  const lnum = prevCode(n - 1);
+  if (!line.trim() && lnum !== prevline) return ind(prevline);
+  if (lnum < 0) return 0;
+  if (matches(lnum, TS_BLOCK)) return ind(msl(lnum, false)) + SW;
+  if (/[[({]/.test(lines[lnum])) {
+    const net = (o: string, c: string) => [...code[lnum].code].reduce((d, ch) => d + (ch === o ? 1 : ch === c ? -1 : 0), 0);
+    const paren = net("(", ")") > 0 ? openBracketBefore(code, n, 0, 0, true) : null;
+    if (paren) return paren.ch === lines[paren.line].length - 1 ? ind(lnum) + SW : paren.ch + 1;
+    if (net("[", "]") > 0 || net("{", "}") > 0) return ind(lnum) + SW;
+  }
+  // s:IndentWithContinuation
+  let res = ind(lnum);
+  const start = msl(lnum, true);
+  if (!(start !== lnum && matches(lnum, TS_CONTINUATION)) && matches(start, TS_CONTINUATION))
+    res = start === lnum ? ind(start) + SW : ind(start);
+  // s:InOneLineScope / s:ExitingOneLineScope
+  const inScope = (l: number) => {
+    const s = msl(l, true);
+    return matches(s, TS_ONE_LINE_SCOPE) ? s : -1;
+  };
+  if (inScope(lnum) >= 0) return res + SW;
+  const prevStart = matches(start, TS_ONE_LINE_SCOPE) ? -1 : msl(start - 1, true);
+  let ols = matches(prevStart, TS_ONE_LINE_SCOPE) ? prevStart : -1;
+  while (ols >= 0 && res > 0) {
+    res -= SW;
+    ols = inScope(ols - 1);
+  }
+  return res;
+}
+
+/** Neovim's indent for line n of `lines` in `lang`, or -1 (keep the autoindent); `cur` is the indent autoindent would give. */
+function langIndent(lang: string, lines: string[], n: number, cur: number): number {
+  switch (lang) {
+    case "python": return pythonIndent(lines, n, cur);
+    case "cpp": return cppIndent(lines, n);
+    case "javascript": return jsIndent(lines, n);
+    case "typescript": return tsIndent(lines, n);
+    default: return -1;
+  }
+}
+
+/** Languages with C comments: //, /* *\/ and the leaders Neovim's formatoptions add. */
+const C_COMMENTS = ["cpp", "javascript", "typescript"];
+
 /** Family 2: comment leader Neovim's C formatoptions add on a new line ("// ", " * "), or "". */
 function commentLeader(lang: string, above: string): string {
-  if (lang !== "cpp") return "";
-  const masked = maskCode([above], "cpp")[0];
+  if (!C_COMMENTS.includes(lang)) return "";
+  const masked = maskCode([above], lang)[0];
   if (masked.comment < 0) return /^\s*\*(?!\/)/.test(above) ? " ".repeat(above.indexOf("*")) + "* " : "";
   const rest = above.slice(masked.comment);
   if (rest.startsWith("//")) return " ".repeat(masked.comment) + /^\/\/\s*/.exec(rest)![0];
@@ -670,9 +961,11 @@ function commentLeader(lang: string, above: string): string {
 function newLineIndent(cm: CM, lines: string[], n: number, autoindent: string): string {
   const lang = langOf(cm);
   const leader = commentLeader(lang, lines[n - 1] ?? "");
-  if (leader) return leader;
-  const cur = indentWidth(autoindent);
-  const cols = lang === "python" ? pythonIndent(lines, n, cur) : lang === "cpp" ? cppIndent(lines, n) : -1;
+  // javascript and typescript indent a // line with their indentexpr (cindent keeps it under the one above).
+  if (leader && !(lang !== "cpp" && leader.trimStart().startsWith("//"))) return leader;
+  if (leader) lines[n] = leader.trimStart() + lines[n];
+  const cols = langIndent(lang, lines, n, indentWidth(autoindent));
+  if (leader) return cols < 0 ? leader : " ".repeat(cols) + leader.trimStart();
   return cols < 0 ? autoindent : " ".repeat(cols);
 }
 
@@ -748,9 +1041,9 @@ let blankTypedOn: { cm: CM; line: number } | null = null;
 
 /**
  * Family 2 (:help cinkeys, indentkeys): type `ch` (over a character in Replace mode), then
- * re-indent the line where Neovim would: { } ) ] or (C++) # typed as the line's first
- * character, and : after a case / default / access specifier / label (C++) or any :
- * (python's <:>). Installed as an Insert-mode action and as a key . and @ replay.
+ * re-indent the line where Neovim would: { } ) ] or (C++, javascript) # typed as the line's
+ * first character, and : after a case / default / access specifier / label (C++,
+ * javascript) or any : (python's <:>). Installed as an Insert-mode action and as a key . and @ replay.
  */
 function typeElectric(cm: CM, ch: string): void {
   if (cm.cm6.state.selection.ranges.length > 1) return cm.replaceSelection(ch); // a block insert: no re-indent
@@ -763,11 +1056,13 @@ function typeElectric(cm: CM, ch: string): void {
   const first = before === ch && ch !== ":" && !(blankTypedOn?.cm === cm && blankTypedOn.line === cur.line);
   // A case / label / access specifier; for "::" Vim tests the line with the second : as a blank (in_cinkeys).
   const label = (s: string) => /^(?:case\b.*|[A-Za-z_]\w*\s*):$/.test(s);
+  // typescript's indentkeys have no : or #; javascript keeps the default ones, as C++'s cinkeys.
   const go = lang === "python" ? ch === ":" || (first && ch !== "#")
-    : lang === "cpp" && (first || (ch === ":" && (label(before) || (before.endsWith("::") && label(before.slice(0, -1).trimEnd())))));
+    : lang === "typescript" ? first && ch !== "#"
+    : (lang === "cpp" || lang === "javascript") && (first || (ch === ":" && (label(before) || (before.endsWith("::") && label(before.slice(0, -1).trimEnd())))));
   if (!go) return;
   const lines = cm.cm6.state.doc.toString().split("\n");
-  const cols = lang === "python" ? pythonIndent(lines, cur.line, indentWidth(text)) : cppIndent(lines, cur.line);
+  const cols = langIndent(lang, lines, cur.line, indentWidth(text));
   const lead = /^\s*/.exec(text)![0];
   if (cols < 0 || lead === " ".repeat(cols)) return;
   cm.replaceRange(" ".repeat(cols), { line: cur.line, ch: 0 }, { line: cur.line, ch: lead.length });

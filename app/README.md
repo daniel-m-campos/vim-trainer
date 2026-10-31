@@ -34,7 +34,7 @@ operator, `>`/`<` on empty lines, cursor placement after `y`/`g~`/`p`, `J`, coun
 `:copy`, case-sensitive search, block objects). It reaches codemirror-vim's private motion,
 operator and action tables through `grabTable()` and wraps entries. `src/vimfixes-macros-indent.ts`
 (installed by `installVimFixes()`) handles macros and `:normal` (a failing command aborts them,
-with a recursion guard), Python/C++ auto-indent, Insert-mode `<C-w>`, `:j` and ex errors. Pure
+with a recursion guard), Python/C++/JavaScript/TypeScript auto-indent, Insert-mode `<C-w>`, `:j` and ex errors. Pure
 helpers are unit-tested in `src/vimfixes.test.ts`. `e2e/editor.mjs` types the key sequences in
 `e2e/cases/*.json` and compares the result with Neovim's. The cases are inputs only: a buffer, a
 start cursor and keys. Before the browser starts, the harness runs `uv run vimtrainer-content
@@ -140,6 +140,24 @@ language whose placement ran or was skipped. `load()` and `parseImport()` in
 
 `Esc` on stats or settings calls `goBack()`: `history.back()` when the app pushed the
 current entry (so `Esc` and Back agree), otherwise `redirect("practice")`.
+
+## Reading note: JavaScript and TypeScript indent
+
+- Neovim indents the two languages with different scripts, so `src/vimfixes-macros-indent.ts`
+  has two ports. `jsIndent` follows `indent/javascript.vim`: it starts from the enclosing
+  `(` `[` `{` and adds levels for a switch body, a trailing operator or `=>`, and an unbraced
+  `if (...)` body. `tsIndent` follows `indent/typescript.vim`, which looks at the previous
+  code line instead. So after `case 1:` / `f();` the next line is at 8 in JavaScript but 4
+  in TypeScript. That is Neovim's behaviour, and `e2e/cases/js-indent.json` checks both.
+- `maskCode` treats JavaScript template literals as strings that span lines. It leaves
+  TypeScript ones as code, because Neovim's TypeScript indent does not see them as strings.
+- On a new `//` line, JavaScript and TypeScript put the comment leader at the indent their
+  indentexpr gives (`newLineIndent`). C++ keeps the leader under the comment above.
+- The `typescript` indent keys have no `:` or `#`, so typing them never re-indents
+  (`typeElectric`).
+- `usableLang` in `src/main.ts`: a saved or imported language that build/ has no exercises
+  for (Go today) falls back to Python. Without it, the placement intro would offer zero
+  exercises.
 
 ## Reading note: errors and version
 

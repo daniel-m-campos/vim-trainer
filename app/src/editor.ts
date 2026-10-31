@@ -12,6 +12,7 @@ import { indentUnit, syntaxHighlighting, HighlightStyle } from "@codemirror/lang
 import { history } from "@codemirror/commands";
 import { python } from "@codemirror/lang-python";
 import { cpp } from "@codemirror/lang-cpp";
+import { javascript } from "@codemirror/lang-javascript";
 import { tags as t } from "@lezer/highlight";
 import { vim, Vim, getCM } from "@replit/codemirror-vim";
 import { attachRecorder, recorderExtension, type Recorder } from "./recorder.ts";
@@ -119,8 +120,12 @@ function langExt(lang: string): Extension {
       return python();
     case "cpp":
       return cpp();
+    case "javascript":
+      return javascript();
+    case "typescript":
+      return javascript({ typescript: true });
     default:
-      return []; // TODO: grammars for typescript and the rest when their content exists.
+      return []; // TODO: grammars for go, rust and lua when their content exists.
   }
 }
 
