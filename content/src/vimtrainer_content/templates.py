@@ -1851,20 +1851,37 @@ def _inner_text(win: Window, node: tree_sitter.Node, inner: str) -> str | None:
         names = [_text(i) for i in items]
         if len(items) < 2 or any(i.type != "identifier" for i in items) or names[0] in ("self", "cls"):
             return None
-        return ", ".join(reversed(names))
+        return _swapped_or_new(win, items, names, key)
     if t in ("argument_list", "tuple", "list", "set", "dictionary"):
         kinds = {i.type == "keyword_argument" for i in items}
         if any(i.type in ("list_splat", "dictionary_splat", "parenthesized_list_splat") for i in items) or len(kinds) > 1:
             return None
         texts = [_text(i) for i in items]
         if len(items) >= 2 and len(set(texts)) == len(texts):
-            return ", ".join(reversed(texts))
+            return _swapped_or_new(win, items, texts, key)
         if len(items) == 1 and t != "dictionary":
             return _fit_value(win, items[0], "ci")
         return _pick_other(BRACE_TEXTS, inner, *key) if t == "dictionary" else None
     if t in ("dictionary_comprehension", "set_comprehension"):
         return _pick_other(BRACE_TEXTS, inner, *key)
     return None
+
+
+# A reversed item list is only a text-object drill while retyping it is cheap: beyond this
+# many characters a cut-and-paste swap (`df,` ... `p`) beats `ci(` plus the typed text.
+SWAP_MAX_CHARS: Final = 8
+
+
+def _swapped_or_new(win: Window, items: list[tree_sitter.Node], texts: list[str], key: tuple) -> str | None:
+    """Reverse the items when the result is short; otherwise give every item a new fitted
+    value, so the text cannot be assembled by moving the old one around."""
+    swapped = ", ".join(reversed(texts))
+    if len(swapped) <= SWAP_MAX_CHARS:
+        return swapped
+    new = [_fit_value(win, i, "ci") for i in items]
+    if any(n is None for n in new) or len(set(new)) != len(new):
+        return None
+    return ", ".join(new)
 
 
 def _inner_span(win: Window, node: tree_sitter.Node) -> tuple[int, int, int, str] | None:

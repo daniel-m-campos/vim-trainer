@@ -647,3 +647,14 @@ def test_rename_all_dot_text_differs_per_skill():
 def test_prefix_task_describes_the_buffer_as_it_is():
     for d in _drafts(ASSIGNMENTS, "prefix_each_line"):
         assert d.task.startswith("Add `self.` at the start of each of these") and "back" not in d.task
+
+
+def test_change_inner_never_reorders_long_argument_lists(runner):
+    snippet = "def run(student, scores):\n    return build(student, [])\n\n\ndef go(a, b):\n    return f(a, b)\n"
+    drafts = _drafts(snippet, "change_inner", "t.paren")
+    assert drafts
+    for d in drafts:
+        assert gates.permutation_problem(d.task) is None, d.task
+        _assert_solvable(d, runner, alternates=False)
+    # `f(a, b)` is short, so its swap stays a plain text-object drill
+    assert any("`b, a`" in d.task for d in drafts), [d.task for d in drafts]

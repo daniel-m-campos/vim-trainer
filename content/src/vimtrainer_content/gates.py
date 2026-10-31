@@ -96,13 +96,33 @@ def anti_shortcut_problem(exercise: dict[str, Any], par_count: int, typed: int) 
     return f"par {par_count} vs naive {naive} (typed {typed}): needs par-typed < (naive-typed)/{RATIO:g}"
 
 
+_CHANGE_TO: Final = re.compile(r"`([^`]+)`[^`]*\bto `([^`]+)`$")
+SWAP_MAX_CHARS: Final = 8
+
+
+def permutation_problem(task: str) -> str | None:
+    """Gate 6b: a "change `old` to `new`" task whose new text is the old comma-separated
+    items in another order is a cut-and-paste job once it is longer than SWAP_MAX_CHARS,
+    so it no longer drills the text object; returns why, or None."""
+    m = _CHANGE_TO.search(task)
+    if not m:
+        return None
+    old, new = m.groups()
+    if old == new or "," not in old or len(new) <= SWAP_MAX_CHARS:
+        return None
+    if sorted(a.strip() for a in old.split(",")) == sorted(a.strip() for a in new.split(",")):
+        return f"new text {new!r} is the old items reordered: cut and paste beats retyping"
+    return None
+
+
 def target_problem(exercise: dict[str, Any], target: Sequence[dict[str, list[int]]], task: str = "") -> str | None:
     """Gate 6: the highlight must exist, be in bounds and cover what changes or where to go,
     and a destination line the task quotes ("below `...`") must name exactly one line."""
     lines = exercise["start"]["lines"]
     if not target:
         return "no target highlight"
-    problem = _destination_problem(lines, task) or ambiguity_problem(exercise, target, task)
+    problem = _destination_problem(lines, task) or ambiguity_problem(exercise, target, task) \
+        or permutation_problem(task)
     if problem:
         return problem
     rows = set()

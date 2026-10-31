@@ -210,3 +210,15 @@ def test_ambiguity_quoted_call_needs_on_this_line_and_one_hit_there():
     ex["start"]["lines"] = ["total = add(a, b) + add(c, d)", "z = 0"]
     ex["expect"]["lines"] = ["total = add(a, 0) + add(c, d)", "z = 0"]
     assert "2 on the target line" in gates.target_problem(ex, rng, task.replace(" call", " call on this line"))
+
+
+# permutation_problem =============================================================================
+
+
+def test_permutation_problem_rejects_long_reordered_items_only():
+    swap = "Change the text `student, []` inside the parentheses under the cursor to `[], student`"
+    assert gates.permutation_problem(swap)
+    assert gates.permutation_problem("Change `a_long_name, other` to `other, a_long_name`")
+    assert gates.permutation_problem("Change `a, b` to `b, a`") is None  # short: retyping is fine
+    assert gates.permutation_problem("Change the text `x, y` to `total, mean`") is None
+    assert gates.permutation_problem("Change the value of `n=` from `17` to `100`") is None
