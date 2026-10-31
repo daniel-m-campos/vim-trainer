@@ -649,6 +649,15 @@ def test_prefix_task_describes_the_buffer_as_it_is():
         assert d.task.startswith("Add `self.` at the start of each of these") and "back" not in d.task
 
 
+def test_change_kwarg_value_quoted_value_has_a_ci_quote_variant(runner):
+    snippet = "def load(file_name):\n    with open(file_name, encoding='utf-8') as f:\n        return f.read()\n"
+    drafts = [d for d in _drafts(snippet, "change_kwarg_value", "m.find") if "'" in d.task]
+    assert drafts
+    for d in drafts:
+        assert any("ci'" in v for v in d.variants), d.variants
+        _assert_solvable(d, runner, alternates=False)
+
+
 def test_change_inner_never_reorders_long_argument_lists(runner):
     snippet = "def run(student, scores):\n    return build(student, [])\n\n\ndef go(a, b):\n    return f(a, b)\n"
     drafts = _drafts(snippet, "change_inner", "t.paren")
