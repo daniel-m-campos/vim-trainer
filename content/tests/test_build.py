@@ -2,6 +2,7 @@
 
 import json
 import re
+import shutil
 
 import pytest
 
@@ -13,6 +14,26 @@ from vimtrainer_content import build, review
 def built(tmp_path_factory):
     out = tmp_path_factory.mktemp("b") / "build"
     report = build.build(out=out, cap=3, workers=2, sources_toml=FIXTURES / "sources.toml", log=lambda *_: None)
+    return out, report
+
+
+@pytest.fixture(scope="module")
+def built_js(tmp_path_factory):
+    """A cap-3 build of the JavaScript and TypeScript fixtures in test_js.py, as local sources."""
+    from test_js import INVENTORY_JS, INVENTORY_TS
+
+    root = tmp_path_factory.mktemp("js")
+    (root / "src").mkdir()
+    shutil.copy(FIXTURES / "LICENSE", root / "LICENSE")
+    (root / "src" / "inventory.js").write_text(INVENTORY_JS)
+    (root / "src" / "inventory.ts").write_text(INVENTORY_TS)
+    toml = root / "sources.toml"
+    toml.write_text("".join(
+        f'[[source]]\nname = "fixture-{ext}"\nlang = "{lang}"\nrepo = "fixture/inventory-{ext}"\n'
+        f'license = "MIT"\nlocal = "."\ninclude = ["src/*.{ext}"]\n\n'
+        for lang, ext in (("javascript", "js"), ("typescript", "ts"))))
+    out = root / "build"
+    report = build.build(out=out, cap=3, workers=2, sources_toml=toml, log=lambda *_: None)
     return out, report
 
 
@@ -84,12 +105,11 @@ def test_render_shows_cursor_and_target(built):
     assert "^" in text and ex["par"]["keys"] in text
 
 
-def test_hint_triggers_compile_in_python_and_javascript(built):
-    import re
-    import shutil
+@pytest.mark.parametrize("which", ["built", "built_js"])
+def test_hint_triggers_compile_in_python_and_javascript(which, request):
     import subprocess
 
-    out, _ = built
+    out, _ = request.getfixturevalue(which)
     triggers = sorted({h["trigger"] for p in (out / "exercises").glob("*/*/*.json")
                        for h in json.loads(p.read_text())["hints"] if h["trigger"]})
     assert triggers
@@ -110,6 +130,29 @@ def test_cpp_is_wired_into_the_build():
     assert (spec.windows, spec.frequency, spec.generate) == (cpp.windows, cpp.node_frequency, cpp.generate)
     assert spec.skills == cpp.TARGET_SKILLS
     assert "t.angle" not in build.LANGS["python"].skills
+
+
+def test_js_is_wired_into_the_build():
+    from vimtrainer_content.lang import js
+
+    js_spec, ts_spec = build.LANGS["javascript"], build.LANGS["typescript"]
+    assert js_spec.lang is js.LANG_JS and ts_spec.lang is js.LANG_TS
+    assert (js_spec.windows, js_spec.frequency, js_spec.generate) == (js.windows_js, js.node_frequency_js, js.generate)
+    assert (ts_spec.windows, ts_spec.frequency, ts_spec.generate) == (js.windows_ts, js.node_frequency_ts, js.generate)
+    assert js_spec.skills == js.JS_TARGET_SKILLS and ts_spec.skills == js.TS_TARGET_SKILLS
+    assert "t.angle" not in js_spec.skills and "t.angle" in ts_spec.skills
+
+
+def test_js_and_ts_fixtures_build_end_to_end(built_js):
+    out, report = built_js
+    index = json.loads((out / "index.json").read_text())
+    for lang, short in (("javascript", "js"), ("typescript", "ts")):
+        skills = index["langs"][lang]["skills"]
+        assert sum(e["count"] for e in skills.values()) == sum(report.counts[lang].values()) > 0
+        for path in (out / "exercises" / lang).glob("*/*.json"):
+            ex = json.loads(path.read_text())
+            assert ex["lang"] == lang and ex["id"].startswith(f"{short}/")
+    assert "fixture/inventory-ts" in (out / "ATTRIBUTION.md").read_text()
 
 
 def test_quality_gate_counts_rejected_windows_and_their_drafts_per_skill():

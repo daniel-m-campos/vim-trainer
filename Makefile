@@ -36,7 +36,8 @@ setup:
 	cd app && npm ci
 	cd app && PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install $(BROWSERS)
 
-# Python + C++ build (fetches the pinned exercism/python and exercism/cpp into content/.cache on first run),
+# Python, C++, JavaScript and TypeScript build (fetches the pinned exercism/python, exercism/cpp,
+# exercism/javascript and exercism/typescript into content/.cache on first run),
 # then the browser oracle: emulator.web on every exercise, mismatches dropped from the index.
 content:
 	cd content && uv run vimtrainer-content build

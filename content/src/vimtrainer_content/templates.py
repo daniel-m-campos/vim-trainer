@@ -79,9 +79,14 @@ _ROLE_WORDS: Final = {
              "letter", "sentence", "phrase", "prefix", "suffix"},
 }
 _PREDICATE_HEADS: Final = frozenset({"is", "has", "can", "should", "use", "allow"})
-# Identifier node types that are code (python, C++), and the subtrees that are not:
+# Identifier node types that are code (python, C++, JS/TS), and the subtrees that are not:
 # strings, comments and #include lines. Rename and case targets come only from code.
-_CODE_IDENTS: Final = frozenset({"identifier", "field_identifier", "type_identifier"})
+_CODE_IDENTS: Final = frozenset({"identifier", "field_identifier", "type_identifier", "property_identifier"})
+# Nodes whose "name" field names a function or class (_role).
+_DEFINITIONS: Final = frozenset({
+    "function_definition", "class_definition",  # python
+    "function_declaration", "generator_function_declaration", "method_definition", "class_declaration",  # JS/TS
+})
 _NOT_CODE: Final = frozenset({
     "string", "comment", "string_literal", "raw_string_literal", "char_literal", "system_lib_string",
     "concatenated_string", "preproc_include",
@@ -101,7 +106,7 @@ _NOUNS: Final = {
     "set": "set", "dictionary_comprehension": "dict comprehension", "set_comprehension": "set comprehension",
     "interpolation": "f-string field",
 }
-_PAIR: Final = {"(": ")", "[": "]", "{": "}", '"': '"', "'": "'"}
+_PAIR: Final = {"(": ")", "[": "]", "{": "}", '"': '"', "'": "'", "`": "`"}
 _ALIASES: Final = {"(": (")", "b"), "[": ("]",), "{": ("}", "B"), '"': (), "'": ()}
 _ONE_LINE_DOC: Final = re.compile(r"\s*(\"\"\"|\'\'\').*\1")
 _REGEXISH: Final = re.compile(r"[\^$|\\]|\(\?|\[\^|[.)\]][*+?]")
@@ -1505,7 +1510,7 @@ def _which_pair(win: Window, row: int, oc: int, inner: str, nested: bool | None 
     same kind (``gates.nested_in_same_pair`` unless ``nested`` is given), and its delimited text
     occurring more than once in the window. Read by ``_inside_phrase``; lang/cpp.py calls it too."""
     o = win.lines[row][oc]
-    lang = "cpp" if win.root.type == "translation_unit" else "python"
+    lang = {"translation_unit": "cpp", "program": "javascript"}.get(win.root.type, "python")
     if nested is None:
         nested = gates.nested_in_same_pair(win.lines, row, oc, lang)
     total, _ = gates.occurrences(win.lines, f"{o}{inner}{_PAIR.get(o, '>')}")
@@ -1592,11 +1597,12 @@ def _cells(win: Window, node: tree_sitter.Node) -> set[tuple[int, int]]:
 
 
 def _is_member(node: tree_sitter.Node) -> bool:
-    """True for ``b`` in ``a.b`` (``a->b`` in C++): renaming one member use in place is rarely a real edit."""
+    """True for ``b`` in ``a.b`` (``a->b`` in C++, ``this.b`` in JS): renaming one member use in place is
+    rarely a real edit."""
     parent = node.parent
     if parent is None:
         return False
-    field = {"attribute": "attribute", "field_expression": "field"}.get(parent.type)
+    field = {"attribute": "attribute", "field_expression": "field", "member_expression": "property"}.get(parent.type)
     return field is not None and parent.child_by_field_name(field) == node
 
 
@@ -1635,8 +1641,12 @@ def _role(node: tree_sitter.Node | None, name: str, win: Window | None = None) -
     parts = [p.lower() for p in re.findall(r"[A-Z]+(?![a-z])|[A-Z]?[a-z0-9]+", name)]
     predicate = bool(parts) and parts[0] in _PREDICATE_HEADS and len(parts) > 1
     if parent is not None:
-        if parent.type in ("function_definition", "class_definition") and parent.child_by_field_name("name") == node:
-            return "class" if parent.type == "class_definition" else "flag" if predicate else "call"
+        if parent.type in _DEFINITIONS and parent.child_by_field_name("name") == node:
+            return "class" if "class" in parent.type else "flag" if predicate else "call"
+        value = parent.child_by_field_name("value") if parent.type == "variable_declarator" else None
+        if (value is not None and value.type in ("arrow_function", "function_expression")
+                and parent.child_by_field_name("name") == node):
+            return "flag" if predicate else "call"  # JS: `const area = (w) => ...`
         if parent.type == "function_declarator" and parent.child_by_field_name("declarator") == node:
             return "flag" if predicate else "call"  # C++: the name in `int area(int w)`, definition or declaration
         if parent.type in ("call", "call_expression") and parent.child_by_field_name("function") == node:
@@ -1644,6 +1654,10 @@ def _role(node: tree_sitter.Node | None, name: str, win: Window | None = None) -
         if (parent.type == "field_expression" and parent.child_by_field_name("field") == node and parent.parent is not None
                 and parent.parent.type == "call_expression" and parent.parent.child_by_field_name("function") == parent):
             return "call"  # C++: the method in `obj.size()`
+        if (parent.type == "member_expression" and parent.child_by_field_name("property") == node
+                and parent.parent is not None and parent.parent.type == "call_expression"
+                and parent.parent.child_by_field_name("function") == parent):
+            return "call"  # JS: the method in `items.push()`
     if name[:1].isupper() and not name.isupper():
         return "class"
     if predicate:
@@ -1724,7 +1738,7 @@ def _constant_def(win: Window, node: tree_sitter.Node, upper: bool) -> bool:
     Python: ``name = value`` at the file's top level (``win.indent == 0``), assigned once (to
     uppercase), or an UPPER_CASE name assigned at top or class level (to lowercase). C++: the name in a ``const`` /
     ``constexpr`` declaration (either direction); to lowercase, also an enumerator or a
-    ``#define`` name.
+    ``#define`` name. JS/TS: the name in a top-level ``const name = literal`` (either direction).
     """
     if not _is_code_ident(win, node):
         return False
@@ -1741,6 +1755,8 @@ def _constant_def(win: Window, node: tree_sitter.Node, upper: bool) -> bool:
         if scope.type == "module":
             return win.indent == 0 or not upper  # a dedented function body parses as a module too
         return not upper and scope.type == "block" and scope.parent is not None and scope.parent.type == "class_definition"
+    if parent.type == "variable_declarator":  # JS/TS
+        return win.indent == 0 and _js_constant(parent, node)  # a dedented function body parses as a program too
     if not upper and ((parent.type == "enumerator" and parent.child_by_field_name("name") == node)
                       or (parent.type == "preproc_def" and parent.child_by_field_name("name") == node)):
         return True
@@ -1756,6 +1772,22 @@ def _constant_def(win: Window, node: tree_sitter.Node, upper: bool) -> bool:
 
 
 _LITERALS = {"integer", "float", "string", "concatenated_string", "true", "false", "none"}
+_JS_LITERALS = {"number", "string", "true", "false", "null"}
+
+
+def _js_constant(declarator: tree_sitter.Node, node: tree_sitter.Node) -> bool:
+    """True for ``name`` in a top-level ``const name = <number, string, bool or null>`` (JS/TS), also
+    behind ``export``. Called by ``_constant_def``."""
+    decl = declarator.parent
+    value = declarator.child_by_field_name("value")
+    if declarator.child_by_field_name("name") != node or decl is None or decl.type != "lexical_declaration":
+        return False
+    scope = decl.parent.parent if decl.parent is not None and decl.parent.type == "export_statement" else decl.parent
+    if scope is None or scope.type != "program" or not decl.children or decl.children[0].type != "const":
+        return False
+    if value is not None and value.type == "unary_expression":
+        value = value.child_by_field_name("argument")
+    return value is not None and value.type in _JS_LITERALS
 
 
 def _literal(node: tree_sitter.Node | None) -> bool:

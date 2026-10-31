@@ -11,7 +11,7 @@ browser's UTF-16 columns and avoids tabstop differences between Neovim and the e
 
 A window never starts with the tail of a comment block that began above it, and never
 ends on comment-only lines: those describe code the window does not show. The snippet
-quality gate (``quality_problem``, applied by the build to both languages) rejects
+quality gate (``quality_problem``, applied by the build to every language) rejects
 windows that are scaffold (``TODO``, ``Waiting to be implemented``, Exercism instruction
 comments), declaration-only (a header with prototypes and no statements) or too thin
 to drill (fewer than ``MIN_CODE_TOKENS`` code tokens). Brace balance at the window edges
@@ -206,7 +206,7 @@ def quality_problem(lines: list[str], root: tree_sitter.Node) -> str | None:
     lines
         The window's lines.
     root
-        The root of the window's own parse (Python or C++).
+        The root of the window's own parse (Python, C++, JavaScript or TypeScript).
 
     Returns
     -------

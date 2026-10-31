@@ -200,6 +200,12 @@ def test_nested_in_same_pair_skips_strings_and_comments():
     assert gates.nested_in_same_pair(["call(", "    f(x))"], 1, 5)
 
 
+def test_nested_in_same_pair_skips_template_literals():
+    assert not gates.nested_in_same_pair(["const s = `(`;", "f(x);"], 1, 1, "javascript")
+    line = "const u = `http://a` + g(1, (2));"
+    assert gates.nested_in_same_pair([line], 0, line.index("(2)"), "javascript")
+
+
 def test_ambiguity_quoted_call_needs_on_this_line_and_one_hit_there():
     lines = ["total = add(a, b)", "other = add(c, d)", "z = 0"]
     ex = dict(_edit(lines, [1, 8], ["total = add(a, 0)", "other = add(c, d)", "z = 0"]), lang="python")

@@ -30,3 +30,29 @@ include = [
   "exercises/practice/*/.meta/example.h",
   "exercises/concept/*/.meta/exemplar.cpp",
 ]
+
+[[source]]
+name = "exercism-javascript"
+lang = "javascript"
+repo = "github.com/exercism/javascript"
+url = "https://github.com/exercism/javascript"
+commit = "ff04f35158cdf61eebfdf18a774010495a1fd6d9"
+license = "MIT"
+license_file = "LICENSE"
+include = [
+  "exercises/practice/*/.meta/proof.ci.js",
+  "exercises/concept/*/.meta/exemplar.js",
+]
+
+[[source]]
+name = "exercism-typescript"
+lang = "typescript"
+repo = "github.com/exercism/typescript"
+url = "https://github.com/exercism/typescript"
+commit = "1ce80b07d40d2d707dd6d651c640774c5c884410"
+license = "MIT"
+license_file = "LICENSE"
+include = [
+  "exercises/practice/*/.meta/proof.ci.ts",
+  "exercises/concept/*/.meta/exemplar.ts",
+]

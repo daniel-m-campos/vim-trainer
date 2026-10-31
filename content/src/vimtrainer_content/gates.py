@@ -283,8 +283,8 @@ def _destination_problem(lines: Sequence[str], task: str) -> str | None:
 
 _BRACKETS: Final = {"(": ")", "[": "]", "{": "}"}  # not "<": a less-than would read as an opening angle
 _CLOSER: Final = {**_BRACKETS, "<": ">"}  # for the inner-text needle only, where the task already says "angle"
-_INNER: Final = re.compile(r"\bthe text(?: `([^`]+)`)? inside the (inner )?(quotes|parentheses|square brackets|braces|"
-                           r"angle brackets)")
+_INNER: Final = re.compile(r"\bthe text(?: `([^`]+)`)? inside the (inner )?(quotes|backticks|parentheses|square brackets|"
+                           r"braces|angle brackets)")
 # Quoted targets other than inner text objects: (task pattern, needle to count in the window).
 _QUOTED: Final = (
     (re.compile(r"argument of the `([^`]+)` call"), lambda name: f"{name}("),
@@ -294,13 +294,14 @@ _QUOTED: Final = (
     (re.compile(r"^Delete the subscript after `([^`]+)`"), lambda name: f"{name}["),
     (re.compile(r"^Change `([^`]+)`(?: on this line)? to `"), lambda old: old),
 )
-_STRING_LITERAL: Final = re.compile(r"'(?:\\.|[^'\\])*'?|\"(?:\\.|[^\"\\])*\"?")
+_STRING_LITERAL: Final = re.compile(r"'(?:\\.|[^'\\])*'?|\"(?:\\.|[^\"\\])*\"?|`(?:\\.|[^`\\])*`?")
+_SLASH_COMMENTS: Final = frozenset({"cpp", "javascript", "typescript"})  # languages whose line comment is `//`
 
 
 def _inner_problem(lines: Sequence[str], row: int, col: int, found: re.Match, lang: str) -> str | None:
     quoted, inner_word, delims = found.groups()
     cursor = "under the cursor" in found.string
-    if delims != "quotes" and not inner_word and nested_in_same_pair(lines, row, col, lang):
+    if delims not in ("quotes", "backticks") and not inner_word and nested_in_same_pair(lines, row, col, lang):
         return f"target {lines[row][col]!r} is nested in a pair of the same kind: say \"inner\""
     if quoted is None or col >= len(lines[row]):
         return None
@@ -323,7 +324,7 @@ def _repeat_problem(lines: Sequence[str], row: int, needle: str, task: str) -> s
 def _code_chars(line: str, lang: str) -> str:
     """``line`` without its string literals and its trailing comment."""
     code = _STRING_LITERAL.sub("", line)
-    return code.split("//" if lang == "cpp" else "#", 1)[0]
+    return code.split("//" if lang in _SLASH_COMMENTS else "#", 1)[0]
 
 
 def _inside(rng: dict[str, list[int]], line: int, col: int) -> bool:
