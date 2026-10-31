@@ -656,3 +656,14 @@ def test_change_kwarg_value_quoted_value_has_a_ci_quote_variant(runner):
     for d in drafts:
         assert any("ci'" in v for v in d.variants), d.variants
         _assert_solvable(d, runner, alternates=False)
+
+
+def test_change_inner_never_reorders_long_argument_lists(runner):
+    snippet = "def run(student, scores):\n    return build(student, [])\n\n\ndef go(a, b):\n    return f(a, b)\n"
+    drafts = _drafts(snippet, "change_inner", "t.paren")
+    assert drafts
+    for d in drafts:
+        assert gates.permutation_problem(d.task) is None, d.task
+        _assert_solvable(d, runner, alternates=False)
+    # `f(a, b)` is short, so its swap stays a plain text-object drill
+    assert any("`b, a`" in d.task for d in drafts), [d.task for d in drafts]
