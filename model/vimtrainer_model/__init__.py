@@ -20,8 +20,6 @@ Example
 True
 """
 
-from __future__ import annotations
-
 from vimtrainer_model.attempt import apply_attempt, rebuild
 from vimtrainer_model.graph import apply_profile, load_graph
 from vimtrainer_model.placement import apply_placement

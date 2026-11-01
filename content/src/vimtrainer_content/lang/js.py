@@ -25,8 +25,6 @@ templates read cpp's module tables (pairs, nouns, texts, spans), and sharing the
 mean rewriting cpp.py around a syntax record.
 """
 
-from __future__ import annotations
-
 import contextlib
 import functools
 import re
@@ -605,7 +603,7 @@ def move_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
     lines = win.lines
     other = row + k if down else row - k
     moved = lines[:row] + lines[row + 1:]
-    expect = moved[:other] + [lines[row]] + moved[other:]
+    expect = [*moved[:other], lines[row], *moved[other:]]
     if down:
         variants = [f":m+{k}<CR>", f":m{row + k + 1}<CR>", "ddp" if k == 1 else f"dd{k - 1}jp"]
     else:
@@ -636,7 +634,7 @@ def copy_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
         k, down = 0, True
     other = row + k if down else row - k
     dest = other + 1 if down else other
-    expect = lines[:dest] + [lines[row]] + lines[dest:]
+    expect = [*lines[:dest], lines[row], *lines[dest:]]
     if k == 0:
         variants, task = [":t.<CR>", f":t{row + 1}<CR>", "yyp"], "Duplicate this line (the copy goes right below it)"
     elif down:
@@ -1061,7 +1059,7 @@ def _body_items(
 
 def _wrap(body: tree_sitter.Node, lines: list[str]) -> tuple[int, int] | None:
     """(header row, closing row) of a ``{ ... }`` member list, or None (see ``_body_items``)."""
-    (orow, ocol), (crow, ccol) = body.start_point, body.end_point
+    (orow, ocol), (crow, _) = body.start_point, body.end_point
     header, closer = lines[orow], lines[crow]
     if orow == crow or header[ocol + 1:].strip() or not _CLOSER_LINE.fullmatch(closer.strip()):
         return None
@@ -1238,9 +1236,9 @@ def _statement_runs(win: Window, node: tree_sitter.Node, min_len: int) -> Iterat
     run: list[tree_sitter.Node] = []
     for kid in [*node.named_children, None]:
         item = None
-        if kid is not None and kid.type in _RUN_ITEMS and kid.end_point.row == kid.start_point.row:
-            if win.lines[kid.start_point.row].strip() == _text(kid).strip():
-                item = kid
+        if (kid is not None and kid.type in _RUN_ITEMS and kid.end_point.row == kid.start_point.row
+                and win.lines[kid.start_point.row].strip() == _text(kid).strip()):
+            item = kid
         if item is not None and (not run or (item.start_point.row == run[-1].start_point.row + 1
                                              and item.start_point.column == run[0].start_point.column)):
             run.append(item)

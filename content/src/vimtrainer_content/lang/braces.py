@@ -5,8 +5,6 @@ the gate-5 pre-check, node frequency and the template registration context. Each
 module keeps its own templates, windowing and tables (pairs, nouns, replacement texts).
 """
 
-from __future__ import annotations
-
 import contextlib
 import re
 from collections.abc import Callable, Iterator

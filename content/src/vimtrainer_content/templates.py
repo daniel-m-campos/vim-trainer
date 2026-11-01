@@ -12,9 +12,8 @@ All choices that look random (cursor offset, replacement text, direction) are a
 ``stable_hash`` of the window and node, so a rebuild produces the same exercises.
 """
 
-from __future__ import annotations
-
 import builtins
+import itertools
 import re
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
@@ -112,7 +111,7 @@ _ONE_LINE_DOC: Final = re.compile(r"\s*(\"\"\"|\'\'\').*\1")
 _REGEXISH: Final = re.compile(r"[\^$|\\]|\(\?|\[\^|[.)\]][*+?]")
 
 
-@dataclass
+@dataclass(slots=True)
 class Draft:
     """An exercise before oracle verification."""
 
@@ -152,8 +151,8 @@ class Draft:
         return ex
 
 
-NodeTemplate = Callable[[Window, tree_sitter.Node, str, Language], Iterator[Draft]]
-LineTemplate = Callable[[Window, str, Language], Iterator[Draft]]
+type NodeTemplate = Callable[[Window, tree_sitter.Node, str, Language], Iterator[Draft]]
+type LineTemplate = Callable[[Window, str, Language], Iterator[Draft]]
 
 
 # Public Functions =================================================================================
@@ -391,7 +390,6 @@ def _kwarg_find(
         return
     k = line[start:eq + 1].count("=")
     fk = f"{k}f=" if k > 1 else "f="
-    d = line[v1] if v1 < len(line) else ""
     yield Draft(
         template="change_kwarg_value", skill=skill, kind="edit",
         task=f"Change the value of `{_text(name)}=`{where} from `{old}` to `{text}`",
@@ -729,7 +727,7 @@ def move_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
     lines = win.lines
     other = row + k if down else row - k
     moved = lines[:row] + lines[row + 1:]
-    expect = moved[:other] + [lines[row]] + moved[other:]  # `other` is also the landing index in `moved`
+    expect = [*moved[:other], lines[row], *moved[other:]]  # `other` is also the landing index in `moved`
     # Normal-mode yank/put is a legitimate idiom here, so the kind is "edit", not "ex":
     # the ex rule exists for :g/:normal drills that retyping would defeat.
     if down:
@@ -762,7 +760,7 @@ def copy_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
         k, down = 0, True
     other = row + k if down else row - k
     dest = other + 1 if down else other
-    expect = lines[:dest] + [lines[row]] + lines[dest:]
+    expect = [*lines[:dest], lines[row], *lines[dest:]]
     # Normal-mode yank/put is a legitimate idiom here (yyp is 3 keys to :t.'s 4), so the
     # kind is "edit" and the shortest variant becomes the par.
     if k == 0:
@@ -798,7 +796,7 @@ def append_each_line(win: Window, node: tree_sitter.Node, skill: str, lang: Lang
     item_rows = _item_rows(win, node)
     if item_rows is None or not 4 <= len(item_rows) <= 12 or item_rows != list(range(item_rows[0], item_rows[-1] + 1)):
         return
-    first, last = item_rows[0], item_rows[-1]
+    first = item_rows[0]
     if _seen(win, f"append:{skill}", first):
         return
     lines = [ln[:-1] if r in item_rows else ln for r, ln in enumerate(win.lines)]
@@ -1071,7 +1069,7 @@ def join_lines(win: Window, node: tree_sitter.Node, skill: str, lang: Language) 
     yield Draft(
         template="join_lines", skill=skill, kind="edit",
         task=f"Join these {n} lines into one",
-        lines=lines, cursor=[r0 + 1, _indent(lines[r0])], expect={"lines": lines[:r0] + [joined] + lines[r1 + 1:]},
+        lines=lines, cursor=[r0 + 1, _indent(lines[r0])], expect={"lines": [*lines[:r0], joined, *lines[r1 + 1:]]},
         variants=[keys], alternates=[*(["J" * (n - 1)] if n > 2 else ["2J"]), f"V{n - 1 if n > 2 else ''}jJ",
                                      f":.,+{n - 1}j<CR>"],
         idioms=["gJ", f"{n}gJ", "A<Del><Esc>", "$x"],
@@ -1094,7 +1092,7 @@ def _join_split(win: Window, node: tree_sitter.Node, skill: str) -> Iterator[Dra
     line = win.lines[row]
     if pair is None or len(items) < 2 or len(line) > 88 or "#" in line or row in _prose_rows(win):
         return
-    if any(line[a.end_point.column:b.start_point.column] != ", " for a, b in zip(items, items[1:])):
+    if any(line[a.end_point.column:b.start_point.column] != ", " for a, b in itertools.pairwise(items)):
         return
     if _seen(win, "join", str(row)):
         return
@@ -1102,7 +1100,7 @@ def _join_split(win: Window, node: tree_sitter.Node, skill: str) -> Iterator[Dra
     n = min(len(items), pick((2, 3, 3, 4), win.key, node.start_point, "joinn"))
     cuts = [items[i].start_point.column for i in range(len(items) - n + 1, len(items))]
     pad = " " * (oc + 1)
-    parts = [line[:cuts[0]].rstrip()] + [pad + line[a:b].rstrip() for a, b in zip(cuts, cuts[1:])] + [pad + line[cuts[-1]:]]
+    parts = [line[:cuts[0]].rstrip()] + [pad + line[a:b].rstrip() for a, b in itertools.pairwise(cuts)] + [pad + line[cuts[-1]:]]
     joined = parts[0]
     for part in parts[1:]:
         joined += " " + part.lstrip()
@@ -1196,7 +1194,7 @@ def duplicate_line(win: Window, node: tree_sitter.Node, skill: str, lang: Langua
     lines = win.lines
     other = row + k if down else row - k
     dest = other + 1 if down else other
-    expect = lines[:dest] + [lines[row]] + lines[dest:]
+    expect = [*lines[:dest], lines[row], *lines[dest:]]
     quote = _quote(lines[other].strip())
     if k == 0:
         variants, task = ["yyp"], "Duplicate this line (the copy goes right below it)"
@@ -1231,7 +1229,7 @@ def record_macro(win: Window, node: tree_sitter.Node, skill: str, lang: Language
         rows = [a.start_point.row for a in run]
         rights = [a.child_by_field_name("right") for a in run]
         ok = True
-        for a, right, r in zip(run, rights, rows):
+        for right, r in zip(rights, rows):
             line = win.lines[r]
             eq = line.find("=", _indent(line))
             if (right is None or right.end_point.column != len(line) or right.start_point.column != eq + 2

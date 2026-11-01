@@ -1,7 +1,5 @@
 """``vimtrainer-content``: fetch sources, build the corpus, review exercises, ingest player logs, difftest, expect."""
 
-from __future__ import annotations
-
 import argparse
 import pathlib
 import sys

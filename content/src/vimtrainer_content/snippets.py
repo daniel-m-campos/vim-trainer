@@ -19,8 +19,6 @@ needs no check of its own: a window is whole sibling items, and one that does no
 on its own (``has_error``, which covers missing braces) is dropped.
 """
 
-from __future__ import annotations
-
 import collections
 import functools
 import hashlib
@@ -77,7 +75,7 @@ _BODY_TYPES: Final = frozenset({
 })
 
 
-@dataclass
+@dataclass(slots=True)
 class Window:
     """A snippet: dedented lines from one source file plus their syntax tree."""
 

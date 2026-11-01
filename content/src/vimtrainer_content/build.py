@@ -30,8 +30,6 @@ rebuild on Linux is byte-identical to one on macOS (``make content-check`` diffs
   so the H/M/L cursor probes land the same on every platform.
 """
 
-from __future__ import annotations
-
 import collections
 import concurrent.futures
 import datetime
@@ -179,7 +177,7 @@ def build_date() -> datetime.date:
     epoch = os.environ.get("SOURCE_DATE_EPOCH", "").strip()
     if not epoch:
         return datetime.date.today()
-    return datetime.datetime.fromtimestamp(int(epoch), tz=datetime.timezone.utc).date()
+    return datetime.datetime.fromtimestamp(int(epoch), tz=datetime.UTC).date()
 
 
 def candidate_keys(draft: templates.Draft, exercise: dict[str, Any]) -> list[str]:
@@ -328,7 +326,7 @@ def _verify_rounds(
         for draft in batch:
             if len(accepted[draft.skill]) >= cap:
                 continue
-            ex, gate, detail = evaluate(draft, lang, verdicts[id(draft)], stamp, probes.get(id(draft)))
+            ex, gate, _ = evaluate(draft, lang, verdicts[id(draft)], stamp, probes.get(id(draft)))
             if ex is not None and ex["id"] in rejected_ids:
                 ex, gate = None, "human-rejected"
             if ex is None:
@@ -350,7 +348,7 @@ def _replay(
         ex["id"] = draft.uid
         jobs.extend((id(draft), ex, k) for k in candidate_keys(draft, ex))
     report.replays += len(jobs)
-    chunks = [jobs[i:i + JOBS_PER_PROCESS] for i in range(0, len(jobs), JOBS_PER_PROCESS)]
+    chunks = list(itertools.batched(jobs, JOBS_PER_PROCESS))
     runner = oracle.subprocess_runner(timeout_s=JOB_TIMEOUT_S)
     out: dict[int, dict[str, oracle.Verdict]] = collections.defaultdict(dict)
     def run(chunk):
@@ -373,7 +371,7 @@ def _probe(batch: Sequence[templates.Draft], lang: Language, workers: int) -> di
             continue
         ex = draft.exercise(lang.name)
         jobs.append((id(draft), ex, [k for k, _ in gates.cursor_probes(ex)]))
-    chunks = [jobs[i:i + PROBE_JOBS_PER_PROCESS] for i in range(0, len(jobs), PROBE_JOBS_PER_PROCESS)]
+    chunks = list(itertools.batched(jobs, PROBE_JOBS_PER_PROCESS))
 
     def run(chunk):
         return oracle.probe_cursors([(ex, keys) for _, ex, keys in chunk], timeout_s=JOB_TIMEOUT_S)

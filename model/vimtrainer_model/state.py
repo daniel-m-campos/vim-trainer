@@ -15,8 +15,6 @@ Example
 'active'
 """
 
-from __future__ import annotations
-
 import math
 
 from vimtrainer_model.constants import (
@@ -36,7 +34,6 @@ from vimtrainer_model.constants import (
     Status,
 )
 from vimtrainer_model.graph import is_enabled, lang_weight, record_skills, skill_ids, target_ms
-
 
 # Public Functions =================================================================================
 

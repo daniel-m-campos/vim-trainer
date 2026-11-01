@@ -19,7 +19,10 @@ vimtrainer-par = "vimtrainer_content.par_search:main"
 vimtrainer-content = "vimtrainer_content.cli:main"
 
 [dependency-groups]
-dev = ["pytest>=8"]
+dev = [
+    "pytest>=8",
+    "ruff>=0.17.3",
+]
 
 [build-system]
 requires = ["uv_build>=0.8,<0.12"]
@@ -31,3 +34,22 @@ module-name = "vimtrainer_content"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 filterwarnings = ["ignore:'get_child_watcher' is deprecated:DeprecationWarning"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+extend-exclude = [".cache", "tests/fixtures"]  # fixtures are input data for the tests, not project code
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "FA", "TID251"]
+ignore = [
+    "E501",  # lines are wrapped by hand near 110; the few longer ones are literals or one-line comprehensions
+    "B905",  # zip(strict=) would turn a deliberate truncation into an error; behaviour stays as written
+    "SIM905",  # word tables written as """...""".split() read better than a long list literal
+]
+
+[tool.ruff.lint.pyupgrade]
+keep-runtime-typing = false
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"__future__.annotations".msg = "Python 3.12+ evaluates annotations as written; drop the future import"

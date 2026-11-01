@@ -12,8 +12,6 @@ Example
 {'improved': [], 'mastered': [], 'unlocked': [], 'tip': None}
 """
 
-from __future__ import annotations
-
 from vimtrainer_model.attempt import rebuild
 from vimtrainer_model.constants import IMPROVED_DELTA, IN_ROTATION, MASTERED_LIKE, Status
 from vimtrainer_model.graph import order_of, skill_ids

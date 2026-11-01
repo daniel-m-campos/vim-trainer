@@ -20,8 +20,6 @@ module carries what C++ needs on top of it:
 - Grammar-agnostic helpers shared with lang/js.py live in lang/braces.py.
 """
 
-from __future__ import annotations
-
 import contextlib
 import functools
 import re
@@ -519,7 +517,7 @@ def move_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
     lines = win.lines
     other = row + k if down else row - k
     moved = lines[:row] + lines[row + 1:]
-    expect = moved[:other] + [lines[row]] + moved[other:]
+    expect = [*moved[:other], lines[row], *moved[other:]]
     # Normal-mode yank/put is a legitimate idiom here, so the kind is "edit", as in
     # templates.move_line (players typing ddp were marked wrong while this was "ex").
     if down:
@@ -552,7 +550,7 @@ def copy_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
         k, down = 0, True
     other = row + k if down else row - k
     dest = other + 1 if down else other
-    expect = lines[:dest] + [lines[row]] + lines[dest:]
+    expect = [*lines[:dest], lines[row], *lines[dest:]]
     # Normal-mode yank/put is a legitimate idiom here (yyp is 3 keys to :t.'s 4), so the
     # kind is "edit" and the shortest variant becomes the par, as in templates.copy_line.
     if k == 0:
@@ -1122,9 +1120,9 @@ def _statement_runs(win: Window, node: tree_sitter.Node, min_len: int) -> Iterat
     run: list[tree_sitter.Node] = []
     for kid in [*node.named_children, None]:
         item = None
-        if kid is not None and kid.type in _RUN_ITEMS and _end_row(kid) == kid.start_point.row:
-            if win.lines[kid.start_point.row].strip() == _text(kid).strip():
-                item = kid
+        if (kid is not None and kid.type in _RUN_ITEMS and _end_row(kid) == kid.start_point.row
+                and win.lines[kid.start_point.row].strip() == _text(kid).strip()):
+            item = kid
         if item is not None and (not run or (item.start_point.row == run[-1].start_point.row + 1
                                              and item.start_point.column == run[0].start_point.column)):
             run.append(item)

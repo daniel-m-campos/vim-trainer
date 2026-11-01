@@ -13,6 +13,7 @@ import subprocess
 import sys
 
 from conftest import FIXTURES
+
 from vimtrainer_content import build
 
 EPOCH = 981158400  # 2001-02-03T00:00:00Z

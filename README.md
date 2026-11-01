@@ -45,7 +45,7 @@ On macOS, from a fresh clone:
 ```sh
 brew install uv node neovim     # node >= 23; neovim verifies every par in `make content`
 git clone https://github.com/daniel-m-campos/vim-trainer.git && cd vim-trainer
-make setup                      # uv sync for content/ and model/, npm ci and Playwright Chromium for app/
+make setup                      # uv sync for content/ and model/ (uv installs Python 3.12 per .python-version), npm ci and Playwright Chromium for app/
 make content                    # generate build/ (~5 min: fetches the pinned sources, pars in nvim, replay in Chromium)
 make dev                        # open http://localhost:5173/
 ```

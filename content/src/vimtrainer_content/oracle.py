@@ -25,8 +25,6 @@ Examples
 (True, 15)
 """
 
-from __future__ import annotations
-
 import argparse
 import datetime
 import functools
@@ -42,7 +40,7 @@ import tempfile
 import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from typing import Any, Final
+from typing import Any, Final, Self
 
 import pynvim
 
@@ -60,8 +58,8 @@ _KEY_NAMES: Final = (
 )
 _KEY_TOKEN: Final = re.compile(rf"<(?:(?:[CSMAD]-)+(?:{_KEY_NAMES}|[^<>\s])|{_KEY_NAMES})>|.", re.I | re.S)
 
-Exercise = dict[str, Any]
-Job = tuple[Exercise, str]
+type Exercise = dict[str, Any]
+type Job = tuple[Exercise, str]
 
 
 class Kind:
@@ -72,7 +70,7 @@ class Kind:
     EX: Final = "ex"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Outcome:
     """Raw state reported by oracle.lua after replaying one key string."""
 
@@ -86,7 +84,7 @@ class Outcome:
     done: bool = True  # False: the keys swallowed oracle.lua's end marker (ended mid-command)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Verdict:
     """Graded result of one replay."""
 
@@ -99,7 +97,7 @@ class Verdict:
     outcome: Outcome | None = field(default=None, repr=False)
 
 
-Runner = Callable[[Sequence[Job]], list[Outcome]]
+type Runner = Callable[[Sequence[Job]], list[Outcome]]
 
 
 # Public Functions =================================================================================
@@ -186,7 +184,7 @@ class PynvimSession:
     def __repr__(self) -> str:
         return f"PynvimSession(channel={self._nvim.channel_id})"
 
-    def __enter__(self) -> PynvimSession:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, *exc: object):
@@ -296,7 +294,7 @@ def _run_subprocess(jobs: Sequence[Job], timeout_s: float, nvim: str) -> list[Ou
         return _run_batch(jobs, timeout_s + 0.05 * len(jobs), nvim)
     except subprocess.TimeoutExpired:
         if len(jobs) == 1:
-            ex, keys = jobs[0]
+            _, keys = jobs[0]
             return [Outcome(keys, [], [0, 0], "timeout", False, False, f"timed out after {timeout_s}s")]
         mid = len(jobs) // 2
         return _run_subprocess(jobs[:mid], timeout_s, nvim) + _run_subprocess(jobs[mid:], timeout_s, nvim)

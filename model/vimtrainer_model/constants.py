@@ -4,8 +4,6 @@ Every number here is a design constant; model/README.md records the ones that we
 decided while building the model.
 """
 
-from __future__ import annotations
-
 from typing import Final
 
 ALPHA: Final = 0.1

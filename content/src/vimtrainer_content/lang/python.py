@@ -3,8 +3,6 @@
 Node type names come from tree-sitter-python's node-types.json (grammar 0.25).
 """
 
-from __future__ import annotations
-
 import keyword
 
 from vimtrainer_content.lang import Language, Use

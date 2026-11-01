@@ -6,8 +6,8 @@ import shutil
 import tomllib
 
 import pytest
-
 from conftest import EXAMPLES, FIXTURES
+
 from vimtrainer_content import build, ingest, oracle, par_search
 from vimtrainer_content.lang.python import LANG
 

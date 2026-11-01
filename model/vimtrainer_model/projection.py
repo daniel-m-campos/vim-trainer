@@ -13,8 +13,6 @@ Example
 {'fit': 'none', 'attemptsToTarget': None, 'r2': 0.0}
 """
 
-from __future__ import annotations
-
 from vimtrainer_model.constants import (
     PROJECTION_AHEAD,
     PROJECTION_MIN_N,
@@ -133,7 +131,7 @@ def _powers(x: float, highest: int) -> list[float]:
 def _solve(matrix: list[list[float]], rhs: list[float]) -> list[float]:
     """Gaussian elimination with partial pivoting (same operation order as the TS mirror)."""
     size = len(rhs)
-    a = [row[:] + [rhs[i]] for i, row in enumerate(matrix)]
+    a = [[*row, rhs[i]] for i, row in enumerate(matrix)]
     for col in range(size):
         pivot = col
         for row in range(col + 1, size):

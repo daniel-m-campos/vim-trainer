@@ -11,8 +11,6 @@ Example
 1
 """
 
-from __future__ import annotations
-
 from vimtrainer_model.constants import (
     DAY,
     FOCUS_HISTORY_MAX,
@@ -39,7 +37,6 @@ from vimtrainer_model.state import (
     update_stats,
     update_unlocks,
 )
-
 
 # Public Functions =================================================================================
 
