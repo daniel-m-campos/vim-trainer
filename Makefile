@@ -10,6 +10,7 @@
 #   make dev      run the app at http://localhost:5173/
 #   make vectors  generate the model's shared scenarios into model/.cache/vectors/ (not committed;
 #                 test-model and test-app run it first, so `make test` needs nothing extra)
+#   make lint     ruff check for content/ and model/ (Python 3.12+); make test runs it first
 #   make test     unit tests: content, model (Python and TS mirror), app grading, typecheck
 #   make e2e      Playwright: the sample flow, a 15-exercise session on build/, the stats demo,
 #                 editor regressions checked against nvim
@@ -22,10 +23,10 @@ export PLAYWRIGHT_BROWSERS_PATH := 0
 BROWSERS ?= chromium
 CHECK_DIR := content/.cache/build-check
 
-.PHONY: setup content need-content content-check dev vectors test test-content test-model test-app e2e e2e-all emulator difftest build clean help
+.PHONY: setup content need-content content-check dev vectors lint test test-content test-model test-app e2e e2e-all emulator difftest build clean help
 
 help:
-	@sed -n '1,19p' Makefile
+	@sed -n '1,20p' Makefile
 
 setup:
 	@command -v uv >/dev/null || { echo "uv is missing: brew install uv"; exit 1; }
@@ -36,7 +37,8 @@ setup:
 	cd app && npm ci
 	cd app && PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install $(BROWSERS)
 
-# Python + C++ build (fetches the pinned exercism/python and exercism/cpp into content/.cache on first run),
+# Python, C++, JavaScript and TypeScript build (fetches the pinned exercism/python, exercism/cpp,
+# exercism/javascript and exercism/typescript into content/.cache on first run),
 # then the browser oracle: emulator.web on every exercise, mismatches dropped from the index.
 content:
 	cd content && uv run vimtrainer-content build
@@ -66,7 +68,11 @@ dev:
 vectors:
 	cd model && uv run python gen_vectors.py --out .cache/vectors
 
-test: need-content vectors test-content test-model test-app
+lint:
+	cd content && uv run ruff check .
+	cd model && uv run ruff check .
+
+test: lint need-content vectors test-content test-model test-app
 
 test-content:
 	cd content && uv run pytest -q

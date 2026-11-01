@@ -360,7 +360,7 @@ def _passes(draft) -> bool:
 
 
 def test_include_paths_are_never_string_targets(rules):
-    win, drafts = rules
+    _, drafts = rules
     inner = [d for d in drafts if d.template in ("change_inner", "delete_inner", "upper_inner")]
     assert any(d.skill == "t.quote" for d in inner)  # the other string still drills t.quote
     assert not [d for d in inner if d.target[0]["start"][0] == 1], "row 1 is the #include"
@@ -368,7 +368,7 @@ def test_include_paths_are_never_string_targets(rules):
 
 @pytest.mark.skipif(shutil.which("nvim") is None, reason="nvim not installed")
 def test_renames_skip_names_in_strings_comments_and_namespaces(rules):
-    win, drafts = rules
+    _, drafts = rules
     renames = [d for d in drafts if d.template in ("rename_here", "rename_all_subst", "upper_word")]
     olds = {d.params.get("old") for d in renames}
     assert "points" not in olds and "scoring" not in olds  # `points` is also in a string and a comment
@@ -381,7 +381,7 @@ def test_renames_skip_names_in_strings_comments_and_namespaces(rules):
 
 @pytest.mark.skipif(shutil.which("nvim") is None, reason="nvim not installed")
 def test_case_drills_only_target_constants_cpp(rules):
-    win, drafts = rules
+    _, drafts = rules
     cases = [d for d in drafts if d.template == "upper_word"]
     assert [d.params["word"] for d in cases] == ["max_bonus"]  # constexpr and used once; locals never
     assert cases[0].task == "Make `max_bonus` a constant name: uppercase it to `MAX_BONUS`"
@@ -389,7 +389,7 @@ def test_case_drills_only_target_constants_cpp(rules):
 
 
 def test_change_to_end_names_the_declared_variable(rules):
-    win, drafts = rules
+    _, drafts = rules
     tasks = [d.task for d in drafts if d.template == "change_to_end"]
     assert any("`next`" in t for t in tasks), tasks
     assert not any("`*" in t or "`&" in t for t in tasks), tasks  # QA #54: not "`* next`"

@@ -28,8 +28,6 @@ Example
 'f.modes'
 """
 
-from __future__ import annotations
-
 from vimtrainer_model.constants import (
     COMPOSITE_CONF,
     COMPOSITE_P,
@@ -47,7 +45,6 @@ from vimtrainer_model.constants import (
 from vimtrainer_model.graph import lang_weight, order_of, skill_ids
 from vimtrainer_model.rng import Mulberry32, derive_seed
 from vimtrainer_model.state import clone_state, is_eligible, prepare
-
 
 # Public Functions =================================================================================
 

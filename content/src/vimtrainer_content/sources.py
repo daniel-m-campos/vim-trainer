@@ -5,8 +5,6 @@
 A source whose licence does not match is a hard build error.
 """
 
-from __future__ import annotations
-
 import pathlib
 import re
 import subprocess

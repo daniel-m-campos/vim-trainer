@@ -28,8 +28,6 @@ Examples
 '{"id": 1, "lines": ["bc"], "cursor": [1, 0], "mode": "normal", "errmsg": ""}\\n'
 """
 
-from __future__ import annotations
-
 import argparse
 import concurrent.futures
 import json

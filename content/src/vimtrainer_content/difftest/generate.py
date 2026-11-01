@@ -18,8 +18,6 @@ Examples
 True
 """
 
-from __future__ import annotations
-
 import copy
 import json
 import random
@@ -93,7 +91,7 @@ class Buffer:
     options: dict
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Case:
     """One generated sequence on one buffer; ``(seed, index)`` regenerates it."""
 

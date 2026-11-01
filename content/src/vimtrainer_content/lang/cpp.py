@@ -17,9 +17,8 @@ module carries what C++ needs on top of it:
   Templates that assume Python syntax (string_start/string_end children, ``call`` nodes,
   indentation-only blocks, ``block``/``module`` parents) have C++ versions here; the
   drafts they emit keep the shared template names (``change_inner``, ``move_line``, ...).
+- Grammar-agnostic helpers shared with lang/js.py live in lang/braces.py.
 """
-
-from __future__ import annotations
 
 import contextlib
 import functools
@@ -31,8 +30,8 @@ from typing import Final
 import tree_sitter
 import tree_sitter_cpp
 
-from vimtrainer_content import gates, oracle, snippets, templates
-from vimtrainer_content.lang import Language, Use
+from vimtrainer_content import snippets, templates
+from vimtrainer_content.lang import Language, Use, braces
 from vimtrainer_content.snippets import Window, pick
 from vimtrainer_content.templates import Draft
 
@@ -240,36 +239,14 @@ def generate(win: Window, lang: Language = LANG) -> list[Draft]:
         return templates.generate(win, lang)
 
 
-@contextlib.contextmanager
-def registered() -> Iterator[None]:
+def registered() -> contextlib.AbstractContextManager[None]:
     """Register the ``cpp_*`` templates in the shared registries for the ``with`` block."""
-    added = []
-    for registry, extra in ((templates.NODE_TEMPLATES, CPP_NODE_TEMPLATES), (templates.LINE_TEMPLATES, CPP_LINE_TEMPLATES)):
-        for name, fn in extra.items():
-            if name not in registry:
-                registry[name] = fn
-                added.append((registry, name))
-    try:
-        yield
-    finally:
-        for registry, name in added:
-            registry.pop(name, None)
+    return braces.registered(CPP_NODE_TEMPLATES, CPP_LINE_TEMPLATES)
 
 
 def node_frequency(texts: list[str]) -> dict[str, object]:
     """``snippets.node_frequency`` for C++ (named nodes per 100 lines over whole files)."""
-    counts: dict[str, int] = {}
-    total = 0
-    for text in texts:
-        total += len(text.splitlines())
-        stack = [parse(text).root_node]
-        while stack:
-            node = stack.pop()
-            if node.is_named:
-                counts[node.type] = counts.get(node.type, 0) + 1
-            stack.extend(node.children)
-    per100 = {k: round(v * 100 / max(total, 1), 3) for k, v in sorted(counts.items())}
-    return {"files": len(texts), "lines": total, "per100Lines": per100, "counts": dict(sorted(counts.items()))}
+    return braces.node_frequency(texts, parse)
 
 
 # Node templates ===================================================================================
@@ -540,7 +517,7 @@ def move_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
     lines = win.lines
     other = row + k if down else row - k
     moved = lines[:row] + lines[row + 1:]
-    expect = moved[:other] + [lines[row]] + moved[other:]
+    expect = [*moved[:other], lines[row], *moved[other:]]
     # Normal-mode yank/put is a legitimate idiom here, so the kind is "edit", as in
     # templates.move_line (players typing ddp were marked wrong while this was "ex").
     if down:
@@ -573,7 +550,7 @@ def copy_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
         k, down = 0, True
     other = row + k if down else row - k
     dest = other + 1 if down else other
-    expect = lines[:dest] + [lines[row]] + lines[dest:]
+    expect = [*lines[:dest], lines[row], *lines[dest:]]
     # Normal-mode yank/put is a legitimate idiom here (yyp is 3 keys to :t.'s 4), so the
     # kind is "edit" and the shortest variant becomes the par, as in templates.copy_line.
     if k == 0:
@@ -836,23 +813,19 @@ CPP_LINE_TEMPLATES: Final = {"cpp_goto_line_rel": goto_line_rel, "cpp_find_char"
 # Private Functions ================================================================================
 
 
-def _text(node: tree_sitter.Node | None) -> str:
-    return node.text.decode() if node is not None and node.text is not None else ""
-
-
-def _range(sr: int, sc: int, er: int, ec: int) -> dict[str, list[int]]:
-    """A highlight range, [line 1-based, col 0-based] inclusive at both ends."""
-    return {"start": [sr + 1, sc], "end": [er + 1, ec]}
-
-
-def _indent(line: str) -> int:
-    return len(line) - len(line.lstrip())
-
-
-def _replace(lines: list[str], row: int, c0: int, c1: int, text: str) -> list[str]:
-    out = list(lines)
-    out[row] = lines[row][:c0] + text + lines[row][c1:]
-    return out
+# Shared with the other brace language (see lang/braces.py).
+_text = braces.text
+_range = braces.highlight
+_indent = braces.indent
+_replace = braces.replace
+_pick_other = braces.pick_other
+_js_escape = braces.js_escape
+_cells = braces.cells
+_bracket_pair = braces.bracket_pair
+_depth0_positions = braces.depth0_positions
+_worth_it = braces.worth_it
+_merge_short = braces.merge_short
+_occurrences = braces.occurrences
 
 
 def _header(win: Window, node: tree_sitter.Node, orow: int) -> str:
@@ -901,54 +874,6 @@ def _inner_text(win: Window, node: tree_sitter.Node, inner: str) -> str:
     if node.type == "compound_statement":
         return "return {};" if inner.strip().startswith("return") else "++count;"
     return _pick_other(_TEXTS[node.type], inner, *key)
-
-
-def _pick_other(options, current: str, *key: object) -> str:
-    return pick([o for o in options if o != current.strip()], *key)
-
-
-def _js_escape(text: str) -> str:
-    """Escape for a regex that must work in both Python and JavaScript."""
-    return re.sub(r"([\\^$.*+?()[\]{}|/])", r"\\\1", text)
-
-
-def _cells(win: Window, node: tree_sitter.Node) -> set[tuple[int, int]]:
-    (r0, c0), (r1, c1) = node.start_point, node.end_point
-    return {(r, c) for r in range(r0, min(r1, len(win.lines) - 1) + 1)
-            for c in range(c0 if r == r0 else 0, c1 if r == r1 else len(win.lines[r]))}
-
-
-def _bracket_pair(node: tree_sitter.Node) -> tuple[tuple[int, int, str], tuple[int, int, str]] | None:
-    """((row, col, open), (row, col, close)) when a node starts and ends with a (), [] or {} pair."""
-    kids = node.children
-    if len(kids) < 2 or kids[0].type not in ("(", "[", "{") or _PAIR[kids[0].type] != kids[-1].type:
-        return None
-    o, c = kids[0], kids[-1]
-    return (o.start_point.row, o.start_point.column, o.type), (c.start_point.row, c.start_point.column, c.type)
-
-
-def _depth0_positions(win: Window, open_rc, close_rc, o: str, c: str) -> list[tuple[int, int]]:
-    """Non-blank, non-bracket cells between an open and close position, outside nested o/c pairs."""
-    out, depth = [], 0
-    (r0, c0), (r1, c1) = open_rc, close_rc
-    for r in range(r0, r1 + 1):
-        line = win.lines[r]
-        for i in range(c0 + 1 if r == r0 else 0, c1 if r == r1 else len(line)):
-            ch = line[i]
-            if ch == o:
-                depth += 1
-            elif ch == c:
-                depth -= 1
-            elif depth == 0 and not ch.isspace() and ch not in "()[]{}":
-                out.append((r, i))
-    return out
-
-
-def _worth_it(draft: Draft, lang: Language) -> bool:
-    """Gate 5 (anti-shortcut) ahead of the oracle, so the per-window draft cap is spent on
-    drafts that can ship (short subscripts such as ``[pos]`` never beat ``x``)."""
-    par = oracle.count_keys(draft.variants[0])
-    return gates.anti_shortcut_problem(draft.exercise(lang.name), par, draft.typed) is None
 
 
 def _delims(win: Window) -> dict[str, int]:
@@ -1009,18 +934,6 @@ def _spans(siblings: list[tree_sitter.Node], lines: list[str]) -> list[tuple[int
     if group:
         run.append(tuple(group))
     return out + _merge_short(run)
-
-
-def _merge_short(spans: list[tuple[int, int]]) -> list[tuple[int, int]]:
-    """Fold spans shorter than MIN_LINES into the previous span when the result fits."""
-    out: list[tuple[int, int]] = []
-    for start, end in spans:
-        short = end - start + 1 < snippets.MIN_LINES or (out and out[-1][1] - out[-1][0] + 1 < snippets.MIN_LINES)
-        if out and short and end - out[-1][0] + 1 <= snippets.MAX_LINES:
-            out[-1] = (out[-1][0], end)
-        else:
-            out.append((start, end))
-    return out
 
 
 def _body_items(node: tree_sitter.Node, depth: int = 0) -> list[tree_sitter.Node]:
@@ -1202,22 +1115,14 @@ def _line_move(win: Window, node: tree_sitter.Node, salt: str) -> tuple[int, int
     return pick(options, win.key, node.start_point, salt) if options else None
 
 
-def _occurrences(line: str, tok: str, start: int) -> list[int]:
-    out, i = [], line.find(tok, start)
-    while i != -1:
-        out.append(i)
-        i = line.find(tok, i + len(tok))
-    return out
-
-
 def _statement_runs(win: Window, node: tree_sitter.Node, min_len: int) -> Iterator[list[tree_sitter.Node]]:
     """Runs of >= min_len one-line items (``_RUN_ITEMS``) on consecutive rows at one indent, each alone on its line."""
     run: list[tree_sitter.Node] = []
     for kid in [*node.named_children, None]:
         item = None
-        if kid is not None and kid.type in _RUN_ITEMS and _end_row(kid) == kid.start_point.row:
-            if win.lines[kid.start_point.row].strip() == _text(kid).strip():
-                item = kid
+        if (kid is not None and kid.type in _RUN_ITEMS and _end_row(kid) == kid.start_point.row
+                and win.lines[kid.start_point.row].strip() == _text(kid).strip()):
+            item = kid
         if item is not None and (not run or (item.start_point.row == run[-1].start_point.row + 1
                                              and item.start_point.column == run[0].start_point.column)):
             run.append(item)

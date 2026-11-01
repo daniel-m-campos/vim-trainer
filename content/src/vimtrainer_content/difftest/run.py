@@ -14,11 +14,10 @@ Examples
 0
 """
 
-from __future__ import annotations
-
 import argparse
 import concurrent.futures
 import datetime
+import itertools
 import json
 import os
 import pathlib
@@ -41,8 +40,8 @@ NVIM_OPTIONS: Final = {"startofline": True}  # see _job
 MAX_INCOMPLETE: Final = 0.2
 STALLED: Final = "worker stalled"
 
-WebRunner = Callable[[Sequence[generate.Case]], list[compare.Side]]
-NvimRunner = Callable[[Sequence[generate.Case]], list[compare.Side]]
+type WebRunner = Callable[[Sequence[generate.Case]], list[compare.Side]]
+type NvimRunner = Callable[[Sequence[generate.Case]], list[compare.Side]]
 
 
 # Public Functions =================================================================================
@@ -57,7 +56,7 @@ def nvim_sides(cases: Sequence[generate.Case], timeout_s: float = 5.0) -> list[c
     an ``error`` side.
     """
     runner = oracle.subprocess_runner(timeout_s=timeout_s)
-    batches = [list(cases[i:i + NVIM_BATCH]) for i in range(0, len(cases), NVIM_BATCH)]
+    batches = [list(batch) for batch in itertools.batched(cases, NVIM_BATCH)]
     workers = max(1, min(len(batches), os.cpu_count() or 1))
     with concurrent.futures.ThreadPoolExecutor(workers) as pool:
         results = pool.map(lambda batch: _nvim_batch(batch, runner), batches)

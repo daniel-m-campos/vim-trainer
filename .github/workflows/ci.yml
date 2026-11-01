@@ -80,6 +80,9 @@ jobs:
       - name: Generate content, browser replay
         run: cd app && node e2e/emulator.mjs --write
 
+      - name: Lint (ruff, content and model)
+        run: make lint
+
       - name: Unit tests (content, model, app + TS model mirror, typecheck)
         run: make test
 

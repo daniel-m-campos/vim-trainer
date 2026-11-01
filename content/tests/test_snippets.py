@@ -1,6 +1,7 @@
 """Tests for vimtrainer_content.snippets (windowing, size and secret gates)."""
 
 from conftest import FIXTURES
+
 from vimtrainer_content import snippets
 
 
@@ -42,9 +43,9 @@ def test_size_problem_rejects_short_wide_tab_and_non_ascii():
     assert snippets.size_problem(ok) is None
     assert "lines" in snippets.size_problem(["x"] * 7)
     assert "lines" in snippets.size_problem(["x"] * 41)
-    assert "wider" in snippets.size_problem(ok[:-1] + ["x" * 101])
-    assert "tab" in snippets.size_problem(ok[:-1] + ["\tx"])
-    assert "ASCII" in snippets.size_problem(ok[:-1] + ["s = 'café'"])
+    assert "wider" in snippets.size_problem([*ok[:-1], "x" * 101])
+    assert "tab" in snippets.size_problem([*ok[:-1], "\tx"])
+    assert "ASCII" in snippets.size_problem([*ok[:-1], "s = 'café'"])
 
 
 def test_secret_scan():

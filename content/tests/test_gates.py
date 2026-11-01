@@ -158,7 +158,7 @@ def test_cursor_probes_land_in_nvim():
 
 def test_target_problem_rejects_ambiguous_destination():
     lines = ["def f():", "    total = 1", "    return inventory", "x = 2", "    return inventory"]
-    ex = _edit(lines, [2, 4], lines[:3] + ["    total = 1"] + lines[3:])
+    ex = _edit(lines, [2, 4], [*lines[:3], "    total = 1", *lines[3:]])
     rng = [{"start": [2, 0], "end": [2, 12]}, {"start": [4, 0], "end": [4, 4]}]
     assert "matches 2 lines" in gates.target_problem(ex, rng, "Copy this line to just below `return inventory`")
     assert gates.target_problem(ex, rng, "Copy this line to just below `x = 2`") is None
@@ -198,6 +198,12 @@ def test_nested_in_same_pair_skips_strings_and_comments():
     assert not gates.nested_in_same_pair(["# note (", "f(x)"], 1, 1)
     assert not gates.nested_in_same_pair(["// note (", "f(x);"], 1, 1, "cpp")
     assert gates.nested_in_same_pair(["call(", "    f(x))"], 1, 5)
+
+
+def test_nested_in_same_pair_skips_template_literals():
+    assert not gates.nested_in_same_pair(["const s = `(`;", "f(x);"], 1, 1, "javascript")
+    line = "const u = `http://a` + g(1, (2));"
+    assert gates.nested_in_same_pair([line], 0, line.index("(2)"), "javascript")
 
 
 def test_ambiguity_quoted_call_needs_on_this_line_and_one_hit_there():

@@ -12,9 +12,8 @@ All choices that look random (cursor offset, replacement text, direction) are a
 ``stable_hash`` of the window and node, so a rebuild produces the same exercises.
 """
 
-from __future__ import annotations
-
 import builtins
+import itertools
 import re
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
@@ -79,9 +78,14 @@ _ROLE_WORDS: Final = {
              "letter", "sentence", "phrase", "prefix", "suffix"},
 }
 _PREDICATE_HEADS: Final = frozenset({"is", "has", "can", "should", "use", "allow"})
-# Identifier node types that are code (python, C++), and the subtrees that are not:
+# Identifier node types that are code (python, C++, JS/TS), and the subtrees that are not:
 # strings, comments and #include lines. Rename and case targets come only from code.
-_CODE_IDENTS: Final = frozenset({"identifier", "field_identifier", "type_identifier"})
+_CODE_IDENTS: Final = frozenset({"identifier", "field_identifier", "type_identifier", "property_identifier"})
+# Nodes whose "name" field names a function or class (_role).
+_DEFINITIONS: Final = frozenset({
+    "function_definition", "class_definition",  # python
+    "function_declaration", "generator_function_declaration", "method_definition", "class_declaration",  # JS/TS
+})
 _NOT_CODE: Final = frozenset({
     "string", "comment", "string_literal", "raw_string_literal", "char_literal", "system_lib_string",
     "concatenated_string", "preproc_include",
@@ -101,13 +105,13 @@ _NOUNS: Final = {
     "set": "set", "dictionary_comprehension": "dict comprehension", "set_comprehension": "set comprehension",
     "interpolation": "f-string field",
 }
-_PAIR: Final = {"(": ")", "[": "]", "{": "}", '"': '"', "'": "'"}
+_PAIR: Final = {"(": ")", "[": "]", "{": "}", '"': '"', "'": "'", "`": "`"}
 _ALIASES: Final = {"(": (")", "b"), "[": ("]",), "{": ("}", "B"), '"': (), "'": ()}
 _ONE_LINE_DOC: Final = re.compile(r"\s*(\"\"\"|\'\'\').*\1")
 _REGEXISH: Final = re.compile(r"[\^$|\\]|\(\?|\[\^|[.)\]][*+?]")
 
 
-@dataclass
+@dataclass(slots=True)
 class Draft:
     """An exercise before oracle verification."""
 
@@ -147,8 +151,8 @@ class Draft:
         return ex
 
 
-NodeTemplate = Callable[[Window, tree_sitter.Node, str, Language], Iterator[Draft]]
-LineTemplate = Callable[[Window, str, Language], Iterator[Draft]]
+type NodeTemplate = Callable[[Window, tree_sitter.Node, str, Language], Iterator[Draft]]
+type LineTemplate = Callable[[Window, str, Language], Iterator[Draft]]
 
 
 # Public Functions =================================================================================
@@ -386,7 +390,6 @@ def _kwarg_find(
         return
     k = line[start:eq + 1].count("=")
     fk = f"{k}f=" if k > 1 else "f="
-    d = line[v1] if v1 < len(line) else ""
     yield Draft(
         template="change_kwarg_value", skill=skill, kind="edit",
         task=f"Change the value of `{_text(name)}=`{where} from `{old}` to `{text}`",
@@ -724,7 +727,7 @@ def move_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
     lines = win.lines
     other = row + k if down else row - k
     moved = lines[:row] + lines[row + 1:]
-    expect = moved[:other] + [lines[row]] + moved[other:]  # `other` is also the landing index in `moved`
+    expect = [*moved[:other], lines[row], *moved[other:]]  # `other` is also the landing index in `moved`
     # Normal-mode yank/put is a legitimate idiom here, so the kind is "edit", not "ex":
     # the ex rule exists for :g/:normal drills that retyping would defeat.
     if down:
@@ -757,7 +760,7 @@ def copy_line(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -
         k, down = 0, True
     other = row + k if down else row - k
     dest = other + 1 if down else other
-    expect = lines[:dest] + [lines[row]] + lines[dest:]
+    expect = [*lines[:dest], lines[row], *lines[dest:]]
     # Normal-mode yank/put is a legitimate idiom here (yyp is 3 keys to :t.'s 4), so the
     # kind is "edit" and the shortest variant becomes the par.
     if k == 0:
@@ -793,7 +796,7 @@ def append_each_line(win: Window, node: tree_sitter.Node, skill: str, lang: Lang
     item_rows = _item_rows(win, node)
     if item_rows is None or not 4 <= len(item_rows) <= 12 or item_rows != list(range(item_rows[0], item_rows[-1] + 1)):
         return
-    first, last = item_rows[0], item_rows[-1]
+    first = item_rows[0]
     if _seen(win, f"append:{skill}", first):
         return
     lines = [ln[:-1] if r in item_rows else ln for r, ln in enumerate(win.lines)]
@@ -1066,7 +1069,7 @@ def join_lines(win: Window, node: tree_sitter.Node, skill: str, lang: Language) 
     yield Draft(
         template="join_lines", skill=skill, kind="edit",
         task=f"Join these {n} lines into one",
-        lines=lines, cursor=[r0 + 1, _indent(lines[r0])], expect={"lines": lines[:r0] + [joined] + lines[r1 + 1:]},
+        lines=lines, cursor=[r0 + 1, _indent(lines[r0])], expect={"lines": [*lines[:r0], joined, *lines[r1 + 1:]]},
         variants=[keys], alternates=[*(["J" * (n - 1)] if n > 2 else ["2J"]), f"V{n - 1 if n > 2 else ''}jJ",
                                      f":.,+{n - 1}j<CR>"],
         idioms=["gJ", f"{n}gJ", "A<Del><Esc>", "$x"],
@@ -1089,7 +1092,7 @@ def _join_split(win: Window, node: tree_sitter.Node, skill: str) -> Iterator[Dra
     line = win.lines[row]
     if pair is None or len(items) < 2 or len(line) > 88 or "#" in line or row in _prose_rows(win):
         return
-    if any(line[a.end_point.column:b.start_point.column] != ", " for a, b in zip(items, items[1:])):
+    if any(line[a.end_point.column:b.start_point.column] != ", " for a, b in itertools.pairwise(items)):
         return
     if _seen(win, "join", str(row)):
         return
@@ -1097,7 +1100,7 @@ def _join_split(win: Window, node: tree_sitter.Node, skill: str) -> Iterator[Dra
     n = min(len(items), pick((2, 3, 3, 4), win.key, node.start_point, "joinn"))
     cuts = [items[i].start_point.column for i in range(len(items) - n + 1, len(items))]
     pad = " " * (oc + 1)
-    parts = [line[:cuts[0]].rstrip()] + [pad + line[a:b].rstrip() for a, b in zip(cuts, cuts[1:])] + [pad + line[cuts[-1]:]]
+    parts = [line[:cuts[0]].rstrip()] + [pad + line[a:b].rstrip() for a, b in itertools.pairwise(cuts)] + [pad + line[cuts[-1]:]]
     joined = parts[0]
     for part in parts[1:]:
         joined += " " + part.lstrip()
@@ -1191,7 +1194,7 @@ def duplicate_line(win: Window, node: tree_sitter.Node, skill: str, lang: Langua
     lines = win.lines
     other = row + k if down else row - k
     dest = other + 1 if down else other
-    expect = lines[:dest] + [lines[row]] + lines[dest:]
+    expect = [*lines[:dest], lines[row], *lines[dest:]]
     quote = _quote(lines[other].strip())
     if k == 0:
         variants, task = ["yyp"], "Duplicate this line (the copy goes right below it)"
@@ -1226,7 +1229,7 @@ def record_macro(win: Window, node: tree_sitter.Node, skill: str, lang: Language
         rows = [a.start_point.row for a in run]
         rights = [a.child_by_field_name("right") for a in run]
         ok = True
-        for a, right, r in zip(run, rights, rows):
+        for right, r in zip(rights, rows):
             line = win.lines[r]
             eq = line.find("=", _indent(line))
             if (right is None or right.end_point.column != len(line) or right.start_point.column != eq + 2
@@ -1505,7 +1508,7 @@ def _which_pair(win: Window, row: int, oc: int, inner: str, nested: bool | None 
     same kind (``gates.nested_in_same_pair`` unless ``nested`` is given), and its delimited text
     occurring more than once in the window. Read by ``_inside_phrase``; lang/cpp.py calls it too."""
     o = win.lines[row][oc]
-    lang = "cpp" if win.root.type == "translation_unit" else "python"
+    lang = {"translation_unit": "cpp", "program": "javascript"}.get(win.root.type, "python")
     if nested is None:
         nested = gates.nested_in_same_pair(win.lines, row, oc, lang)
     total, _ = gates.occurrences(win.lines, f"{o}{inner}{_PAIR.get(o, '>')}")
@@ -1592,11 +1595,12 @@ def _cells(win: Window, node: tree_sitter.Node) -> set[tuple[int, int]]:
 
 
 def _is_member(node: tree_sitter.Node) -> bool:
-    """True for ``b`` in ``a.b`` (``a->b`` in C++): renaming one member use in place is rarely a real edit."""
+    """True for ``b`` in ``a.b`` (``a->b`` in C++, ``this.b`` in JS): renaming one member use in place is
+    rarely a real edit."""
     parent = node.parent
     if parent is None:
         return False
-    field = {"attribute": "attribute", "field_expression": "field"}.get(parent.type)
+    field = {"attribute": "attribute", "field_expression": "field", "member_expression": "property"}.get(parent.type)
     return field is not None and parent.child_by_field_name(field) == node
 
 
@@ -1635,8 +1639,12 @@ def _role(node: tree_sitter.Node | None, name: str, win: Window | None = None) -
     parts = [p.lower() for p in re.findall(r"[A-Z]+(?![a-z])|[A-Z]?[a-z0-9]+", name)]
     predicate = bool(parts) and parts[0] in _PREDICATE_HEADS and len(parts) > 1
     if parent is not None:
-        if parent.type in ("function_definition", "class_definition") and parent.child_by_field_name("name") == node:
-            return "class" if parent.type == "class_definition" else "flag" if predicate else "call"
+        if parent.type in _DEFINITIONS and parent.child_by_field_name("name") == node:
+            return "class" if "class" in parent.type else "flag" if predicate else "call"
+        value = parent.child_by_field_name("value") if parent.type == "variable_declarator" else None
+        if (value is not None and value.type in ("arrow_function", "function_expression")
+                and parent.child_by_field_name("name") == node):
+            return "flag" if predicate else "call"  # JS: `const area = (w) => ...`
         if parent.type == "function_declarator" and parent.child_by_field_name("declarator") == node:
             return "flag" if predicate else "call"  # C++: the name in `int area(int w)`, definition or declaration
         if parent.type in ("call", "call_expression") and parent.child_by_field_name("function") == node:
@@ -1644,6 +1652,10 @@ def _role(node: tree_sitter.Node | None, name: str, win: Window | None = None) -
         if (parent.type == "field_expression" and parent.child_by_field_name("field") == node and parent.parent is not None
                 and parent.parent.type == "call_expression" and parent.parent.child_by_field_name("function") == parent):
             return "call"  # C++: the method in `obj.size()`
+        if (parent.type == "member_expression" and parent.child_by_field_name("property") == node
+                and parent.parent is not None and parent.parent.type == "call_expression"
+                and parent.parent.child_by_field_name("function") == parent):
+            return "call"  # JS: the method in `items.push()`
     if name[:1].isupper() and not name.isupper():
         return "class"
     if predicate:
@@ -1724,7 +1736,7 @@ def _constant_def(win: Window, node: tree_sitter.Node, upper: bool) -> bool:
     Python: ``name = value`` at the file's top level (``win.indent == 0``), assigned once (to
     uppercase), or an UPPER_CASE name assigned at top or class level (to lowercase). C++: the name in a ``const`` /
     ``constexpr`` declaration (either direction); to lowercase, also an enumerator or a
-    ``#define`` name.
+    ``#define`` name. JS/TS: the name in a top-level ``const name = literal`` (either direction).
     """
     if not _is_code_ident(win, node):
         return False
@@ -1741,6 +1753,8 @@ def _constant_def(win: Window, node: tree_sitter.Node, upper: bool) -> bool:
         if scope.type == "module":
             return win.indent == 0 or not upper  # a dedented function body parses as a module too
         return not upper and scope.type == "block" and scope.parent is not None and scope.parent.type == "class_definition"
+    if parent.type == "variable_declarator":  # JS/TS
+        return win.indent == 0 and _js_constant(parent, node)  # a dedented function body parses as a program too
     if not upper and ((parent.type == "enumerator" and parent.child_by_field_name("name") == node)
                       or (parent.type == "preproc_def" and parent.child_by_field_name("name") == node)):
         return True
@@ -1756,6 +1770,22 @@ def _constant_def(win: Window, node: tree_sitter.Node, upper: bool) -> bool:
 
 
 _LITERALS = {"integer", "float", "string", "concatenated_string", "true", "false", "none"}
+_JS_LITERALS = {"number", "string", "true", "false", "null"}
+
+
+def _js_constant(declarator: tree_sitter.Node, node: tree_sitter.Node) -> bool:
+    """True for ``name`` in a top-level ``const name = <number, string, bool or null>`` (JS/TS), also
+    behind ``export``. Called by ``_constant_def``."""
+    decl = declarator.parent
+    value = declarator.child_by_field_name("value")
+    if declarator.child_by_field_name("name") != node or decl is None or decl.type != "lexical_declaration":
+        return False
+    scope = decl.parent.parent if decl.parent is not None and decl.parent.type == "export_statement" else decl.parent
+    if scope is None or scope.type != "program" or not decl.children or decl.children[0].type != "const":
+        return False
+    if value is not None and value.type == "unary_expression":
+        value = value.child_by_field_name("argument")
+    return value is not None and value.type in _JS_LITERALS
 
 
 def _literal(node: tree_sitter.Node | None) -> bool:

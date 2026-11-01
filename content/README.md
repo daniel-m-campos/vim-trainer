@@ -120,8 +120,8 @@ with the `}` it follows. On the exercism corpus this gives 253 windows covering 
 about 5,400 lines.
 
 A window never starts inside a comment block that began above it and never ends on
-comment-only lines (`snippets.trim_comment_edges`, both languages). The build then applies
-the snippet quality gate, `snippets.quality_problem`, to every window of both languages.
+comment-only lines (`snippets.trim_comment_edges`, every language). The build then applies
+the snippet quality gate, `snippets.quality_problem`, to every window of every language.
 It rejects scaffold (`TODO`, `Waiting to be implemented`, `NotImplementedError`, Exercism
 instruction comments) and windows with fewer than 20 code tokens. For C++ it also rejects
 declaration-only windows: fewer than 3 statements and fewer than 40 code tokens, which is
@@ -195,7 +195,7 @@ through `cpp.generate`.
 
 ### Building C++ on its own
 
-`build.py` builds both languages: `build.LANGS` maps each language to its windowing,
+`build.py` builds every language: `build.LANGS` maps each language to its windowing,
 node-frequency and draft functions and its default skills (`cpp.windows`,
 `cpp.node_frequency`, `cpp.generate`, `cpp.TARGET_SKILLS`). To try C++ alone without
 touching `build/`, write to a scratch directory:
@@ -236,3 +236,104 @@ unrelated line. Small ints (up to 256) are immortal, so files shorter than 257 l
 hit the bug. Indexing (`point[0]`) is safe. `cpp.py` indexes points wherever it walks a
 whole file. `snippets.windows` (Python) still reads `.row` on whole-file trees, so a
 Python source longer than 256 lines would crash the build.
+
+## JavaScript and TypeScript
+
+JavaScript and TypeScript are the third and fourth content languages. One module,
+`src/vimtrainer_content/lang/js.py`, serves both: `js.LANG_JS` (`lang` `javascript`, ids
+`js/...`) and `js.LANG_TS` (`lang` `typescript`, ids `ts/...`). TypeScript's node types are
+a superset of JavaScript's, so the two share one node mapping. The module follows `cpp.py`
+function by function. The grammar-agnostic helpers both modules use (text and highlight
+helpers, bracket scanning, span merging, template registration) live in
+`src/vimtrainer_content/lang/braces.py`. The templates themselves are duplicated rather
+than shared, because cpp's templates read cpp's own tables.
+
+### Sources
+
+| entry in `sources.toml` | files | commit |
+|---|---|---|
+| `exercism-javascript` | `exercises/practice/*/.meta/proof.ci.js`, `exercises/concept/*/.meta/exemplar.js` | `ff04f35158cdf61eebfdf18a774010495a1fd6d9` |
+| `exercism-typescript` | `exercises/practice/*/.meta/proof.ci.ts`, `exercises/concept/*/.meta/exemplar.ts` | `1ce80b07d40d2d707dd6d651c640774c5c884410` |
+
+Both are MIT, checked at the pinned commit. JavaScript has 169 files and about 8,400 lines.
+TypeScript has 112 files and about 5,900 lines; its track has a single concept exemplar.
+The parsers are `tree-sitter-javascript` (grammar 0.25) and `tree-sitter-typescript`
+(grammar 0.23, its `typescript` dialect).
+
+### Windows
+
+`js.windows_js` and `js.windows_ts` work like `cpp.windows`, with two differences.
+
+- Exercism's JavaScript and TypeScript are indented by two spaces. `js.reindent` turns each
+  level into four spaces, the oracle's `shiftwidth`, so that `>>` shifts by one level of the
+  code. An indent `i` becomes `i + 2 * (i // 2)`, which also keeps a block comment's ` * `
+  lines aligned. The inside of a multi-line template string is string content, so it stays
+  as it is.
+- A method or a `key: value` entry does not parse on its own. A class body or object
+  literal longer than 40 lines is therefore cut into windows of whole members, and each
+  window keeps the class (or object) header line and its closing line around them. The
+  window's `first_line` / `last_line` (and the exercise's `source.lines`) are those of the
+  members. ATTRIBUTION.md says so. A function body longer than 40 lines is split into its
+  statements, as in C++.
+
+On the exercism corpus this gives 326 JavaScript windows covering 7,258 lines and 231
+TypeScript windows covering 5,102 lines. The quality gate drops 42 JavaScript windows and
+6 TypeScript windows, all of them thin (fewer than 20 code tokens).
+
+### Node -> skill mapping
+
+| node type | skill | template |
+|---|---|---|
+| `string` (`'` or `"`) | t.quote, o.case | change_inner / delete_inner (`ci'` `di"`), upper_inner (`gUi'`) |
+| `template_string` | t.quote | change_inner / delete_inner (``ci` `` ``di` ``) |
+| `arguments`, `formal_parameters`, `parenthesized_expression` (an `if` / `while` condition too) | t.paren, m.match, n.unmatched | change_inner / delete_inner, jump_match, jump_block_end |
+| `arguments` of a `call_expression` | o.change | change_nth_arg (`f,wct,X`) |
+| `statement_block` | t.brace, m.match, n.unmatched, o.indent, x.normal | change_inner / delete_inner, delete_inner (multi-line, `di{`), jump_match, jump_block_end, indent_block (`>i{`), prefix_each_line |
+| `object` | t.brace, m.match, n.unmatched | change_inner / delete_inner, delete_inner (multi-line), jump_match, jump_block_end |
+| `class_body` | t.brace, m.match, o.indent, x.normal | delete_inner (`di{`), jump_match, indent_block, prefix_each_line |
+| `array`, `subscript_expression` | t.bracket (and m.match for `array`) | change_inner / delete_inner (`ci[` `di[`), jump_match |
+| `type_arguments`, `type_parameters` (TypeScript only) | t.angle | change_inner / delete_inner (`ci<` `di<`) |
+| `comment` (single line, after code) | o.delete | delete_trailing_comment (`f/D`) |
+| `function_declaration`, `method_definition`, `if_statement`, `for_statement`, `for_in_statement`, `while_statement` | o.delete | delete_lines (an `export` in front is deleted too) |
+| `identifier`, `property_identifier` | t.word, o.case, x.subst | rename_here, upper_word (top-level `const name = literal` only), rename_all_subst |
+| `member_expression` | m.find | find_char (`f.` before a property) |
+| `import_statement`, class fields, one-line declarations and expression statements | x.copymove | move_line, copy_line |
+| one-line `x = ...` declaration or assignment | o.change | change_to_end (`C X;` / `ct;X`, or `C X` when the line has no semicolon) |
+| `program` (top level) | x.normal | prefix_each_line, upper_constants (`:norm f=bgUiw` over top-level constants) |
+| (every line) | m.rel, m.find | goto_line_rel, find_char on `( ) { } [ ] ; , = . => :` |
+
+Quotes follow the code: the drill is `ci'` on a single-quoted string, `ci"` on a
+double-quoted one and ``ci` `` on a template string. Replacement strings use the string's
+own quote. x.normal puts back a prefix shared by 3 or more consecutive lines (`const `,
+`this.`, `private `, `readonly `, `export `, ...), or comments out statements in a function
+body.
+
+`js.WEIGHTS` holds the JS/TS column of the weight table in `model/skill-graph.md`; it is the
+same for both languages. `js.JS_TARGET_SKILLS` has the 16 C++ skills other than t.angle.
+`js.TS_TARGET_SKILLS` adds t.angle (generics). `tests/test_js.py` checks the weights against
+`model/skill-graph.json` for `javascript` and `typescript`.
+
+Verified counts with no per-skill cap (build cap 40 in brackets):
+
+| skill | JavaScript | TypeScript | | skill | JavaScript | TypeScript |
+|---|---|---|---|---|---|---|
+| t.quote | 175 (40) | 138 (40) | | n.unmatched | 280 (40) | 202 (40) |
+| t.paren | 978 (40) | 730 (40) | | o.delete | 337 (40) | 269 (40) |
+| t.brace | 350 (40) | 233 (40) | | o.change | 416 (40) | 295 (40) |
+| t.bracket | 182 (40) | 149 (40) | | o.indent | 314 (40) | 216 (40) |
+| t.angle | - | 58 (40) | | o.case | 66 (40) | 44 (40) |
+| t.word | 254 (40) | 167 (40) | | x.subst | 344 (40) | 281 (40) |
+| m.find | 301 (40) | 244 (40) | | x.copymove | 419 (40) | 308 (40) |
+| m.match | 456 (40) | 309 (40) | | x.normal | 78 (40) | 57 (40) |
+| m.rel | 240 (40) | 169 (40) | | | | |
+
+o.case is the thinnest skill. Most of its exercises uppercase a string (`gUi'`), because
+exercism's JavaScript has few top-level constants that are used once in their window.
+
+### Neovim indent
+
+The oracle uses Neovim's own filetypes `javascript` and `typescript`, whose `indentexpr` is
+`GetJavascriptIndent()` / `GetTypescriptIndent()`. In both, `o` after a line ending in `{`
+indents one `shiftwidth`, and typing `}` at the start of a line dedents it. They differ
+after a line that ends in a bare `=>`: `o` indents in JavaScript but not in TypeScript.
+JavaScript's `indentkeys` also re-indent on `:` and `0#`; TypeScript's on `0,`.

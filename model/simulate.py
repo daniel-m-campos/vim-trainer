@@ -13,8 +13,7 @@ Example
         # the 40 focus picks of one session after 5 days, and their distribution
 """
 
-from __future__ import annotations
-
+import itertools
 import math
 import random
 import sys
@@ -196,8 +195,8 @@ def main(argv: list[str]):
         after = int(argv[3]) if len(argv) > 3 else 5
         sequence = pick_sequence(LEARNERS[name], graph, index, count, after)
         print(f"== {name}: {len(sequence)} picks after {after} days")
-        for start in range(0, len(sequence), 10):
-            print("   " + " ".join(sequence[start:start + 10]))
+        for row in itertools.batched(sequence, 10):
+            print("   " + " ".join(row))
         for skill, n in Counter(sequence).most_common():
             print(f"   {skill:<14} {n:3d}  {100 * n / len(sequence):5.1f}%")
         return
