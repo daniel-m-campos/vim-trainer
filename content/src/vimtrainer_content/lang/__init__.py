@@ -1,7 +1,5 @@
 """Per-language node -> skill mappings."""
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 
 

@@ -158,7 +158,7 @@ def test_cursor_probes_land_in_nvim():
 
 def test_target_problem_rejects_ambiguous_destination():
     lines = ["def f():", "    total = 1", "    return inventory", "x = 2", "    return inventory"]
-    ex = _edit(lines, [2, 4], lines[:3] + ["    total = 1"] + lines[3:])
+    ex = _edit(lines, [2, 4], [*lines[:3], "    total = 1", *lines[3:]])
     rng = [{"start": [2, 0], "end": [2, 12]}, {"start": [4, 0], "end": [4, 4]}]
     assert "matches 2 lines" in gates.target_problem(ex, rng, "Copy this line to just below `return inventory`")
     assert gates.target_problem(ex, rng, "Copy this line to just below `x = 2`") is None

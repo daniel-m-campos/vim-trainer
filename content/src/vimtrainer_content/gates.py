@@ -34,8 +34,6 @@ the naive cost outright, ``par.count < naive`` (``16 < 23`` passes; a 1-line ``:
 drill, par 12 vs naive 7, still fails).
 """
 
-from __future__ import annotations
-
 import difflib
 import re
 from collections.abc import Collection, Sequence

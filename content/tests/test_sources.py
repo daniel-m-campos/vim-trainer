@@ -3,8 +3,8 @@
 import subprocess
 
 import pytest
-
 from conftest import FIXTURES
+
 from vimtrainer_content import sources
 
 GPL = "GNU GENERAL PUBLIC LICENSE\nVersion 3, 29 June 2007\n"

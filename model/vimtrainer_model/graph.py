@@ -11,8 +11,6 @@ Example
 3360
 """
 
-from __future__ import annotations
-
 import copy
 import json
 from pathlib import Path

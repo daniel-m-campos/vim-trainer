@@ -17,8 +17,6 @@ Example
 [5]
 """
 
-from __future__ import annotations
-
 import math
 
 from vimtrainer_model.attempt import apply_attempt, rebuild

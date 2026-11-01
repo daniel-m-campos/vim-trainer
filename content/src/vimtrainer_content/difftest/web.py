@@ -11,15 +11,13 @@ Examples
 ...     sides = web.run(cases)
 """
 
-from __future__ import annotations
-
 import json
 import pathlib
 import queue
 import subprocess
 import threading
 from collections.abc import Sequence
-from typing import Any, Final
+from typing import Any, Final, Self
 
 from vimtrainer_content import sources
 from vimtrainer_content.difftest import compare, generate
@@ -58,7 +56,7 @@ class WebWorker:
         pid = self._proc.pid if self._proc else None
         return f"WebWorker(command={self._command!r}, pid={pid}, restarts={self.restarts})"
 
-    def __enter__(self) -> WebWorker:
+    def __enter__(self) -> Self:
         self._start()
         return self
 

@@ -10,8 +10,6 @@ Example
     cd model && uv run python gen_vectors.py --out .cache/vectors
 """
 
-from __future__ import annotations
-
 import argparse
 import json
 import random
@@ -24,7 +22,7 @@ from vimtrainer_model import Mulberry32, apply_attempt, choose_exercise, choose_
 from vimtrainer_model.vectors import run_vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import simulate  # noqa: E402
+import simulate
 
 OUT_DIR: Final = Path(__file__).resolve().parent / ".cache" / "vectors"
 T0: Final = 1760200000
@@ -263,7 +261,7 @@ def _composite_credit_and_choice(graph: dict) -> dict:
 
 def _exercise_recent_and_weights(graph: dict) -> dict:
     ids = [f"py/t.paren/{i:04d}" for i in range(1, 6)]
-    index = {PY: {"t.paren": ids + [{"id": "py/t.paren+t.angle/0001", "skills": ["t.paren", "t.angle"]}]}}
+    index = {PY: {"t.paren": [*ids, {"id": "py/t.paren+t.angle/0001", "skills": ["t.paren", "t.angle"]}]}}
     ops = [{"op": "chooseExercise", "skill": "t.paren", "lang": PY, "seed": s} for s in range(6)]
     ops += [{"op": "chooseExercise", "skill": "t.paren", "lang": PY, "seed": s, "useGraph": False} for s in range(6)]
     for i, ex in enumerate(ids[:4]):

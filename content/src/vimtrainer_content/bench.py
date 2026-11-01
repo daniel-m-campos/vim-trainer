@@ -11,8 +11,6 @@ Examples
 $ uv run vimtrainer-bench examples/*.json -n 50
 """
 
-from __future__ import annotations
-
 import argparse
 import itertools
 import statistics

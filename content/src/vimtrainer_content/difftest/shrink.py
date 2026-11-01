@@ -18,14 +18,12 @@ Examples
 'U'
 """
 
-from __future__ import annotations
-
 import dataclasses
 from collections.abc import Callable
 
 from vimtrainer_content.difftest.generate import FORBIDDEN, Case, tokenize
 
-Diverges = Callable[[list[Case]], list[bool]]
+type Diverges = Callable[[list[Case]], list[bool]]
 
 _CONFIRMATIONS = 2
 

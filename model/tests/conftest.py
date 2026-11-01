@@ -8,7 +8,7 @@ import pytest
 from vimtrainer_model.graph import load_graph
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-import gen_vectors  # noqa: E402
+import gen_vectors
 
 
 @pytest.fixture(scope="session")

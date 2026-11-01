@@ -36,8 +36,6 @@ a built-in idiom (``par_search``) is only a candidate in the build, never a vari
 player's built-in idiom is written to the toml as well.
 """
 
-from __future__ import annotations
-
 import collections
 import datetime
 import json

@@ -11,8 +11,6 @@ Example
     uv run --project model python model/gen_graph.py
 """
 
-from __future__ import annotations
-
 import json
 import re
 import sys

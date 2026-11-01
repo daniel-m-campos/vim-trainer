@@ -1,8 +1,8 @@
 """Tests for vimtrainer_content.oracle."""
 
 import pytest
-
 from conftest import EXAMPLES
+
 from vimtrainer_content import oracle
 
 WRONG = [

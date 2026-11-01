@@ -76,5 +76,5 @@ any par changes.
 
 ## Style
 
-- Python: functional style, numpy-style docstrings, `uv run` inside `content/` or `model/`.
+- Python: 3.12+, functional style, numpy-style docstrings, `uv run` inside `content/` or `model/`; `make lint` (ruff) must pass.
 - TypeScript: small and commented; `app/README.md` has a reading guide.

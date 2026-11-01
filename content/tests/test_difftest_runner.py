@@ -91,9 +91,9 @@ def test_worker_stall_loses_only_the_stalling_case(fake_worker, tmp_path):
 
 
 def test_worker_that_never_starts(tmp_path):
-    with pytest.raises(RuntimeError, match="did not start"):
-        with web.WebWorker(tmp_path, command=[sys.executable, "-c", "pass"]):
-            pass
+    worker = web.WebWorker(tmp_path, command=[sys.executable, "-c", "pass"])
+    with pytest.raises(RuntimeError, match="did not start"), worker:
+        pass
 
 
 @pytest.mark.parametrize(("line", "byte_col", "utf16_col"), [

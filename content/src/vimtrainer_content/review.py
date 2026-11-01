@@ -8,8 +8,6 @@ drops rejected ones. Both files are plain id-per-line allowlists and can be edit
 they are reviewed by setting each entry's ``status`` in that file.
 """
 
-from __future__ import annotations
-
 import difflib
 import json
 import pathlib

@@ -5,8 +5,8 @@ import re
 import shutil
 
 import pytest
-
 from conftest import FIXTURES
+
 from vimtrainer_content import build, review
 
 

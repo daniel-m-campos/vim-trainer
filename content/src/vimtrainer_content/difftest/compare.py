@@ -15,14 +15,12 @@ Examples
 'Ndwf{c}ciw{text}<Esc>'
 """
 
-from __future__ import annotations
-
 import datetime
 import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Final
+from typing import Any, Final, Self
 
 from vimtrainer_content import oracle
 from vimtrainer_content.difftest.generate import Case, case_from_json, case_to_json, tokenize
@@ -94,10 +92,10 @@ class Finding:
             "fields": list(self.fields), "class": self.cls, "shape": self.shape, "minimised": self.minimised,
         }
 
-    @staticmethod
-    def from_json(d: dict[str, Any]) -> Finding:
+    @classmethod
+    def from_json(cls, d: dict[str, Any]) -> Self:
         """Inverse of ``to_json``."""
-        return Finding(
+        return cls(
             case_from_json(d["case"]), _side_from_json(d["nvim"]), _side_from_json(d["web"]),
             list(d["fields"]), d["class"], d["shape"], d.get("minimised"),
         )
@@ -201,18 +199,19 @@ def shape(keys: str) -> str:
     """
     out: list[str] = []
     for role, tok in _scan(tokenize(keys)):
-        if role == "count":
-            if not out or out[-1] != "N":
-                out.append("N")
-        elif role == "arg":
-            out.append("{c}")
-        elif role == "text":
-            if not out or out[-1] != "{text}":
-                out.append("{text}")
-        elif role in ("cmd", "search"):
-            out.append(_shape_cmdline(tok, role))
-        else:
-            out.append(tok)
+        match role:
+            case "count":
+                if not out or out[-1] != "N":
+                    out.append("N")
+            case "arg":
+                out.append("{c}")
+            case "text":
+                if not out or out[-1] != "{text}":
+                    out.append("{text}")
+            case "cmd" | "search":
+                out.append(_shape_cmdline(tok, role))
+            case _:
+                out.append(tok)
     return "".join(out)
 
 

@@ -8,6 +8,7 @@ dependencies = []
 [dependency-groups]
 dev = [
     "pytest>=8",
+    "ruff>=0.17.3",
 ]
 
 [build-system]
@@ -21,3 +22,22 @@ module-root = ""
 [tool.pytest.ini_options]
 testpaths = ["tests", "vimtrainer_model"]
 addopts = "--doctest-modules"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+extend-exclude = [".cache"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "FA", "TID251"]
+ignore = [
+    "E501",  # lines are wrapped by hand near 110; the few longer ones are literals or one-line comprehensions
+    "B905",  # zip(strict=) would turn a deliberate truncation into an error; behaviour stays as written
+    "SIM905",  # word tables written as """...""".split() read better than a long list literal
+]
+
+[tool.ruff.lint.pyupgrade]
+keep-runtime-typing = false
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"__future__.annotations".msg = "Python 3.12+ evaluates annotations as written; drop the future import"
