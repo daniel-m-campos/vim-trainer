@@ -104,7 +104,7 @@ function indentWidth(text: string): number {
   return w;
 }
 
-/** The editor's language name ("python", "cpp", "javascript", "typescript") as its CodeMirror language reports it. */
+/** The editor's language name ("python", "cpp", "javascript", "typescript", "go", "rust", "lua") as its CodeMirror language reports it (lua's legacy stream mode is named "lua" too). */
 function langOf(cm: CM): string {
   return cm.cm6.state.facet(language)?.name ?? "";
 }
@@ -520,12 +520,16 @@ interface CodeLine {
  * javascript and typescript share // and /* *\/; javascript `templates` are strings that
  * span lines. typescript's are left as code: Neovim's typescript indent does not treat
  * them as strings (their syntax group, typescriptTemplate, misses its string pattern).
+ * rust adds raw strings r"..." / r#"..."# and char literals; 'a alone is a lifetime.
+ * Its strings end at the line end, as cindent (rust's fallback) reads them.
  */
 function maskCode(lines: string[], lang: string): CodeLine[] {
   const py = lang === "python";
   const js = lang === "javascript" || lang === "typescript";
-  const quotes = py ? /^(?:'''|"""|'|")/ : lang === "javascript" ? /^(?:\/\*|'|"|`)/ : /^(?:\/\*|'|")/;
+  const rs = lang === "rust";
+  const quotes = py ? /^(?:'''|"""|'|")/ : lang === "javascript" ? /^(?:\/\*|'|"|`)/ : rs ? /^(?:\/\*|")/ : /^(?:\/\*|'|")/;
   let open: string | null = null; // the open multi-line string / block comment delimiter
+  let raw = false; // the open string is a rust raw string: no \ escapes
   return lines.map((text) => {
     const inString = open !== null;
     let code = "";
@@ -533,18 +537,23 @@ function maskCode(lines: string[], lang: string): CodeLine[] {
     let operand = false; // the last code token is an operand (a / after it divides)
     for (let i = 0; i < text.length; ) {
       if (open) {
-        if (text[i] === "\\" && open !== "*/") { code += "  "; i += 2; continue; }
+        if (text[i] === "\\" && open !== "*/" && !raw) { code += "  "; i += 2; continue; }
         if (text.startsWith(open, i)) {
           code += " ".repeat(open.length);
           i += open.length;
           operand ||= open !== "*/"; // a string is an operand; a comment changes nothing
           open = null;
+          raw = false;
           continue;
         }
         code += " "; i++; continue;
       }
       const rest = text.slice(i);
       if (py ? rest[0] === "#" : rest.startsWith("//")) { comment = i; code += " ".repeat(text.length - i); break; }
+      const rawStart = rs && !/\w/.test(text[i - 1] ?? "") ? /^b?r(#*)"/.exec(rest) : null; // r#"..."# closes at "#
+      if (rawStart) { open = '"' + rawStart[1]; raw = true; code += " ".repeat(rawStart[0].length); i += rawStart[0].length; continue; }
+      const char = rs ? /^'(?:\\[^']*|[^\\'])'/.exec(rest)?.[0] : undefined; // 'x' or '\n', not the lifetime 'a
+      if (char) { code += " ".repeat(char.length); i += char.length; continue; }
       const delim = quotes.exec(rest)?.[0];
       if (delim) {
         if (delim === "/*" && comment < 0) comment = i;
@@ -558,7 +567,7 @@ function maskCode(lines: string[], lang: string): CodeLine[] {
       if (/\S/.test(text[i])) operand = !/[=(,:[!?&|{;]/.test(text[i]) && !/\breturn$/.test(code + text[i]);
       code += text[i++];
     }
-    if (open && open.length === 1 && open !== "`") open = null; // an unterminated '...' ends at the line end
+    if (open && (open.length === 1 || raw) && open !== "`") { open = null; raw = false; } // an unterminated '...' ends at the line end
     return { code, comment, inString };
   });
 }
@@ -631,10 +640,14 @@ function pythonIndent(lines: string[], n: number, cur: number): number {
  * Family 2: the common cases of Neovim's cindent for line n (C++ has no indentexpr to
  * port). Checked against nvim: blocks, closing braces, unbraced if/for/else bodies,
  * case labels, continuation lines and open parentheses. -1 keeps the autoindent.
+ * rust (GetRustIndent's fallback) runs it with rust's cinoptions L0,(s,Ws,J1,j1,m1: an
+ * open ( indents one level, a ) lines up with the line of its (, a { inside ( is a plain
+ * block, and `name:` is not a goto label.
  */
-function cppIndent(lines: string[], n: number): number {
+function cppIndent(lines: string[], n: number, lang = "cpp"): number {
+  const rs = lang === "rust";
   const ind = (i: number) => indentWidth(lines[i]);
-  const code = maskCode(lines.slice(0, n + 1), "cpp");
+  const code = maskCode(lines.slice(0, n + 1), lang);
   const t = (i: number) => code[i].code.trim();
   const skip = (i: number) => !t(i) || t(i).startsWith("#");
   // The line where the statement on line l starts: back over a ( it closes (if (a &&\n b) {).
@@ -652,7 +665,7 @@ function cppIndent(lines: string[], n: number): number {
   const closing = (l: number) => {
     const m = openBracketBefore(code, l, code[l].code.indexOf("}"), 0);
     const paren = m && openBracketBefore(code, m.line, m.ch, 0);
-    if (paren && code[paren.line].code[paren.ch] !== "{") return ind(paren.line) + 2 * SW;
+    if (!rs && paren && code[paren.line].code[paren.ch] !== "{") return ind(paren.line) + 2 * SW;
     return m ? ind(start(m.line)) : 0;
   };
   const tn = t(n);
@@ -660,14 +673,14 @@ function cppIndent(lines: string[], n: number): number {
   if (tn.startsWith("#")) return 0; // preprocessor lines start in column 0
   const open = openBracketBefore(code, n, 0, 0);
   const opener = open ? code[open.line].code[open.ch] : "";
-  if ((tn.startsWith(")") && opener === "(") || (tn.startsWith("]") && opener === "[")) return open!.ch; // under its ( or [
+  if ((tn.startsWith(")") && opener === "(") || (tn.startsWith("]") && opener === "[")) return rs ? ind(open!.line) : open!.ch; // under its ( or [
   if (/^(?:case\b|default\s*:)/.test(tn) && open) return ind(start(open.line)); // with the switch
   if (/^(?:public|private|protected)\s*:/.test(tn) && open) return ind(start(open.line)) + SW;
-  if (/^[A-Za-z_]\w*\s*:(?!:)/.test(tn)) return 0; // a goto label
+  if (!rs && /^[A-Za-z_]\w*\s*:(?!:)/.test(tn)) return 0; // a goto label
   let p = n - 1;
   while (p >= 0 && skip(p)) p--;
   if (p < 0) return 0;
-  if (open && code[open.line].code[open.ch] !== "{") return ind(open.line) + 2 * SW; // ( or [
+  if (open && code[open.line].code[open.ch] !== "{") return ind(open.line) + (rs ? SW : 2 * SW); // ( or [
   const pt = t(p);
   if (tn.startsWith("{") && !/[;{}]$/.test(pt)) return ind(start(p)); // a block's { under its header
   if (pt.endsWith("{")) return ind(start(p)) + SW; // a block opened on line p
@@ -933,27 +946,140 @@ function tsIndent(lines: string[], n: number): number {
   return res;
 }
 
-/** Neovim's indent for line n of `lines` in `lang`, or -1 (keep the autoindent); `cur` is the indent autoindent would give. */
+/** The nearest line at or above `l` with a non-blank character, or -1 (Vim's prevnonblank). */
+function prevNonBlank(lines: string[], l: number): number {
+  while (l >= 0 && !lines[l].trim()) l--;
+  return l;
+}
+
+/**
+ * Family 2: Neovim's go indentexpr (runtime/indent/go.vim, GoIndent). It only looks at
+ * the previous line with its // comment cut off, so braces in strings count too: one
+ * level in after a line ending in ( or { or after a case / default label, one level out
+ * for a line starting with ) or } and for a case / default label. A negative result keeps the autoindent.
+ */
+function goIndent(lines: string[], n: number): number {
+  const p = prevNonBlank(lines, n - 1);
+  if (p < 0) return 0;
+  const prevl = lines[p].replace(/\/\/.*$/, "");
+  const thisl = lines[n].replace(/\/\/.*$/, "");
+  const label = /^\s*(?:case .*|default):$/;
+  let ind = indentWidth(lines[p]);
+  if (/[({]\s*$/.test(prevl)) ind += SW;
+  if (label.test(prevl)) ind += SW;
+  if (/^\s*[)}]/.test(thisl)) ind -= SW;
+  if (label.test(thisl)) ind -= SW;
+  return ind;
+}
+
+/**
+ * Family 2: Neovim's lua indentexpr (runtime/indent/lua.vim, GetLuaIndent). The oracle
+ * runs without syntax highlighting, so its "not in a comment" test always passes and
+ * words in strings and comments count. One level in after a line starting with if / for /
+ * while / repeat / else / elseif / do / then, ending in { or (, or holding `function (`,
+ * unless that line also has `end` or `until`; one level out for a line starting with end /
+ * else / elseif / until / } / ). A negative result keeps the autoindent.
+ */
+function luaIndent(lines: string[], n: number): number {
+  const p = prevNonBlank(lines, n - 1);
+  if (p < 0) return 0;
+  const prev = lines[p];
+  let ind = indentWidth(prev);
+  const opens = /^\s*(?:if|for|while|repeat|else|elseif|do|then)\b/.test(prev) ||
+    /[{(]\s*(?:--(?:[^[].*)?)?$/.test(prev) || /\bfunction\b\s*[\w.:]*?\s*\(/.test(prev);
+  if (opens && !/\bend\b|\buntil\b/.test(prev)) ind += SW;
+  if (/^\s*(?:end\b|else\b|elseif\b|until\b|}|\))/.test(lines[n])) ind -= SW;
+  return ind;
+}
+
+/** The line before the `where` of the where clause whose predicates end at line p (each ending in `,`), or -1. */
+function whereHeader(lines: string[], p: number, trimmed: (l: number) => string): number {
+  for (let l = p; l >= 0; l = prevNonBlank(lines, l - 1)) {
+    if (/^\s*where\b/.test(trimmed(l))) return prevNonBlank(lines, l - 1);
+    if (!trimmed(l).trimEnd().endsWith(",")) return -1;
+  }
+  return -1;
+}
+
+/**
+ * Family 2: Neovim's rust indentexpr (runtime/indent/rust.vim, GetRustIndent) without
+ * syntax highlighting, as the oracle runs it. It handles a { / } / where alone on a line
+ * (lined up with the fn or if they belong to), where clauses, the end of a .method()
+ * chain, and a line after a trailing comma (match arms, struct fields: same indent); the
+ * rest goes to cindent (cppIndent with rust's cinoptions).
+ */
+function rustIndent(lines: string[], n: number): number {
+  const ind = (i: number) => indentWidth(lines[i]);
+  // s:get_line_trimmed: its pattern "\s*//.*$" is in double quotes, so Vim reads s*//.*$ and blanks before // stay.
+  const trimmed = (l: number) => (l >= 0 ? lines[l].replace(/s*\/\/.*$/, "") : "");
+  const line = lines[n];
+  let p = prevNonBlank(lines, n - 1);
+  let prev = trimmed(p);
+  while (p > 0 && !/[^ \t]/.test(prev)) prev = trimmed((p = prevNonBlank(lines, p - 1)));
+  const standaloneOpen = /^\s*\{\s*$/.test(line) || /^\s*where\s*$/.test(line);
+  if (standaloneOpen || /^\s*\}\s*$/.test(line)) {
+    // searchpos('\<\(fn\|if\)\>', 'bW'): the last fn or if above, then count the braces from it to here.
+    for (let l = n - 1; l >= 0; l--) {
+      const at = [...lines[l].matchAll(/\b(?:fn|if)\b/g)].at(-1)?.index;
+      if (at === undefined) continue;
+      const text = [lines[l].slice(at), ...lines.slice(l + 1, n)].join("\n");
+      const opens = text.split("{").length - 1;
+      const closes = text.split("}").length - 1;
+      if (standaloneOpen ? opens === closes : opens === closes + 1) return ind(l);
+      break;
+    }
+  }
+  if (/^\s*\{\s*$/.test(line) && prev.endsWith(",")) {
+    const header = whereHeader(lines, p, trimmed);
+    if (header >= 0) return ind(header);
+  }
+  if (/^\s*where\s*$/.test(prev)) return ind(p) + SW;
+  if (prev.endsWith(",") && /^\s*where\s/.test(prev)) return ind(p) + 6;
+  const last = prev.slice(-1);
+  if (/^\s*\./.test(prev) && last === ";") {
+    // searchpair('{\|(', '', '}\|)', 'bW') from the start of the line above: the unclosed { or ( around it.
+    let depth = 0;
+    for (let l = n - 2; l >= 0; l--) {
+      for (let i = lines[l].length - 1; i >= 0; i--) {
+        const c = lines[l][i];
+        if (c === "}" || c === ")") depth++;
+        else if ((c === "{" || c === "(") && depth-- === 0) return ind(l) + SW;
+      }
+    }
+  }
+  if (/^\s*\]/.test(prev) && last === ";" && !/^\s*}/.test(line)) return ind(p);
+  if (last === "," && !/^\s*[[\]{})]/.test(trimmed(n)) && !/^\s*fn\s/.test(prev) &&
+    !/\([^()]+,$/.test(prev) && !/^\s*\S+\s*=>/.test(trimmed(n))) return ind(p);
+  return cppIndent(lines, n, "rust");
+}
+
+/** Neovim's indent for line n of `lines` in `lang`, or a negative number (keep the autoindent); `cur` is the indent autoindent would give. */
 function langIndent(lang: string, lines: string[], n: number, cur: number): number {
   switch (lang) {
     case "python": return pythonIndent(lines, n, cur);
     case "cpp": return cppIndent(lines, n);
     case "javascript": return jsIndent(lines, n);
     case "typescript": return tsIndent(lines, n);
+    case "go": return goIndent(lines, n);
+    case "rust": return rustIndent(lines, n);
+    case "lua": return luaIndent(lines, n);
     default: return -1;
   }
 }
 
-/** Languages with C comments: //, /* *\/ and the leaders Neovim's formatoptions add. */
-const C_COMMENTS = ["cpp", "javascript", "typescript"];
+/** Languages with C comments: //, /* *\/ and the leaders Neovim's formatoptions add (go's formatoptions add none). */
+const C_COMMENTS = ["cpp", "javascript", "typescript", "rust"];
 
-/** Family 2: comment leader Neovim's C formatoptions add on a new line ("// ", " * "), or "". */
+/** Family 2: comment leader Neovim's formatoptions add on a new line ("// ", " * ", lua's "-- "), or "". */
 function commentLeader(lang: string, above: string): string {
+  // lua: 'comments' is :---,:-- and without 'cindent' only a comment that starts the line continues.
+  if (lang === "lua") return /^\s*---?\s*/.exec(above)?.[0].replace(/^\s*/, (s) => " ".repeat(indentWidth(s))) ?? "";
   if (!C_COMMENTS.includes(lang)) return "";
   const masked = maskCode([above], lang)[0];
   if (masked.comment < 0) return /^\s*\*(?!\/)/.test(above) ? " ".repeat(above.indexOf("*")) + "* " : "";
   const rest = above.slice(masked.comment);
-  if (rest.startsWith("//")) return " ".repeat(masked.comment) + /^\/\/\s*/.exec(rest)![0];
+  // rust's 'comments' also has :/// and ://! (doc comments).
+  if (rest.startsWith("//")) return " ".repeat(masked.comment) + (lang === "rust" ? /^\/\/[/!]?\s*/ : /^\/\/\s*/).exec(rest)![0];
   return rest.includes("*/") ? "" : " ".repeat(masked.comment + 1) + "* ";
 }
 
@@ -961,8 +1087,8 @@ function commentLeader(lang: string, above: string): string {
 function newLineIndent(cm: CM, lines: string[], n: number, autoindent: string): string {
   const lang = langOf(cm);
   const leader = commentLeader(lang, lines[n - 1] ?? "");
-  // javascript and typescript indent a // line with their indentexpr (cindent keeps it under the one above).
-  if (leader && !(lang !== "cpp" && leader.trimStart().startsWith("//"))) return leader;
+  // A // or -- line is indented by the indentexpr; cindent (C++, rust's fallback) keeps it under the comment above.
+  if (leader && (lang === "cpp" || lang === "rust" || !/^\s*(?:\/\/|--)/.test(leader))) return leader;
   if (leader) lines[n] = leader.trimStart() + lines[n];
   const cols = langIndent(lang, lines, n, indentWidth(autoindent));
   if (leader) return cols < 0 ? leader : " ".repeat(cols) + leader.trimStart();
@@ -1034,33 +1160,63 @@ function insertModeNewline(cm: CM): void {
   recordInsertKey(cm, "r4Newline", () => breakLine(cm));
 }
 
-/** Keys that re-indent the line they are typed on (Neovim's cinkeys / indentkeys, word triggers left out). */
+/**
+ * The "0x" entries of each language's indentkeys / cinkeys, read from nvim (`set indentkeys?`):
+ * these characters re-indent when typed first on a line. Only rust has 0( and 0[;
+ * python and typescript have no 0#.
+ */
+const FIRST_KEYS: Record<string, string> = {
+  python: "{})]", cpp: "{})]#", javascript: "{})]#", typescript: "{})]", go: "{})]#", rust: "{}[]()", lua: "{})]#",
+};
+/** Word entries: `e` (else) and lua's 0=end, 0=until re-indent when the word's last letter is typed after blanks only. */
+const WORD_KEYS: Record<string, string[]> = { go: ["else"], lua: ["else", "end", "until"] };
+/** Keys that may re-indent the line they are typed on, always recorded as a key; python's =elif / =except are left out. */
 const ELECTRIC_KEYS = ["{", "}", ")", "]", "#", ":"];
+/**
+ * Rust's ( [ and the last letters of the WORD_KEYS words: common in every language, so they
+ * are recorded as a key only when they re-indent (r4ElectricMaybe) and as text otherwise.
+ */
+const MAYBE_ELECTRIC_KEYS = ["(", "[", "e", "d", "l"];
 /** The line a blank was last typed on in this insert (trackKey sets it, resolveInsertEntry clears it). */
 let blankTypedOn: { cm: CM; line: number } | null = null;
 
 /**
+ * True when typing `ch` re-indents the line in `lang` (its indentkeys / cinkeys); `before`
+ * is the trimmed text before the cursor once `ch` is typed, `first` whether ch is the first
+ * character typed on the line. Called by typeElectric and r4ElectricWord.
+ */
+function reindents(lang: string, ch: string, before: string, first: boolean): boolean {
+  if (first && (FIRST_KEYS[lang] ?? "").includes(ch)) return true;
+  if (WORD_KEYS[lang]?.includes(before)) return true;
+  if (ch !== ":") return false;
+  if (lang === "python" || lang === "go") return true; // <:>: any colon
+  // ":" after a case / label / access specifier; for "::" Vim tests the line with the second : as a blank (in_cinkeys).
+  const label = (s: string) => /^(?:case\b.*|[A-Za-z_]\w*\s*):$/.test(s);
+  return ["cpp", "javascript", "lua"].includes(lang) && (label(before) || (before.endsWith("::") && label(before.slice(0, -1).trimEnd())));
+}
+
+/** True when typing `ch` at the cursor will re-indent its line (reindents, on the line as it will be). */
+function electricFires(cm: CM, ch: string): boolean {
+  const cur = cm.getCursor();
+  const before = (cm.getLine(cur.line).slice(0, cur.ch) + ch).trim();
+  // "0}": only when } is the first character typed on the line (typed blanks before it count).
+  const first = before === ch && ch !== ":" && !(blankTypedOn?.cm === cm && blankTypedOn.line === cur.line);
+  return reindents(langOf(cm), ch, before, first);
+}
+
+/**
  * Family 2 (:help cinkeys, indentkeys): type `ch` (over a character in Replace mode), then
- * re-indent the line where Neovim would: { } ) ] or (C++, javascript) # typed as the line's
- * first character, and : after a case / default / access specifier / label (C++,
- * javascript) or any : (python's <:>). Installed as an Insert-mode action and as a key . and @ replay.
+ * re-indent the line where Neovim would (reindents). Installed as an Insert-mode action
+ * and as a key . and @ replay.
  */
 function typeElectric(cm: CM, ch: string): void {
   if (cm.cm6.state.selection.ranges.length > 1) return cm.replaceSelection(ch); // a block insert: no re-indent
+  const fires = electricFires(cm, ch);
   typeInsertChar(cm, ch);
+  if (!fires) return;
   const lang = langOf(cm);
   const cur = cm.getCursor();
   const text = cm.getLine(cur.line);
-  const before = text.slice(0, cur.ch).trim();
-  // "0}": only when } is the first character typed on the line (typed blanks before it count).
-  const first = before === ch && ch !== ":" && !(blankTypedOn?.cm === cm && blankTypedOn.line === cur.line);
-  // A case / label / access specifier; for "::" Vim tests the line with the second : as a blank (in_cinkeys).
-  const label = (s: string) => /^(?:case\b.*|[A-Za-z_]\w*\s*):$/.test(s);
-  // typescript's indentkeys have no : or #; javascript keeps the default ones, as C++'s cinkeys.
-  const go = lang === "python" ? ch === ":" || (first && ch !== "#")
-    : lang === "typescript" ? first && ch !== "#"
-    : (lang === "cpp" || lang === "javascript") && (first || (ch === ":" && (label(before) || (before.endsWith("::") && label(before.slice(0, -1).trimEnd())))));
-  if (!go) return;
   const lines = cm.cm6.state.doc.toString().split("\n");
   const cols = langIndent(lang, lines, cur.line, indentWidth(text));
   const lead = /^\s*/.exec(text)![0];
@@ -1072,9 +1228,10 @@ function typeElectric(cm: CM, ch: string): void {
 /**
  * Run an Insert-mode edit and record it as InsertModeKey(name) instead of the text it
  * changed, so `.` and macros replay the edit (codemirror-vim replays keys through
- * CodeMirror.keys[name], which install() points at the same function).
+ * CodeMirror.keys[name], which install() points at the same function). `text` is what
+ * the key adds to the ". register, which codemirror-vim builds with changes.join("").
  */
-function recordInsertKey(cm: CM, name: string, edit: () => void): void {
+function recordInsertKey(cm: CM, name: string, edit: () => void, text?: string): void {
   const g = api.getVimGlobalState_().macroModeState;
   if (g.isPlaying) return edit();
   const last = g.lastInsertModeChanges;
@@ -1089,7 +1246,9 @@ function recordInsertKey(cm: CM, name: string, edit: () => void): void {
   let made = 0;
   for (let c = before ? before.next : cm.curOp?.change; c; c = c.next) made++;
   if (cm.curOp) last.ignoreCount = made + 1;
-  last.changes.push(new api.InsertModeKey(name, { key: "" }));
+  const key = new api.InsertModeKey(name, { key: "" }) as object;
+  if (text !== undefined) Object.assign(key, { toString: () => text }); // else join("") gives "[object Object]"
+  last.changes.push(key);
 }
 
 // ---------------------------------------------------------------- family 3: <C-w>
@@ -1342,10 +1501,15 @@ export function installMacroIndentFixes(): void {
   const keys = CodeMirror.keys as Record<string, (cm: CM) => void>;
   keys.r4Newline = (cm) => breakLine(cm);
   keys.r4CtrlW = insertCtrlW;
-  v.defineAction("r4Electric", (cm: CM, args: { ch: string }) => recordInsertKey(cm, `r4Electric${args.ch}`, () => typeElectric(cm, args.ch)));
-  for (const ch of ELECTRIC_KEYS) {
+  v.defineAction("r4Electric", (cm: CM, args: { ch: string }) => recordInsertKey(cm, `r4Electric${args.ch}`, () => typeElectric(cm, args.ch), args.ch));
+  v.defineAction("r4ElectricMaybe", (cm: CM, args: { ch: string }) =>
+    cm.cm6.state.selection.ranges.length === 1 && electricFires(cm, args.ch)
+      ? recordInsertKey(cm, `r4Electric${args.ch}`, () => typeElectric(cm, args.ch), args.ch)
+      : typeElectric(cm, args.ch));
+  for (const ch of [...ELECTRIC_KEYS, ...MAYBE_ELECTRIC_KEYS]) {
     keys[`r4Electric${ch}`] = (cm) => typeElectric(cm, ch);
-    v._mapCommand({ keys: ch, type: "action", action: "r4Electric", actionArgs: { ch }, context: "insert" });
+    const action = ELECTRIC_KEYS.includes(ch) ? "r4Electric" : "r4ElectricMaybe";
+    v._mapCommand({ keys: ch, type: "action", action, actionArgs: { ch }, context: "insert" });
   }
   const commands = CodeMirror.commands as unknown as Record<string, (cm: CM) => void>;
   commands.newlineAndIndent = (cm) => breakLine(cm, true); // o, O and r<CR> call it
