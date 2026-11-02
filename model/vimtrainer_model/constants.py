@@ -30,7 +30,6 @@ MAX_ACTIVE: Final = 7
 
 REVIEW_P: Final = 0.2
 REVIEW_KEYS: Final = 1.5
-REVIEW_TIME: Final = 1.3
 REVIEW_FAIL_FACTOR: Final = 0.8
 MAX_INTERVAL_DAYS: Final = 60
 DAY: Final = 86400

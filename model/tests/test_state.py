@@ -18,17 +18,25 @@ def _st(**fields):
     return st
 
 
-def test_confidence_speed_capped_and_efficiency_clamped(graph):
-    assert confidence(graph, "t.quote", _st(timeEma=1000.0, effEma=1.0, parEma=6.0)) == 1.0
-    assert confidence(graph, "t.quote", _st(timeEma=4560.0, effEma=1.0, parEma=6.0)) == pytest.approx(0.5)
-    assert confidence(graph, "t.quote", _st(timeEma=1000.0, effEma=4.0, parEma=6.0)) == 0.5
+def test_confidence_is_samples_times_accuracy_times_efficiency(graph):
+    assert confidence(graph, "t.quote", _st(n=8, acc=1.0, effEma=1.0)) == 1.0
+    assert confidence(graph, "t.quote", _st(n=4, acc=1.0, effEma=1.0)) == pytest.approx(0.5)
+    assert confidence(graph, "t.quote", _st(n=8, acc=0.75, effEma=1.0)) == pytest.approx(0.75)
+    assert confidence(graph, "t.quote", _st(n=8, acc=1.0, effEma=4.0)) == 0.5
+    assert confidence(graph, "t.quote", _st(n=8, acc=1.0, effEma=None)) == 0.5
     assert confidence(graph, "t.quote", _st()) == 0.0
 
 
-def test_mastery_gate_needs_all_four(graph):
-    good = dict(timeEma=2000.0, effEma=1.2, parEma=6.0, acc=0.9, n=8)
+def test_confidence_ignores_time(graph):
+    slow = _st(n=8, acc=1.0, effEma=1.0, timeEma=99999.0, parEma=6.0)
+    fast = _st(n=8, acc=1.0, effEma=1.0, timeEma=100.0, parEma=6.0)
+    assert confidence(graph, "t.quote", slow) == confidence(graph, "t.quote", fast) == 1.0
+
+
+def test_mastery_gate_needs_samples_accuracy_and_efficiency(graph):
+    good = dict(timeEma=99999.0, effEma=1.2, parEma=6.0, acc=0.9, n=8)
     assert passes_mastery_gate(graph, "t.quote", _st(**good))
-    for override in ({"n": 7}, {"acc": 0.85}, {"effEma": 1.3}, {"timeEma": 2300.0}):
+    for override in ({"n": 7}, {"acc": 0.85}, {"effEma": 1.3}):
         assert not passes_mastery_gate(graph, "t.quote", _st(**{**good, **override}))
 
 

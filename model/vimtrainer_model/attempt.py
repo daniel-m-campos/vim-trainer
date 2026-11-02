@@ -17,14 +17,14 @@ from vimtrainer_model.constants import (
     IN_ROTATION,
     REVIEW_FAIL_FACTOR,
     REVIEW_KEYS,
-    REVIEW_TIME,
     Status,
 )
-from vimtrainer_model.graph import record_skills, target_ms
+from vimtrainer_model.graph import record_skills
 from vimtrainer_model.placement import apply_placement
 from vimtrainer_model.state import (
     clone_state,
     confidence,
+    efficiency_factor,
     ensure_skill,
     interval_days,
     is_counted,
@@ -33,7 +33,6 @@ from vimtrainer_model.state import (
     new_state,
     passes_mastery_gate,
     prepare,
-    speed,
     update_stats,
     update_unlocks,
 )
@@ -100,12 +99,8 @@ def rebuild(log: list[dict], graph: dict) -> dict:
 
 
 def review_passed(graph: dict, skill_id: str, record: dict) -> bool:
-    """A review passes when ok, keys <= 1.5 x par and ms <= 1.3 x target time."""
-    if not record["ok"]:
-        return False
-    if record["keys"] > REVIEW_KEYS * record["par"]:
-        return False
-    return record["ms"] <= REVIEW_TIME * target_ms(graph, skill_id, record["par"])
+    """A review passes when ok and keys <= 1.5 x par (time is not graded)."""
+    return bool(record["ok"]) and record["keys"] <= REVIEW_KEYS * record["par"]
 
 
 # Private Functions ================================================================================
@@ -140,9 +135,11 @@ def _grade_review(graph: dict, skill_id: str, st: dict, record: dict):
 
 
 def _drop_confidence(graph: dict, skill_id: str, st: dict):
-    """Scale confidence by 0.8 by slowing the time EMA, so the drop persists."""
-    if st["timeEma"] is None or st["confidence"] <= 0:
+    """Scale confidence by 0.8 by inflating the efficiency EMA, so the drop persists.
+
+    The efficiency factor is clamped at 0.5, so a skill already at the floor drops less.
+    """
+    if st["effEma"] is None or st["confidence"] <= 0:
         return
-    capped_speed = REVIEW_FAIL_FACTOR * min(speed(graph, skill_id, st), 1.0)
-    st["timeEma"] = target_ms(graph, skill_id, st["parEma"]) / capped_speed
+    st["effEma"] = 1.0 / (REVIEW_FAIL_FACTOR * efficiency_factor(st))
     st["confidence"] = confidence(graph, skill_id, st)
