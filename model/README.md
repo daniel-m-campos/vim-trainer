@@ -118,7 +118,8 @@ composite. The pipeline should list composites under each skill they tag (it emi
 ## Modelling decisions
 
 1. **target_ms per skill.** See `parEma` above. Every skill uses `base` 1200 ms and
-   `per_key` 180 ms. Recalibration means changing one value in the graph.
+   `per_key` 180 ms. Since decision 19 the target only draws the reference line on the
+   time chart and feeds `projection`; it no longer affects confidence, mastery or reviews.
 2. **Alpha.** Kept at 0.1; 0.15 is worth trying, and
    that is `ALPHA` in both mirrors.
 3. **Accuracy window.** `acc` is computed from the log over the last 20 counted attempts
@@ -126,10 +127,11 @@ composite. The pipeline should list composites under each skill they tag (it emi
 4. **Mastery is sticky.** A mastered skill is never demoted by ordinary attempts (from
    composites or warm-ups). Only a failed review demotes it.
 5. **Review failure, "drop confidence by 20%".** If the drop were stored only in
-   `confidence`, the next attempt would recompute it away. The model therefore slows
-   `timeEma` so that the confidence formula gives exactly 0.8x the old value, and the drop
-   lasts until the user earns it back. A failure also sets the status back to `active` and
-   the next mastery restarts the review interval at 1 day.
+   `confidence`, the next attempt would recompute it away. The model therefore inflates
+   `effEma` so that the confidence formula gives 0.8x the old value (exactly, unless the
+   efficiency factor is already at its 0.5 floor), and the drop lasts until the user earns
+   it back. A failure also sets the status back to `active` and the next mastery restarts
+   the review interval at 1 day.
 6. **Due reviews.** A mastered skill whose `nextReview <= now` becomes `review`, both when
    an attempt is applied and inside `chooseFocus`. A due skill gets only the 0.2 slot; it
    is never in normal rotation. The most overdue due skill is picked first.
@@ -199,6 +201,17 @@ composite. The pipeline should list composites under each skill they tag (it emi
     `LOW_WEIGHT` 0.3, `STARVE_WINDOW` 12. A review pick or a second starved skill can delay
     a starved skill by a pick or two. Vectors `24_share_cap` and `25_starvation_guard`
     check both guarantees in both mirrors.
+19. **Time is not a signal.** The clock starts when the exercise is shown, so `ms`
+    measures reading the task and finding the target as much as using the skill, and it
+    varies with the task text more than with the player. Confidence used to be
+    `min(target_ms / timeEma, 1) * efficiency`, which kept skills with long task texts
+    (o.indent) in the weakest three indefinitely. Confidence is now
+    `min(n / 8, 1) * acc * clamp(1 / effEma, 0.5, 1)`: samples, accuracy and keys per par,
+    none of which depend on reading time. The `n / 8` term makes a new skill rank weakest
+    until it has been seen enough times, which is what pulls new skills into sessions.
+    Mastery needs `n >= 8`, `acc >= 0.9` and `effEma <= 1.25` (no speed gate); a review
+    passes when correct and within 1.5x par (no time bar). `timeEma` is still kept and
+    `diagnose` still reports `speed`, for the stats screen only.
 
 ## Simulation results (`simulate.py`)
 
@@ -209,28 +222,27 @@ after the session, followed by its failing mastery gates.
 
 | learner | diagnosis | how the focus moved |
 |---|---|---|
-| fast sloppy (0.6-0.8x target time, 2.2x par improving to 1.1x, 12% give-ups) | correct: every active skill fails **efficiency** (and often **accuracy**) while speed is 1.3-1.6 | stays in tier 0 for 14 days, rotating across all 5 skills (the top skill gets 8-10 of 30 picks). Efficiency climbs from 0.47 to 0.79 of par but has not crossed the 1.25 gate |
-| slow precise (2.2x target falling to 0.85x, at par, 2% errors) | correct: only **speed** fails | masters f.modes/f.xdd on day 6, which unlocks o.replace and i.*. The focus moves to those; f.save, f.undo and i.oneshot master on days 11-12 |
-| plateaued expert (placement through tier 7; o.dot at 1.7x par) | correct: o.dot fails **efficiency** (eff 0.59) | placement infers 12 skills mastered. Days 0-4 sweep tiers 1-2 (13 masteries). From day 5 on, o.dot takes 8-11 of 30 attempts (was 20-23 before the share cap) and o.change, o.case, o.join and o.replace master alongside it, with reviews in the 0.2 slot |
-| quitter (10 days, 60-day gap, forgets 95%) | correct: due reviews fail on return | day 70 has 3 failed reviews out of 3. Failed skills go back into rotation (f.modes, f.undo, m.word, o.replace and i.escape master on day 75) |
+| fast sloppy (0.6-0.8x target time, 2.2x par improving to 1.1x, 12% give-ups) | correct: every active skill fails **efficiency** (and often **accuracy**) | stays in tier 0 for 14 days, rotating across all 5 skills (the top skill gets 8-12 of 30 picks). Efficiency climbs from 0.43 to 0.75 of par; f.undo masters on day 12 |
+| slow precise (2.2x target falling to 0.85x, at par, 2% errors) | correct: only **samples** fails, since time is not a gate | masters all of tier 0 by day 2 and 32 skills in 14 days; every session drills newly unlocked skills |
+| plateaued expert (placement through tier 7; o.dot at 1.7x par) | correct: o.dot fails **efficiency** (eff 0.60) | placement infers 12 skills mastered. Days 0-4 sweep tiers 1-2. From day 5 on, o.dot takes 3-8 of 30 attempts and o.join, o.case, t.bracket and o.number master alongside it, with reviews in the 0.2 slot |
+| quitter (10 days, 60-day gap, forgets 95%) | **lenient**: the simulated forgetting mostly slows the learner, and time is no longer graded | day 70 passes 9 of 10 reviews; f.hjkl fails on efficiency and goes back into rotation. See open decision 4 |
 
 Excerpt (full output: run the script):
 
 ```
 == plateaued_expert
-day   0 | focus t.word x7, r.named x7, x.subst x7, m.file x4         | next: m.file [samples/accuracy] ...
-day   4 | focus o.indent x8, o.dot x7, m.screen x3, o.put x2         | next: o.case [samples/speed] ...
-day   9 | focus o.dot x11, o.case x6, o.replace x4, o.number x3      | next: o.number [samples] ...
+day   0 | focus t.quote x5, t.paren x5, t.word x5, r.named x4        | next: v.char [samples/accuracy] ...
+day   4 | focus o.put x7, m.screenpos x5, m.sentence x3, o.dot x3    | next: o.dot [samples/efficiency] ...
+day   9 | focus o.dot x7, t.bracket x6, o.number x3, t.para x3       | next: t.para [samples] ...
 == quitter
-day  70 | focus m.word x11, i.escape x9, f.undo x6, o.replace x2     | next: f.undo [speed] speed 0.70
-        reviews: 0 passed, 3 failed
-day  75 | ...                  mastered: f.modes, f.undo, m.word, o.replace, i.escape
+day  70 | focus m.star x5, t.sentence x5, f.hjkl x3, f.save x3       | next: f.hjkl [efficiency] speed 0.80 eff 0.79
+        reviews: 9 passed, 1 failed
 ```
 
 One 40-pick session of the plateaued expert after 5 days
-(`simulate.py picks plateaued_expert 40 5`): o.dot 13 (32.5%), o.change 8, o.case 5,
-x.subst 4, and 10 other skills once each (mostly reviews in the 0.2 slot). No skill
-has more than 4 of any 10 consecutive picks.
+(`simulate.py picks plateaued_expert 40 5`): o.indent 7 (17.5%), o.dot 6, m.rel 6,
+t.quote 6, o.case 5, and 10 other skills once each (mostly reviews in the 0.2 slot). No
+skill has more than 4 of any 10 consecutive picks.
 
 ### What the simulation suggests changing (open decisions)
 
@@ -244,7 +256,10 @@ has more than 4 of any 10 consecutive picks.
 3. **Unlocking ignores tier order.** Mastering `f.modes` unlocks tier 10 (`i.*`) before tier 1
    (which needs `f.hjkl`), because unlocking follows prerequisites only. Option: add an
    ordering to the graph and fill free slots in that order.
-4. **Reviews are lenient for mild rust.** A first quitter run with 75% forgetting passed
-   every review on return. The 1.3x target-time bar only catches large decay.
-5. **Constants still need data.** `base`/`per_key` must come from
-   real practice logs.
+4. **Reviews are lenient for rust that shows as slowness.** Since decision 19 a review
+   is graded on correctness and keys per par only, so a player who still remembers the
+   keys but hesitates passes. The quitter passes 9 of 10 reviews on return. If real logs
+   show rust as extra keys or errors this is fine; if it shows mainly as time, a review
+   would need a time signal that starts at the first keypress rather than at display.
+5. **Constants still need data.** `base`/`per_key` only shape the time chart now; if time
+   is ever reintroduced as a signal it should be measured from the first keypress.
