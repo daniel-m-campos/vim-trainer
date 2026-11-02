@@ -1,6 +1,6 @@
 # vim-trainer
 
-An adaptive Vim-motions trainer in the browser. It measures your speed and keystroke
+An adaptive Vim-motions trainer in the browser. It measures your accuracy and keystroke
 efficiency per skill (`ci"`, `f,`, `dap`, `:g`, macros, ...), drills the weakest one, and
 charts your progress over time, in the spirit of keybr.com. The drills are cut from real
 code, and every par (the shortest known keystroke solution) is verified in Neovim.
@@ -31,8 +31,9 @@ browser editor from the same buffer, compares lines, cursor and mode, and minimi
 divergence to a few keys.
 
 **Adaptive model** (`model/` in Python, `app/src/model/` in TypeScript). Each skill
-tracks a time EMA, a keys-per-par EMA and recent accuracy. A skill is mastered when it is
-at target speed, within 1.25x of par and at least 90 % accurate over enough samples.
+tracks a keys-per-par EMA and recent accuracy (time is charted but not graded, because
+the clock includes reading the task). A skill is mastered when it is within 1.25x of par
+and at least 90 % accurate over enough samples.
 Focus goes to the weakest skills, with rules that keep one stuck skill from taking over a
 session; mastered skills come back on a spaced-review schedule. A 12-exercise placement
 test seeds the model. The Python and TypeScript halves are kept identical by shared
