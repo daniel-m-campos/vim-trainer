@@ -293,7 +293,11 @@ _QUOTED: Final = (
     (re.compile(r"^Change `([^`]+)`(?: on this line)? to `"), lambda old: old),
 )
 _STRING_LITERAL: Final = re.compile(r"'(?:\\.|[^'\\])*'?|\"(?:\\.|[^\"\\])*\"?|`(?:\\.|[^`\\])*`?")
-_SLASH_COMMENTS: Final = frozenset({"cpp", "javascript", "typescript"})  # languages whose line comment is `//`
+_SLASH_COMMENTS: Final = frozenset({"cpp", "javascript", "typescript", "go", "rust"})  # line comment is `//`
+_DASH_COMMENTS: Final = frozenset({"lua"})  # line comment is `--`; `#` is Lua's length operator
+# A Rust lifetime or loop label (`'a`, `'static`): an apostrophe and an identifier with no
+# closing apostrophe, so not a char literal (`'a'`) and not the start of a string.
+_LIFETIME: Final = re.compile(r"'[A-Za-z_]\w*(?![\w'])")
 
 
 def _inner_problem(lines: Sequence[str], row: int, col: int, found: re.Match, lang: str) -> str | None:
@@ -320,9 +324,12 @@ def _repeat_problem(lines: Sequence[str], row: int, needle: str, task: str) -> s
 
 
 def _code_chars(line: str, lang: str) -> str:
-    """``line`` without its string literals and its trailing comment."""
+    """``line`` without its string literals and its trailing comment (and, in Rust, its lifetimes)."""
+    if lang == "rust":
+        line = _LIFETIME.sub("", line)
     code = _STRING_LITERAL.sub("", line)
-    return code.split("//" if lang in _SLASH_COMMENTS else "#", 1)[0]
+    leader = "//" if lang in _SLASH_COMMENTS else "--" if lang in _DASH_COMMENTS else "#"
+    return code.split(leader, 1)[0]
 
 
 def _inside(rng: dict[str, list[int]], line: int, col: int) -> bool:

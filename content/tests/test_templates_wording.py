@@ -224,3 +224,9 @@ def test_number_tasks_say_which_number():
         old = d.params["old"]
         which = "first" if old == "40" else "second"
         assert d.task.endswith(f"(the {which} number on the line)"), d.task
+
+
+def test_indent_task_names_an_unquotable_header_as_the_line_above():
+    task = templates.indent_task("`select * from t` {", True, 3)
+    assert task.startswith("The body of the line above the highlighted lines lost one level"), task
+    assert templates.indent_task("if ok {", False, 2).startswith("The body of `if ok {` is indented")

@@ -337,3 +337,45 @@ The oracle uses Neovim's own filetypes `javascript` and `typescript`, whose `ind
 indents one `shiftwidth`, and typing `}` at the start of a line dedents it. They differ
 after a line that ends in a bare `=>`: `o` indents in JavaScript but not in TypeScript.
 JavaScript's `indentkeys` also re-indent on `:` and `0#`; TypeScript's on `0,`.
+
+## Go, Rust and Lua
+
+Go, Rust and Lua are the fifth to seventh content languages, one module each:
+`src/vimtrainer_content/lang/go.py`, `rust.py` and `lua.py`. Each follows `js.py` function
+by function and shares the grammar-agnostic helpers in `lang/braces.py`. The sources are
+`exercism-go` (179 files, about 10,900 lines), `exercism-rust` (117 files, about 6,700
+lines) and `exercism-lua` (125 files, about 4,700 lines), all MIT and pinned in
+`sources.toml`: each track's `exercises/practice/*/.meta/example.*` and
+`exercises/concept/*/.meta/exemplar.*`. The parsers are `tree-sitter-go` (grammar 0.25),
+`tree-sitter-rust` (0.24) and `tree-sitter-lua` (0.5). On this corpus the quality gate keeps
+444 Go, 269 Rust and 199 Lua windows.
+
+- **Windows.** A function body longer than a window is cut into windows of its
+  statements. A block whose members do not parse on their own (a Go struct, interface,
+  `const ( ... )` group, switch body or composite literal; a Rust `impl` / `trait` / `mod`
+  body, struct, enum or `match`; a Lua table constructor) is cut into windows of whole
+  members, each kept between the block's header line and its closing line. A Rust
+  attribute (`#[derive(...)]`) stays with the item below it, and no drill touches it.
+- **Re-indent.** gofmt indents with tabs; `go.reindent` turns each leading tab into four
+  spaces, the oracle's `shiftwidth`, and keeps spaces aligned by hand after it. Exercism's
+  Lua is two-space; `lua.reindent` maps an indent `i` to `i + 2 * (i // 2)`, as `js.reindent`
+  does. rustfmt code is already four-space and is left alone. The inside of a multi-line Go
+  raw string or Lua long string is string content and stays as it is.
+- **Masking.** Strings, comments and (Go) rune or (Rust) char literals are masked: their
+  rows are prose and their characters are never delimiters for `%`, `])` or a text object.
+  A Rust lifetime `'a` is code, never a quote; gate 6 skips it too. Lua comments are `--`
+  (`--[[ ... ]]` for blocks), and `#` is the length operator, so gate 6 cuts a Lua line at
+  `--`. A bracket pair with a bracket character in a string between its ends makes no
+  drill, because Vim would pair it.
+- **Quotes.** Go drills ``ci` `` on raw strings and `ci"` on interpreted ones. Rust drills
+  `ci"` on strings and on raw strings without a `"` or backslash inside; a format string
+  with `{}` placeholders is left alone. Lua drills `ci'` / `ci"`; long strings have no text
+  object and are not drilled.
+- **Left out.** Go has no t.angle (type parameters use square brackets and are rare in the
+  corpus) and no UPPER_CASE constants, so its o.case drill is the export toggle (`b~` on a
+  name defined once in the window) or `gUi"`. Lua has no t.angle, and its brace drills only
+  apply to table constructors, because a Lua block ends with a keyword; `%` on `if` / `end`
+  (matchit) is not drilled. Rust's o.case and x.normal constant drills start from the
+  SCREAMING_SNAKE_CASE name lowercased and ask for it uppercased again.
+
+Every Go, Rust and Lua skill reaches the build cap of 40 except Rust o.case (34).

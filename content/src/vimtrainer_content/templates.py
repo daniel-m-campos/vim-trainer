@@ -85,10 +85,12 @@ _CODE_IDENTS: Final = frozenset({"identifier", "field_identifier", "type_identif
 _DEFINITIONS: Final = frozenset({
     "function_definition", "class_definition",  # python
     "function_declaration", "generator_function_declaration", "method_definition", "class_declaration",  # JS/TS
+    "function_item",  # Rust
 })
 _NOT_CODE: Final = frozenset({
     "string", "comment", "string_literal", "raw_string_literal", "char_literal", "system_lib_string",
     "concatenated_string", "preproc_include",
+    "line_comment", "block_comment",  # Rust
 })
 ORDINAL_WORDS: Final = ("", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth")
 _DELIM_NAMES: Final = {"(": "parentheses", "[": "square brackets", "{": "braces", '"': "quotes", "'": "quotes"}
@@ -584,10 +586,14 @@ def indent_block(win: Window, node: tree_sitter.Node, skill: str, lang: Language
 def indent_task(header: str, under: bool, n: int) -> str:
     """o.indent task text: names the direction (indent: shift right, outdent: shift left) and the
     number of highlighted lines, which have no blank line among them (QA #26). Used by
-    ``indent_block`` here and in lang/cpp.py."""
+    ``indent_block`` here and in lang/cpp.py. The highlight covers only the body, so a header
+    ``_quote`` cannot quote is "the line above the highlighted lines"."""
+    quoted = _quote(header)
+    if quoted == "the highlighted line":
+        quoted = "the line above the highlighted lines"
     if under:
-        return f"The body of {_quote(header)} lost one level of indent. Indent these {n} lines one level (shift right)"
-    return f"The body of {_quote(header)} is indented one level too deep. Outdent these {n} lines one level (shift left)"
+        return f"The body of {quoted} lost one level of indent. Indent these {n} lines one level (shift right)"
+    return f"The body of {quoted} is indented one level too deep. Outdent these {n} lines one level (shift left)"
 
 
 def upper_word(win: Window, node: tree_sitter.Node, skill: str, lang: Language) -> Iterator[Draft]:
@@ -1469,10 +1475,17 @@ def _indent(line: str) -> int:
 
 def _quote(text: str, width: int = 48) -> str:
     """``text`` in backticks. A longer text is cut after its last whole token and marked with
-    " ..." outside the backticks, so the quote never holds characters the line does not."""
-    if len(text) <= width:
+    " ..." outside the backticks, so the quote never holds characters the line does not.
+
+    A task has no escape for a backtick (the app reads every pair of backticks as a quote),
+    so a text holding one (a Go raw string, a JS template literal) is cut the same way just
+    before its first backtick; with nothing left before it, the quote is "the highlighted line"."""
+    tick = text.find("`")
+    if tick < 0 and len(text) <= width:
         return f"`{text}`"
-    head = text[:width - 4]
+    head = text[:width - 4 if tick < 0 else min(width - 4, tick)]
+    if not head.strip():
+        return "the highlighted line"
     if not text[len(head)].isspace():  # cut at the last space, else before the split word
         space = head.rfind(" ")
         head = head[:space] if space >= len(head) // 2 else head[:max(
@@ -1503,12 +1516,19 @@ def _inside_phrase(noun: str, delims: str, inner: str, which: tuple[bool, bool] 
     return f"the text{quoted} inside {pair}{of}"
 
 
-def _which_pair(win: Window, row: int, oc: int, inner: str, nested: bool | None = None) -> tuple[bool, bool]:
+def _which_pair(
+    win: Window, row: int, oc: int, inner: str, nested: bool | None = None, lang: str | None = None,
+) -> tuple[bool, bool]:
     """(nested, repeated) for the delimited pair opening at ``(row, oc)``: nested in a pair of the
     same kind (``gates.nested_in_same_pair`` unless ``nested`` is given), and its delimited text
-    occurring more than once in the window. Read by ``_inside_phrase``; lang/cpp.py calls it too."""
+    occurring more than once in the window. Read by ``_inside_phrase``; lang/cpp.py calls it too.
+
+    ``lang`` is the gate language for the nesting check; by default it follows the root type
+    (a ``source_file`` is Go or Rust, both ``//`` languages, read as ``"rust"``)."""
     o = win.lines[row][oc]
-    lang = {"translation_unit": "cpp", "program": "javascript"}.get(win.root.type, "python")
+    if lang is None:
+        lang = {"translation_unit": "cpp", "program": "javascript", "source_file": "rust", "chunk": "lua"}.get(
+            win.root.type, "python")
     if nested is None:
         nested = gates.nested_in_same_pair(win.lines, row, oc, lang)
     total, _ = gates.occurrences(win.lines, f"{o}{inner}{_PAIR.get(o, '>')}")
