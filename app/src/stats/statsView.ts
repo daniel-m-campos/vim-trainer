@@ -235,11 +235,12 @@ function caption(id: string, h: History): string {
 function diagnosisLine(state: ModelState, graph: SkillGraph, id: string, lang: string): string {
   const d = M.diagnose(state, id, lang, graph);
   if (d.status === null || d.n === 0) return `<span class="sv-muted">no attempts in this language yet</span>`;
+  // The three mastery gates first; speed is shown for information (time is not graded).
   const parts = [
-    `speed <span class="sv-num">${d.speed.toFixed(2)}</span>x target`,
-    `efficiency <span class="sv-num">${d.efficiency === null ? "&ndash;" : d.efficiency.toFixed(2)}</span>`,
-    `accuracy <span class="sv-num">${Math.round(d.acc * 100)}%</span>`,
     `n <span class="sv-num">${d.n}</span>`,
+    `accuracy <span class="sv-num">${Math.round(d.acc * 100)}%</span>`,
+    `efficiency <span class="sv-num">${d.efficiency === null ? "&ndash;" : d.efficiency.toFixed(2)}</span>`,
+    `speed <span class="sv-num">${d.speed.toFixed(2)}</span>x target (not graded)`,
   ].join(" &middot; ");
   const gates = d.failing.length ? `not mastered yet: ${d.failing.join(", ")}` : "all mastery gates met";
   return `${parts}<br><span class="sv-muted">${gates}</span>`;
