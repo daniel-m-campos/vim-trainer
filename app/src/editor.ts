@@ -8,11 +8,14 @@
 
 import { EditorState, Compartment, StateEffect, StateField, RangeSetBuilder, type Extension } from "@codemirror/state";
 import { EditorView, Decoration, type DecorationSet, drawSelection, gutter, GutterMarker, lineNumbers } from "@codemirror/view";
-import { indentUnit, syntaxHighlighting, HighlightStyle } from "@codemirror/language";
+import { indentUnit, syntaxHighlighting, HighlightStyle, StreamLanguage } from "@codemirror/language";
 import { history } from "@codemirror/commands";
 import { python } from "@codemirror/lang-python";
 import { cpp } from "@codemirror/lang-cpp";
 import { javascript } from "@codemirror/lang-javascript";
+import { go } from "@codemirror/lang-go";
+import { rust } from "@codemirror/lang-rust";
+import { lua } from "@codemirror/legacy-modes/mode/lua";
 import { tags as t } from "@lezer/highlight";
 import { vim, Vim, getCM } from "@replit/codemirror-vim";
 import { attachRecorder, recorderExtension, type Recorder } from "./recorder.ts";
@@ -124,8 +127,14 @@ function langExt(lang: string): Extension {
       return javascript();
     case "typescript":
       return javascript({ typescript: true });
+    case "go":
+      return go();
+    case "rust":
+      return rust();
+    case "lua":
+      return StreamLanguage.define(lua); // a legacy (stream) mode: CodeMirror has no Lezer grammar for Lua
     default:
-      return []; // TODO: grammars for go, rust and lua when their content exists.
+      return [];
   }
 }
 

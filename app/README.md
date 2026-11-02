@@ -34,7 +34,7 @@ operator, `>`/`<` on empty lines, cursor placement after `y`/`g~`/`p`, `J`, coun
 `:copy`, case-sensitive search, block objects). It reaches codemirror-vim's private motion,
 operator and action tables through `grabTable()` and wraps entries. `src/vimfixes-macros-indent.ts`
 (installed by `installVimFixes()`) handles macros and `:normal` (a failing command aborts them,
-with a recursion guard), Python/C++/JavaScript/TypeScript auto-indent, Insert-mode `<C-w>`, `:j` and ex errors. Pure
+with a recursion guard), Python/C++/JavaScript/TypeScript/Go/Rust/Lua auto-indent, Insert-mode `<C-w>`, `:j` and ex errors. Pure
 helpers are unit-tested in `src/vimfixes.test.ts`. `e2e/editor.mjs` types the key sequences in
 `e2e/cases/*.json` and compares the result with Neovim's. The cases are inputs only: a buffer, a
 start cursor and keys. Before the browser starts, the harness runs `uv run vimtrainer-content
@@ -156,8 +156,26 @@ current entry (so `Esc` and Back agree), otherwise `redirect("practice")`.
 - The `typescript` indent keys have no `:` or `#`, so typing them never re-indents
   (`typeElectric`).
 - `usableLang` in `src/main.ts`: a saved or imported language that build/ has no exercises
-  for (Go today) falls back to Python. Without it, the placement intro would offer zero
+  for falls back to Python. Without it, the placement intro would offer zero
   exercises.
+
+## Reading note: Go, Rust and Lua indent
+
+- The Neovim oracle runs without syntax highlighting. `indent/lua.vim` and `indent/rust.vim`
+  ask the syntax groups whether a word sits in a string or comment, so in the oracle that
+  test always says no. `goIndent` and `luaIndent` therefore read the raw lines: a `{` at the
+  end of a string or comment still indents, as `e2e/cases/go-rust-lua-indent.json` shows.
+- `rustIndent` ports the few cases `GetRustIndent` handles itself, such as a `}` alone on a
+  line, match arms and fields after a trailing comma, and a `.method()` chain. Everything else
+  goes to cindent. The port is `cppIndent(lines, n, "rust")`, with rust's `cinoptions`
+  `(s,m1,j1`: an open `(` indents one level and `)` lines up with the line of its `(`.
+- Lua's `end`, `until` and `else` re-indent when their last letter is typed (`0=end`,
+  `0=until`, `e` in `indentkeys`), so `e`, `d` and `l` are Insert-mode keys
+  (`MAYBE_ELECTRIC_KEYS`). They are recorded for `.` as a key only when they re-indent and
+  as plain text otherwise, so a plain `e` stays text in `.` and in the `".` register.
+- Go's `formatoptions` (`cqj`) have no `r` or `o`, so a new line after `//` gets no comment
+  leader. Lua continues `--` only when it starts the line; rust, like C++, also continues a
+  trailing `//` comment, because Neovim does that only when `cindent` is set.
 
 ## Reading note: errors and version
 

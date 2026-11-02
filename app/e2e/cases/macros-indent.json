@@ -182,5 +182,6 @@
   {"name": "shift (C++ cindent): >G leaves #-lines in column 0", "lang": "cpp", "lines": ["#include <a>", "int x;", "#define Y 1", "int y;"], "cursor": [1, 0], "keys": ">G", "why": "> and < skip a line whose first character is # in C++ (Vim's preprocs_left: 'cindent' with # in 'cinkeys')."},
   {"name": "shift (C++ cindent): 3>> shifts an indented # line", "lang": "cpp", "lines": ["#include <a>", "int x;", "  #define Y 1", "int y;"], "cursor": [1, 0], "keys": "3>>"},
   {"name": "shift (C++ cindent): a block > still shifts #-lines", "lang": "cpp", "lines": ["#include <a>", "int x;", "#define Y 1", "int y;"], "cursor": [1, 0], "keys": "<C-v>3j>"},
-  {"name": "shift (python): >G shifts # comment lines", "lines": ["# c", "x = 1", "#d", "y = 2"], "cursor": [1, 0], "keys": ">G"}
+  {"name": "shift (python): >G shifts # comment lines", "lines": ["# c", "x = 1", "#d", "y = 2"], "cursor": [1, 0], "keys": ">G"},
+  {"name": "indent keys: <C-r>. inserts typed { and ) as text, not the recorded key", "lines": ["x"], "cursor": [1, 0], "keys": "Aa{b(c)e<Esc>o<C-r>.<Esc>"}
 ]
