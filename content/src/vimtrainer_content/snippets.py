@@ -54,11 +54,16 @@ _SCAFFOLD: Final = re.compile(
     r"(?-i:\bTODO\b)|Waiting to be implemented|NotImplementedError|\byour (?:code|solution)\b|^\s*(?://|#)\s*INFO:",
     re.IGNORECASE | re.MULTILINE,
 )
+# Lua (a ``chunk`` root, or ``lang="lua"``) comments with ``--``, and ``#`` is its length operator.
+_SCAFFOLD_DASH: Final = re.compile(r"^\s*--\s*INFO:", re.IGNORECASE | re.MULTILINE)
 _COMMENT_LINE: Final = re.compile(r"\s*(?://|#(?!include|define|if|endif|else|elif|pragma|undef)|/\*|\*(?:\s|/|$))")
+_DASH_COMMENT_LINE: Final = re.compile(r"\s*--")
 # Subtrees that hold no drillable code, and punctuation that does not count as a code token.
 _NOISE: Final = frozenset({
     "comment", "preproc_include", "preproc_call", "import_statement", "import_from_statement",
     "future_import_statement",
+    "import_declaration",  # Go
+    "use_declaration", "attribute_item", "line_comment", "block_comment",  # Rust
 })
 _PUNCTUATION: Final = frozenset({";", ",", "(", ")", "{", "}", "[", "]", ":", ".", "::", "->", "\"\"\"", '"', "'"})
 # Statements that do something, in both grammars (python, C++). A C++ declaration counts
@@ -204,7 +209,7 @@ def quality_problem(lines: list[str], root: tree_sitter.Node) -> str | None:
     lines
         The window's lines.
     root
-        The root of the window's own parse (Python, C++, JavaScript or TypeScript).
+        The root of the window's own parse, in the window's language.
 
     Returns
     -------
@@ -216,7 +221,8 @@ def quality_problem(lines: list[str], root: tree_sitter.Node) -> str | None:
         passes) or ``"thin"`` (fewer than ``MIN_CODE_TOKENS`` code tokens), with the
         counts; None for a window that ships.
     """
-    if _SCAFFOLD.search("\n".join(lines)):
+    text = "\n".join(lines)
+    if _SCAFFOLD.search(text) or (root.type == "chunk" and _SCAFFOLD_DASH.search(text)):
         return "scaffold"
     tokens, statements = _code_size(root)
     declares = root.type == "translation_unit"  # C++: Python has no prototypes or headers
@@ -227,19 +233,21 @@ def quality_problem(lines: list[str], root: tree_sitter.Node) -> str | None:
     return None
 
 
-def trim_comment_edges(lines: list[str], start: int, end: int) -> tuple[int, int]:
+def trim_comment_edges(lines: list[str], start: int, end: int, lang: str = "") -> tuple[int, int]:
     """Shrink ``[start, end]`` (rows of ``lines``) so the span neither starts inside a comment
-    block that began above it nor ends on comment-only lines.
+    block that began above it nor ends on comment-only lines. With ``lang="lua"`` a comment
+    line starts with ``--``; otherwise with ``//``, ``#`` (not a preprocessor line) or ``/*``.
 
     Returns
     -------
     tuple[int, int]
         The new ``(start, end)``; ``start > end`` when nothing is left.
     """
-    if start > 0 and _is_comment_line(lines[start - 1]):
-        while start <= end and _is_comment_line(lines[start]):
+    rx = _DASH_COMMENT_LINE if lang == "lua" else _COMMENT_LINE
+    if start > 0 and _is_comment_line(lines[start - 1], rx):
+        while start <= end and _is_comment_line(lines[start], rx):
             start += 1
-    while end >= start and (not lines[end].strip() or _is_comment_line(lines[end])):
+    while end >= start and (not lines[end].strip() or _is_comment_line(lines[end], rx)):
         end -= 1
     return start, end
 
@@ -330,8 +338,8 @@ def _body_statements(node: tree_sitter.Node) -> list[tree_sitter.Node]:
     return body.named_children if body else []
 
 
-def _is_comment_line(line: str) -> bool:
-    return bool(line.strip()) and bool(_COMMENT_LINE.match(line))
+def _is_comment_line(line: str, rx: re.Pattern = _COMMENT_LINE) -> bool:
+    return bool(line.strip()) and bool(rx.match(line))
 
 
 def _code_size(root: tree_sitter.Node) -> tuple[int, int]:

@@ -29,7 +29,7 @@ def _fetch(args: argparse.Namespace) -> int:
 def _build(args: argparse.Namespace) -> int:
     t0 = time.perf_counter()
     report = build.build(out=args.out, cap=args.cap, workers=args.jobs, skills=args.skills or None,
-                         offline=args.offline)
+                         offline=args.offline, langs=args.langs)
     print(f"\nwrote {args.out} in {time.perf_counter() - t0:.1f}s; {report.replays} replays")
     for lang, skills in report.counts.items():
         print(f"{lang}:")
@@ -70,6 +70,8 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("--jobs", type=int, default=None, help="parallel nvim processes (default: CPU count)")
     p.add_argument("--skills", nargs="*", help="only these skills (default: each language's own list)")
     p.add_argument("--offline", action="store_true", help="use the cached checkout without fetching")
+    p.add_argument("--langs", nargs="+", choices=list(build.LANGS), default=list(build.LANGS),
+                   help="only these languages (default: all)")
     p.add_argument("--strict", action="store_true", help="exit 1 if any (lang, skill) is thin")
     p.set_defaults(func=_build)
 

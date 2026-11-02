@@ -9,13 +9,13 @@ code, and every par (the shortest known keystroke solution) is verified in Neovi
 
 It runs entirely in your browser. There is no account and no server; your progress stays
 in the browser's localStorage, with export and import in settings. Content today: Python,
-C++, JavaScript and TypeScript, about 2,960 exercises.
+C++, JavaScript, TypeScript, Go, Rust and Lua, about 4,900 exercises.
 
 ## How it works
 
 **Content pipeline** (`content/`, Python). Snippets are cut from pinned, MIT-licensed
-sources (`exercism/python`, `exercism/cpp`, `exercism/javascript`, `exercism/typescript`) and
-parsed with tree-sitter. Per-language
+sources (`exercism/python`, `exercism/cpp`, `exercism/javascript`, `exercism/typescript`,
+`exercism/go`, `exercism/rust`, `exercism/lua`) and parsed with tree-sitter. Per-language
 templates turn syntax nodes into drills: change the string inside these quotes, jump to
 the matching brace, rename every use of this identifier with `:s`. Each drill's candidate
 solutions are replayed in `nvim --headless --clean`, and the shortest passing one becomes
@@ -108,8 +108,11 @@ verified in Neovim, never by hand.
 The code is MIT-licensed (see [LICENSE](LICENSE)). Exercise snippets come from
 [exercism/python](https://github.com/exercism/python),
 [exercism/cpp](https://github.com/exercism/cpp),
-[exercism/javascript](https://github.com/exercism/javascript) and
-[exercism/typescript](https://github.com/exercism/typescript) at pinned commits
+[exercism/javascript](https://github.com/exercism/javascript),
+[exercism/typescript](https://github.com/exercism/typescript),
+[exercism/go](https://github.com/exercism/go),
+[exercism/rust](https://github.com/exercism/rust) and
+[exercism/lua](https://github.com/exercism/lua) at pinned commits
 (`content/sources.toml`), all MIT; the build checks each licence at the pinned commit. `make content` writes `build/ATTRIBUTION.md` with every repo, path,
 commit and licence used, and the site links it from settings. Each exercise also shows its
 source on the result strip.

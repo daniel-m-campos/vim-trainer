@@ -56,3 +56,42 @@ include = [
   "exercises/practice/*/.meta/proof.ci.ts",
   "exercises/concept/*/.meta/exemplar.ts",
 ]
+
+[[source]]
+name = "exercism-go"
+lang = "go"
+repo = "github.com/exercism/go"
+url = "https://github.com/exercism/go"
+commit = "bbb9459aecb53727d2951a399180d6c58ca7fe71"
+license = "MIT"
+license_file = "LICENSE"
+include = [
+  "exercises/practice/*/.meta/example.go",
+  "exercises/concept/*/.meta/exemplar.go",
+]
+
+[[source]]
+name = "exercism-rust"
+lang = "rust"
+repo = "github.com/exercism/rust"
+url = "https://github.com/exercism/rust"
+commit = "37fbf8b49f9a6d98c1c56347dd26a0776b2fa1ea"
+license = "MIT"
+license_file = "LICENSE"
+include = [
+  "exercises/practice/*/.meta/example.rs",
+  "exercises/concept/*/.meta/exemplar.rs",
+]
+
+[[source]]
+name = "exercism-lua"
+lang = "lua"
+repo = "github.com/exercism/lua"
+url = "https://github.com/exercism/lua"
+commit = "011a54a8b02c2733b89a0e4331ed92abf63a331d"
+license = "MIT"
+license_file = "LICENSE"
+include = [
+  "exercises/practice/*/.meta/example.lua",
+  "exercises/concept/*/.meta/exemplar.lua",
+]
