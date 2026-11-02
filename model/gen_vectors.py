@@ -64,7 +64,7 @@ def scenarios(graph: dict) -> dict[str, dict]:
     """All scenarios by file name."""
     builders = [
         _rng_and_seeds, _fresh_state, _mastery_and_unlock, _interleave_streak, _fast_sloppy_gate,
-        _accuracy_gate, _slow_precise_gate, _retry_hint_not_counted, _review_pass_cycle, _review_fail_drop,
+        _accuracy_gate, _slow_precise_masters, _retry_hint_not_counted, _review_pass_cycle, _review_fail_drop,
         _introduced_pull_in, _placement_high, _placement_low, _composite_credit_and_choice,
         _exercise_recent_and_weights, _projection_fits, _cross_language, _profile_vscodevim,
         _simulated_fast_sloppy, _simulated_quitter, _forced_locked_skill, _placement_hinted,
@@ -166,11 +166,12 @@ def _accuracy_gate(graph: dict) -> dict:
     return {"description": "Fast and at par but 3/12 give-ups: accuracy gate blocks mastery.", "ops": ops}
 
 
-def _slow_precise_gate(graph: dict) -> dict:
+def _slow_precise_masters(graph: dict) -> dict:
     ops = attempts("f.save", 10, T0, ms=5000, keys=4, par=4)
     ops += [{"op": "diagnose", "skill": "f.save", "lang": PY}, {"op": "projection", "skill": "f.save", "lang": PY},
             {"op": "digest"}]
-    return {"description": "At par, never wrong, but twice the target time: speed gate.", "ops": ops}
+    return {"description": "At par, never wrong, twice the target time: time is not a gate, so it masters.",
+            "ops": ops}
 
 
 def _retry_hint_not_counted(graph: dict) -> dict:
@@ -201,12 +202,13 @@ def _review_pass_cycle(graph: dict) -> dict:
 def _review_fail_drop(graph: dict) -> dict:
     ops = attempts("f.save", 8, T0, keys=4, par=4, ms=1500)
     t = T0 + DAY + 600
-    ops += attempts("f.save", 1, t, keys=4, par=4, ms=4000)
+    ops += attempts("f.save", 1, t, keys=7, par=4, ms=1500)
     ops += [{"op": "digest"}, {"op": "diagnose", "skill": "f.save", "lang": PY},
             {"op": "chooseFocus", "lang": PY, "now": t + 60, "seed": seed_with_roll(False)}]
     ops += attempts("f.save", 6, t + 120, keys=4, par=4, ms=1500)
     ops += [{"op": "digest"}, {"op": "rebuildMatches"}]
-    return {"description": "A slow review fails: back to active, interval reset, confidence x0.8.", "ops": ops}
+    return {"description": "A sloppy review (7 keys for par 4) fails: back to active, interval reset, "
+                           "confidence x0.8.", "ops": ops}
 
 
 def _introduced_pull_in(graph: dict) -> dict:

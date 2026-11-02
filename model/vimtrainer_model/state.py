@@ -138,16 +138,23 @@ def efficiency_factor(st: dict) -> float:
 
 
 def confidence(graph: dict, skill_id: str, st: dict) -> float:
-    """``min(speed, 1) * clamp(1 / eff_ema, 0.5, 1)``."""
-    if st["timeEma"] is None:
+    """``min(n / 8, 1) * acc * clamp(1 / eff_ema, 0.5, 1)``: samples, accuracy and keys per par.
+
+    Time is not part of it: the clock starts when the exercise is shown, so it measures
+    reading the task as much as using the skill.
+    """
+    if st["n"] <= 0:
         return 0.0
-    return min(speed(graph, skill_id, st), 1.0) * efficiency_factor(st)
+    return min(st["n"] / MASTER_N, 1.0) * st["acc"] * efficiency_factor(st)
 
 
 def failing_gates(graph: dict, skill_id: str, st: dict | None) -> list[str]:
-    """Mastery gates the skill does not meet yet, in the order samples, accuracy, efficiency, speed."""
+    """Mastery gates the skill does not meet yet, in the order samples, accuracy, efficiency.
+
+    Speed is reported by ``diagnose`` for information but is not a gate.
+    """
     if st is None:
-        return ["samples", "accuracy", "efficiency", "speed"]
+        return ["samples", "accuracy", "efficiency"]
     failing = []
     if st["n"] < MASTER_N:
         failing.append("samples")
@@ -155,8 +162,6 @@ def failing_gates(graph: dict, skill_id: str, st: dict | None) -> list[str]:
         failing.append("accuracy")
     if st["effEma"] is None or st["effEma"] > MASTER_EFF:
         failing.append("efficiency")
-    if speed(graph, skill_id, st) < 1.0:
-        failing.append("speed")
     return failing
 
 
@@ -167,7 +172,8 @@ def diagnose(state: dict, skill_id: str, lang: str, graph: dict) -> dict:
     -------
     dict
         ``{"status", "failing": [gate, ...], "speed", "efficiency", "acc", "n"}`` where
-        ``efficiency`` is ``1 / eff_ema`` (None without data) and ``speed`` is capped at 10.
+        ``efficiency`` is ``1 / eff_ema`` (None without data) and ``speed`` (target time over
+        the time EMA, capped at 10) is informational only.
     """
     st = state["skills"].get(skill_id, {}).get(lang)
     if st is None:
@@ -185,7 +191,7 @@ def diagnose(state: dict, skill_id: str, lang: str, graph: dict) -> dict:
 
 
 def passes_mastery_gate(graph: dict, skill_id: str, st: dict) -> bool:
-    """``speed >= 1 and eff_ema <= 1.25 and acc >= 0.9 and n >= 8``."""
+    """``n >= 8 and acc >= 0.9 and eff_ema <= 1.25``."""
     return not failing_gates(graph, skill_id, st)
 
 

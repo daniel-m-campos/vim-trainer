@@ -109,7 +109,7 @@ export interface SessionSummary {
   tip: string | null;
 }
 
-export type Gate = 'samples' | 'accuracy' | 'efficiency' | 'speed';
+export type Gate = 'samples' | 'accuracy' | 'efficiency';
 
 export interface Diagnosis {
   status: Status | null;
@@ -141,7 +141,6 @@ export const MIN_ACTIVE = 4;
 export const MAX_ACTIVE = 7;
 export const REVIEW_P = 0.2;
 export const REVIEW_KEYS = 1.5;
-export const REVIEW_TIME = 1.3;
 export const REVIEW_FAIL_FACTOR = 0.8;
 export const MAX_INTERVAL_DAYS = 60;
 export const DAY = 86400;
@@ -351,23 +350,28 @@ function efficiencyFactor(st: SkillState): number {
   return Math.min(Math.max(1.0 / st.effEma, EFF_FLOOR), 1.0);
 }
 
-/** min(speed, 1) * clamp(1 / effEma, 0.5, 1). */
-export function confidenceOf(graph: SkillGraph | null | undefined, skillId: string, st: SkillState): number {
-  if (st.timeEma === null) return 0;
-  return Math.min(speedOf(graph, skillId, st), 1.0) * efficiencyFactor(st);
+/**
+ * min(n / 8, 1) * acc * clamp(1 / effEma, 0.5, 1): samples, accuracy and keys per par.
+ * Time is not part of it: the clock starts when the exercise is shown, so it measures
+ * reading the task as much as using the skill. graph and skillId are unused but kept so
+ * both mirrors share one signature.
+ */
+export function confidenceOf(_graph: SkillGraph | null | undefined, _skillId: string, st: SkillState): number {
+  if (st.n <= 0) return 0;
+  return Math.min(st.n / MASTER_N, 1.0) * st.acc * efficiencyFactor(st);
 }
 
-function failingGates(graph: SkillGraph, skillId: string, st: SkillState | undefined): Gate[] {
-  if (!st) return ['samples', 'accuracy', 'efficiency', 'speed'];
+/** Speed is reported by diagnose for information but is not a gate. */
+function failingGates(_graph: SkillGraph, _skillId: string, st: SkillState | undefined): Gate[] {
+  if (!st) return ['samples', 'accuracy', 'efficiency'];
   const failing: Gate[] = [];
   if (st.n < MASTER_N) failing.push('samples');
   if (st.acc < MASTER_ACC) failing.push('accuracy');
   if (st.effEma === null || st.effEma > MASTER_EFF) failing.push('efficiency');
-  if (speedOf(graph, skillId, st) < 1.0) failing.push('speed');
   return failing;
 }
 
-/** Why a skill is not mastered yet (gates in order samples, accuracy, efficiency, speed). */
+/** Why a skill is not mastered yet (gates in order samples, accuracy, efficiency). */
 export function diagnose(state: ModelState, skillId: string, lang: string, graph: SkillGraph): Diagnosis {
   const st = getSkill(state, skillId, lang);
   if (!st) {
@@ -555,11 +559,9 @@ export function rebuild(log: AttemptRecord[], graph: SkillGraph): ModelState {
   return state;
 }
 
-/** A review passes when ok, keys <= 1.5 x par and ms <= 1.3 x target time. */
-export function reviewPassed(graph: SkillGraph, skillId: string, record: AttemptRecord): boolean {
-  if (!record.ok) return false;
-  if (record.keys > REVIEW_KEYS * record.par) return false;
-  return record.ms <= REVIEW_TIME * targetMs(graph, skillId, record.par);
+/** A review passes when ok and keys <= 1.5 x par (time is not graded). */
+export function reviewPassed(_graph: SkillGraph, _skillId: string, record: AttemptRecord): boolean {
+  return record.ok && record.keys <= REVIEW_KEYS * record.par;
 }
 
 function credit(state: ModelState, graph: SkillGraph, skillId: string, record: AttemptRecord): void {
@@ -591,10 +593,13 @@ function gradeReview(graph: SkillGraph, skillId: string, st: SkillState, record:
   dropConfidence(graph, skillId, st);
 }
 
+/**
+ * Scale confidence by 0.8 by inflating the efficiency EMA, so the drop persists. The
+ * efficiency factor is clamped at 0.5, so a skill already at the floor drops less.
+ */
 function dropConfidence(graph: SkillGraph, skillId: string, st: SkillState): void {
-  if (st.timeEma === null || st.confidence <= 0) return;
-  const cappedSpeed = REVIEW_FAIL_FACTOR * Math.min(speedOf(graph, skillId, st), 1.0);
-  st.timeEma = targetMs(graph, skillId, st.parEma) / cappedSpeed;
+  if (st.effEma === null || st.confidence <= 0) return;
+  st.effEma = 1.0 / (REVIEW_FAIL_FACTOR * efficiencyFactor(st));
   st.confidence = confidenceOf(graph, skillId, st);
 }
 
