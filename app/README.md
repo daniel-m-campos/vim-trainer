@@ -177,6 +177,25 @@ current entry (so `Esc` and Back agree), otherwise `redirect("practice")`.
   leader. Lua continues `--` only when it starts the line; rust, like C++, also continues a
   trailing `//` comment, because Neovim does that only when `cindent` is set.
 
+## Reading note: register drills
+
+An exercise may preload registers (`start.registers`) and may grade them
+(`expect.registers`); `src/types.ts` documents both. The path through the code:
+
+- `mountEditor` in `src/editor.ts` resets Vim's global state, then `loadRegisters` fills
+  the registers. A text that ends in a newline is loaded linewise, so `p` puts it on its
+  own line.
+- `attachRecorder` in `src/recorder.ts` is told which registers the exercise grades. Its
+  `snapshot()` then carries their text in `snap.registers` (`readRegisters`).
+- The recorder reports a finished command when the buffer or the cursor changed. A yank
+  changes neither, so it also compares the graded registers with what they held last time
+  (`registersKey`). Without that, a drill that ends on `"Ayy` would never be graded.
+- `checkPass` in `src/grading.ts` returns false until `registersMatch` holds. `main.ts`
+  uses `registerNames` to name the graded registers under the task, and shows a note when
+  the buffer is right and a register is not.
+- `e2e/editor.mjs` types a collect drill in the browser and checks that the final yank
+  passes it, and that `"ayy` in place of `"Ayy` does not.
+
 ## Reading note: errors and version
 
 There is no telemetry. `window` `error` and `unhandledrejection` handlers in `src/main.ts`

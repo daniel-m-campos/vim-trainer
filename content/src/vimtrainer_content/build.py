@@ -56,7 +56,7 @@ TARGET_SKILLS: Final = (  # Python
     "m.find", "m.rel", "m.match", "o.delete", "o.change", "o.indent", "o.case", "t.quote", "t.paren",
     "t.bracket", "t.brace", "t.word", "x.subst", "x.copymove", "n.unmatched",
     "v.blockedit", "x.normal", "x.global", "x.lastsearch", "a.dot", "o.join", "o.number", "o.yank", "o.put",
-    "a.macro", "t.para",
+    "a.macro", "t.para", "r.yank0", "r.blackhole", "r.named", "r.insert",
 )
 
 
@@ -189,7 +189,7 @@ def build_date() -> datetime.date:
 def candidate_keys(draft: templates.Draft, exercise: dict[str, Any]) -> list[str]:
     """Every key string replayed for a draft: variants, alternates, idioms, shortcuts."""
     seeds = par_search.candidates(exercise)
-    return list(dict.fromkeys(itertools.chain(draft.variants, seeds, draft.idioms, draft.forbid)))
+    return list(dict.fromkeys(itertools.chain(draft.variants, seeds, draft.idioms, draft.forbid, draft.plain)))
 
 
 def evaluate(
@@ -220,6 +220,9 @@ def evaluate(
     canonical, best, problem = gates.judge_par(variants, verdicts, draft.forbid, margin)
     if canonical is None:
         return None, "oracle", problem or ""
+    plain = gates.plain_problem(canonical, [verdicts[k] for k in draft.plain])
+    if plain:
+        return None, "plain", plain
     if problem:
         return None, "shortcut" if problem.startswith("shortcut") else "par", problem
     if draft.kind == oracle.Kind.CURSOR and probes is not None:
@@ -229,7 +232,9 @@ def evaluate(
         problem = gates.cursor_probe_problem(ex, canonical.count, gates.cursor_probes(ex), probes, allowed)
         if problem:
             return None, "motion", problem
-    problem = gates.anti_shortcut_problem(ex, canonical.count, draft.typed)
+    # Gate 5 does not apply to a register drill (see the gates module docstring).
+    register_drill = bool(draft.plain or ex["expect"].get("registers"))
+    problem = None if register_drill else gates.anti_shortcut_problem(ex, canonical.count, draft.typed)
     if problem:
         return None, "anti-shortcut", problem
     problem = gates.target_problem(ex, draft.target, draft.task)

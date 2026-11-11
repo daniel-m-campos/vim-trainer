@@ -6,7 +6,9 @@ skill. The build replays every variant in Neovim and keeps the shortest one that
 as ``par.keys`` (so a template does not have to guess, for example, whether ``:%s`` needs
 ``\\<..\\>`` or the ``g`` flag). ``alternates`` are other known-good solutions;
 ``idioms`` are extra par-search candidates that do not use the skill (``cw`` instead of
-``ciw``); ``forbid`` lists shortcuts that make the drill pointless if they pass.
+``ciw``); ``forbid`` lists shortcuts that make the drill pointless if they pass; ``plain``
+lists the routes that do the job without the skill's point (retyping a name a register
+holds), which must cost more keys than par (``gates.plain_problem``).
 
 All choices that look random (cursor offset, replacement text, direction) are a
 ``stable_hash`` of the window and node, so a rebuild produces the same exercises.
@@ -130,6 +132,8 @@ class Draft:
     alternates: list[str] = field(default_factory=list)
     idioms: list[str] = field(default_factory=list)
     forbid: list[str] = field(default_factory=list)
+    plain: list[str] = field(default_factory=list)  # routes without the skill's point: each must cost more than par
+    registers: dict[str, str] = field(default_factory=dict)  # start.registers: loaded before the first key
     typed: int = 0  # characters every solution has to type (inserted text, new names)
     typed_per_line: bool = False  # ``typed`` goes onto every changed line (gates.anti_shortcut_problem)
     params: dict[str, Any] = field(default_factory=dict)
@@ -139,7 +143,8 @@ class Draft:
     @property
     def uid(self) -> str:
         """Stable 10-hex id from the content of the exercise."""
-        return stable_hash(self.window.key, self.template, self.skill, self.lines, self.cursor, self.expect)[:10]
+        preload = [self.registers] if self.registers else []  # absent when empty: older ids stay as they are
+        return stable_hash(self.window.key, self.template, self.skill, self.lines, self.cursor, self.expect, *preload)[:10]
 
     def exercise(self, lang: str) -> dict[str, Any]:
         """Oracle-ready exercise dict (par filled in later by the build)."""
@@ -148,6 +153,8 @@ class Draft:
             "start": {"lines": self.lines, "cursor": self.cursor}, "expect": self.expect,
             "par": {"keys": self.variants[0]}, "alternates": self.alternates, "params": self.params,
         }
+        if self.registers:
+            ex["start"]["registers"] = self.registers
         if self.typed_per_line:
             ex["typed_per_line"] = True  # read by gate 5; build.evaluate does not ship it
         return ex

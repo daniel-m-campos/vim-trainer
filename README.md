@@ -17,7 +17,8 @@ C++, JavaScript, TypeScript, Go, Rust and Lua, about 4,900 exercises.
 sources (`exercism/python`, `exercism/cpp`, `exercism/javascript`, `exercism/typescript`,
 `exercism/go`, `exercism/rust`, `exercism/lua`) and parsed with tree-sitter. Per-language
 templates turn syntax nodes into drills: change the string inside these quotes, jump to
-the matching brace, rename every use of this identifier with `:s`. Each drill's candidate
+the matching brace, rename every use of this identifier with `:s`. Register drills start
+with registers already filled and can grade what a register holds at the end. Each drill's candidate
 solutions are replayed in `nvim --headless --clean`, and the shortest passing one becomes
 the par. Quality gates reject drills that retyping would beat, drills whose par a shorter
 motion beats, and task text that does not single out its target.

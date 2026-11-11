@@ -5,7 +5,12 @@ Gates 1 (licence), 2 (size) and 7 (secrets) live next to the data they check, in
 
 - gate 3, oracle pass, and gate 4, no shorter par: ``judge_par``, plus, for cursor
   drills, ``cursor_probes`` / ``cursor_probe_problem`` (every 1- and 2-key motion);
-- gate 5, anti-shortcut: ``naive_cost`` and ``anti_shortcut_problem``;
+- gate 4b, plain routes: ``plain_problem``. A register drill's rival is not hjkl but
+  typing the text the register holds, or the plain ``dd``. The template lists those routes
+  (``Draft.plain``) and the draft is rejected when one of them passes in as few keys as par;
+- gate 5, anti-shortcut: ``naive_cost`` and ``anti_shortcut_problem``. It is skipped for a
+  draft that lists plain routes (gate 4b is the sharper form of the same question) and for
+  one graded on a register (``expect.registers``: the naive baseline cannot fill a register);
 - gate 6, unambiguous target: ``target_problem``. Besides the highlight checks, a target
   the task quotes must be the only one of its kind: an inner text object's quoted text
   (``the text `x` inside the quotes``) that occurs more than once in the window needs
@@ -139,6 +144,8 @@ def target_problem(exercise: dict[str, Any], target: Sequence[dict[str, list[int
             return "cursor already on target"
         return None
     changed = _changed_rows(lines, exercise["expect"]["lines"])
+    if not changed and exercise["expect"].get("registers"):
+        return None  # the buffer stays as it is and a register is what the drill grades
     if not changed:
         return "expect equals start"
     if exercise["kind"] == oracle.Kind.EDIT and not changed <= rows:
@@ -218,6 +225,15 @@ def judge_par(
     if canonical.count - best.count > margin:
         return canonical, best, f"canonical {canonical.keys!r} ({canonical.count}) beaten by {best.keys!r} ({best.count})"
     return canonical, best, None
+
+
+def plain_problem(canonical: oracle.Verdict, plain: Sequence[oracle.Verdict]) -> str | None:
+    """Gate 4b: why a plain route makes the drill moot, or None. ``plain`` are the verdicts of
+    ``Draft.plain``; one that passes in as few keys as the canonical means the skill buys nothing."""
+    rival = min((v for v in plain if v.passed), key=lambda v: v.count, default=None)
+    if rival is None or rival.count > canonical.count:
+        return None
+    return f"plain route {rival.keys!r} ({rival.count}) ties or beats {canonical.keys!r} ({canonical.count})"
 
 
 def cursor_probes(exercise: dict[str, Any]) -> list[tuple[str, int]]:

@@ -379,3 +379,67 @@ lines) and `exercism-lua` (125 files, about 4,700 lines), all MIT and pinned in
   SCREAMING_SNAKE_CASE name lowercased and ask for it uppercased again.
 
 Every Go, Rust and Lua skill reaches the build cap of 40 except Rust o.case (34).
+
+## Register drills
+
+`src/vimtrainer_content/registers.py` holds the drills for registers. They are line
+templates written against the shared helpers, so every language runs them
+(`registers.USES` in each language's `line_templates`, `registers.SKILLS` in its skills).
+
+### Format
+
+Two optional fields carry register state. Both map a register name to its text, and a
+text that ends in a newline is linewise, as in `getreg()`. `"` is the unnamed register.
+
+```json
+"start":  {"lines": [...], "cursor": [4, 4], "registers": {"\"": "cut = 0\n", "0": "kept = 1\n"}},
+"expect": {"lines": [...], "registers": {"a": "first\nsecond\n"}}
+```
+
+- `start.registers` are loaded before the first key. The oracle does it in `oracle.lua`
+  after its per-job reset, and the app does it in `loadRegisters` (`app/src/editor.ts`).
+- `expect.registers` are graded with the buffer: each named register must hold exactly that
+  text at the end. The oracle's verdict says `register` in its reason when one differs.
+  The task text names every register that is graded.
+
+### Gates
+
+A register drill is only worth serving when the register route is the short one. Two
+things in `build.evaluate` look after that.
+
+- **The plain route (gate 4b).** A draft lists `plain` key sequences: ways to reach the
+  same result without the register feature, such as `:12t.<CR>` in place of `"0p`, or
+  retyping the name in place of `<C-r>a`. Each is replayed in Neovim. If one passes and
+  ties or beats the par, `gates.plain_problem` rejects the draft, counted under `plain` in
+  `stats/gates.json`.
+- **Exemptions.** The anti-shortcut gate (gate 5) compares the par with retyping the
+  changed text. It is skipped for a draft with `plain` routes or `expect.registers`, since
+  the plain gate already asks the sharper question. Gate 6 accepts an exercise whose buffer
+  does not change when it grades a register.
+
+### Templates
+
+| skill | template | the drill | par looks like |
+|---|---|---|---|
+| r.yank0 | `put_yanked_line` | A line was yanked, then another was deleted. Put the yanked one. `p` gives the deleted line. | `"0p` |
+| r.yank0 | `put_yanked_word` | Replace a name with the yanked one although a delete came after the yank. | `viw"0p` |
+| o.put | `swap_words` | Swap two names across a comma or a binary operator. | `diwwviwp2bP` |
+| r.blackhole | `delete_keep_register` | Delete one to three lines and keep what the unnamed register holds. Graded on `"`. | `"_dd`, `"_dj` |
+| r.named | `put_two_registers` | Two lines wait in `a` and `b`; each has its own destination. | `"aP3j"bP` |
+| r.named | `collect_lines` | Collect three lines in `a` with `"A`. Some also put them; the rest leave the buffer alone and are graded on `a` only. | `"ayy2j"Ayy3j"Ayy` |
+| r.insert | `insert_register_arg` | Add the name in `a` as a last argument without leaving Insert mode to paste. | `f)i, <C-r>a<Esc>` |
+
+Choices that keep the drills honest:
+
+- Lines that are deleted, yanked or put are whole statements at one indent, so the result
+  still reads as code and a multi-line delete does not break a block.
+- `swap_words` only swaps across `,` or a binary operator. Swapping the two sides of `=`
+  or `:` makes no sense.
+- `insert_register_arg` takes calls, not declarations: `def f(x)`, `void f(int x)` and
+  `local function f(x)` are rejected.
+- An attribute or decorator line (`#[derive(..)]`, `@property`, `[[nodiscard]]`) and the line
+  under it are never a cursor line or a destination.
+- `put_yanked_word` puts over one site. Repeating it with `.` is left out: the browser
+  emulator does not repeat `<C-r>` in a change, and it has no visual `P`.
+
+Every register skill reaches the build cap of 40 in all seven languages.

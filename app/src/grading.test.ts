@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  tokenize, displayKeys, replayKeys, splitKeys, checkPass, band, isGiveUp, armsGiveUp, PausableClock, tabSpaces, chooseHint, diffLines, usedExCommand, targetRange, targetRanges, exerciseHints, placementPass, unrecoverable,
+  tokenize, displayKeys, replayKeys, splitKeys, checkPass, registersMatch, registerNames, band, isGiveUp, armsGiveUp, PausableClock, tabSpaces, chooseHint, diffLines, usedExCommand, targetRange, targetRanges, exerciseHints, placementPass, unrecoverable,
   type KeyEvent, type Mode,
 } from "./grading.ts";
 import type { Exercise } from "./types.ts";
@@ -82,6 +82,31 @@ test("cursor passes only on the target with the buffer unchanged", () => {
   assert.ok(checkPass(ex, { lines: quote.start.lines, cursor: [2, 4], mode: "normal" }, []));
   assert.ok(!checkPass(ex, { lines: quote.start.lines, cursor: [2, 5], mode: "normal" }, []));
   assert.ok(!checkPass(ex, { lines: ["changed", quote.start.lines[1]], cursor: [2, 4], mode: "normal" }, []));
+});
+
+test("expect.registers is graded with the buffer: the delete must keep the unnamed register", () => {
+  const lines = ["alpha = 1", "beta = 2"];
+  const ex: Exercise = {
+    ...quote, start: { lines: ["debug()", ...lines], cursor: [1, 0], registers: { '"': "kept = 0\n" } },
+    expect: { lines, registers: { '"': "kept = 0\n" } },
+  };
+  const snap = (held?: Record<string, string>) => ({ lines, cursor: [1, 0] as [number, number], mode: "normal" as Mode, registers: held });
+  assert.ok(checkPass(ex, snap({ '"': "kept = 0\n" }), []));
+  assert.ok(!checkPass(ex, snap({ '"': "debug()\n" }), []), "dd put the deleted line in the unnamed register");
+  assert.ok(!checkPass(ex, snap(), []), "a snapshot without registers never passes a register drill");
+  assert.ok(!registersMatch(ex, snap({ '"': "kept = 0" })), "linewise text ends in a newline");
+  assert.deepEqual(registerNames(ex), ['"']);
+});
+
+test("a register-only drill passes with the buffer untouched; exercises without expect.registers ignore registers", () => {
+  const lines = ["alpha = 1", "beta = 2"];
+  const ex: Exercise = { ...quote, start: { lines, cursor: [1, 0] }, expect: { lines, registers: { a: "alpha = 1\nbeta = 2\n" } } };
+  const snap = (a: string) => ({ lines, cursor: [2, 0] as [number, number], mode: "normal" as Mode, registers: { a } });
+  assert.ok(!checkPass(ex, snap("alpha = 1\n"), []), "after the first yank");
+  assert.ok(!checkPass(ex, snap("beta = 2\n"), []), '"ayy instead of "Ayy overwrote the register');
+  assert.ok(checkPass(ex, snap("alpha = 1\nbeta = 2\n"), []));
+  assert.ok(registersMatch(quote, { lines, cursor: [1, 0], mode: "normal" }));
+  assert.deepEqual(registerNames(quote), []);
 });
 
 test("ex kind needs an executed : command", () => {

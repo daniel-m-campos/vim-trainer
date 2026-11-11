@@ -30,13 +30,14 @@ from typing import Final
 import tree_sitter
 import tree_sitter_cpp
 
-from vimtrainer_content import snippets, templates
+from vimtrainer_content import registers, snippets, templates
 from vimtrainer_content.lang import Language, Use, braces
 from vimtrainer_content.snippets import Window, pick
 from vimtrainer_content.templates import Draft
 
 # Per-language weights, C/C++ column of the model/skill-graph.md table (also in skill-graph.json).
 WEIGHTS: Final = {
+    **dict.fromkeys(registers.SKILLS, 1.0),
     "m.match": 1.5, "t.brace": 1.5, "n.unmatched": 1.5, "t.paren": 1.5, "t.bracket": 1.2, "t.quote": 1.0,
     "t.angle": 1.5, "o.indent": 1.0, "m.find": 1.5, "x.subst": 1.0, "o.delete": 1.0, "t.word": 1.0,
     "m.rel": 1.0, "o.change": 1.0, "o.case": 1.0, "x.copymove": 1.0, "x.normal": 1.0,
@@ -44,6 +45,7 @@ WEIGHTS: Final = {
 TARGET_SKILLS: Final = (
     "t.quote", "t.paren", "t.brace", "t.bracket", "t.angle", "t.word", "m.find", "m.match", "m.rel",
     "n.unmatched", "o.delete", "o.change", "o.indent", "o.case", "x.subst", "x.copymove", "x.normal",
+    *registers.SKILLS,
 )
 
 STRING_TEXTS: Final = ("not found", "invalid input", "out of range", "unknown", "skipped", "empty", "error: ")
@@ -189,7 +191,7 @@ LANG = Language(
         "expression_statement": (*_LINE, Use("o.change", ("cpp_change_rhs",))),
         "declaration": (*_LINE, Use("o.change", ("cpp_change_rhs",))),
     },
-    line_templates=(Use("m.rel", ("cpp_goto_line_rel",)), Use("m.find", ("cpp_find_char",))),
+    line_templates=(Use("m.rel", ("cpp_goto_line_rel",)), Use("m.find", ("cpp_find_char",)), *registers.USES),
     find_targets=("(", ")", "{", "}", ";", ",", "=", "<", ">", ".", "->", "::"),
     comment_leader="//",
     keywords=_KEYWORDS,

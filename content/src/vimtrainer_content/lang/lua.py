@@ -41,13 +41,14 @@ from typing import Final
 import tree_sitter
 import tree_sitter_lua
 
-from vimtrainer_content import gates, snippets, templates
+from vimtrainer_content import gates, registers, snippets, templates
 from vimtrainer_content.lang import Language, Use, braces
 from vimtrainer_content.snippets import Window, pick
 from vimtrainer_content.templates import Draft
 
 # Per-language weights, Lua column of the model/skill-graph.md table (also in skill-graph.json).
 WEIGHTS: Final = {
+    **dict.fromkeys(registers.SKILLS, 1.0),
     "m.match": 1.2, "t.brace": 1.2, "n.unmatched": 1.2, "t.paren": 1.2, "t.bracket": 0.8, "t.quote": 1.5,
     "o.indent": 1.0, "m.find": 1.0, "x.subst": 1.0, "o.delete": 1.0, "t.word": 1.0, "m.rel": 1.0,
     "o.change": 1.0, "o.case": 1.0, "x.copymove": 1.0, "x.normal": 1.0,
@@ -55,6 +56,7 @@ WEIGHTS: Final = {
 TARGET_SKILLS: Final = (
     "t.quote", "t.paren", "t.brace", "t.bracket", "t.word", "m.find", "m.match", "m.rel",
     "n.unmatched", "o.delete", "o.change", "o.indent", "o.case", "x.subst", "x.copymove", "x.normal",
+    *registers.SKILLS,
 )
 FOUR: Final = "    "  # the indent unit windows are re-indented to (the oracle's shiftwidth)
 
@@ -162,7 +164,7 @@ LANG = Language(
         "assignment_statement": _ASSIGN,
         "function_call": _LINE,
     },
-    line_templates=(Use("m.rel", ("lua_goto_line_rel",)), Use("m.find", ("lua_find_char",))),
+    line_templates=(Use("m.rel", ("lua_goto_line_rel",)), Use("m.find", ("lua_find_char",)), *registers.USES),
     find_targets=("(", ")", "{", "}", "[", "]", ",", "=", ".", ":"),
     comment_leader="--",
     keywords=_KEYWORDS,
