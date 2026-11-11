@@ -225,8 +225,19 @@ function clearPendingInput(view: EditorView): void {
   if (vim) vim.inputState = new (vim.inputState.constructor as new () => object)();
 }
 
+/**
+ * Preload registers ({name: text}; a text ending in a newline is linewise), as the oracle does
+ * from start.registers. Called by mountEditor after the reset, so nothing else is in them.
+ */
+function loadRegisters(registers: Record<string, string>): void {
+  const rc = Vim.getRegisterController();
+  for (const [name, text] of Object.entries(registers))
+    (name === '"' ? rc.unnamedRegister : rc.getRegister(name)).setText(text, text.endsWith("\n"));
+}
+
 export function mountEditor(parent: HTMLElement, ex: Exercise, opts: { relativeNumbers: boolean; escape: EscapePref }): EditorHandle {
   resetVimGlobals(opts.escape);
+  loadRegisters(ex.start.registers ?? {});
   const doc = ex.start.lines.join("\n");
   const [line, col] = ex.start.cursor;
   const lineCount = ex.start.lines.length;
@@ -266,7 +277,7 @@ export function mountEditor(parent: HTMLElement, ex: Exercise, opts: { relativeN
   created = view;
   // The cursor line must be visible; buffers are short so this is cheap.
   view.dispatch({ effects: EditorView.scrollIntoView(anchor, { y: "center" }) });
-  const recorder = attachRecorder(view, parent);
+  const recorder = attachRecorder(view, parent, Object.keys(ex.expect.registers ?? {}));
   blockInsertCorner(getCM(view) as unknown as BlockCM); // also ensures the vim adapter exists before the first key
   clearPendingInput(view);
   view.focus();

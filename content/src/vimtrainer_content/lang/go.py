@@ -40,13 +40,14 @@ from typing import Final
 import tree_sitter
 import tree_sitter_go
 
-from vimtrainer_content import snippets, templates
+from vimtrainer_content import registers, snippets, templates
 from vimtrainer_content.lang import Language, Use, braces
 from vimtrainer_content.snippets import Window, pick
 from vimtrainer_content.templates import Draft
 
 # Per-language weights, Go column of the model/skill-graph.md table (also in skill-graph.json).
 WEIGHTS: Final = {
+    **dict.fromkeys(registers.SKILLS, 1.0),
     "m.match": 1.5, "t.brace": 1.5, "n.unmatched": 1.5, "t.paren": 1.5, "t.bracket": 1.2, "t.quote": 1.2,
     "o.indent": 0.5, "m.find": 1.2, "x.subst": 1.0, "o.delete": 1.0, "t.word": 1.0, "m.rel": 1.0,
     "o.change": 1.0, "o.case": 1.0, "x.copymove": 1.0, "x.normal": 1.0,
@@ -54,6 +55,7 @@ WEIGHTS: Final = {
 TARGET_SKILLS: Final = (
     "t.quote", "t.paren", "t.brace", "t.bracket", "t.word", "m.find", "m.match", "m.rel",
     "n.unmatched", "o.delete", "o.change", "o.indent", "o.case", "x.subst", "x.copymove", "x.normal",
+    *registers.SKILLS,
 )
 FOUR: Final = "    "  # the indent unit windows are re-indented to (the oracle's shiftwidth)
 
@@ -205,7 +207,7 @@ _NODES: Final = {
     "var_spec": _ASSIGN,
     "const_spec": _ASSIGN,
 }
-_LINE_TEMPLATES: Final = (Use("m.rel", ("go_goto_line_rel",)), Use("m.find", ("go_find_char",)))
+_LINE_TEMPLATES: Final = (Use("m.rel", ("go_goto_line_rel",)), Use("m.find", ("go_find_char",)), *registers.USES)
 _FIND_TARGETS: Final = ("(", ")", "{", "}", "[", "]", ",", "=", ".", ":=", ":")
 
 LANG = Language(

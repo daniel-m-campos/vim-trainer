@@ -7,7 +7,7 @@ import shutil
 
 import pytest
 
-from vimtrainer_content import gates, oracle, snippets, sources, templates
+from vimtrainer_content import gates, oracle, registers, snippets, sources, templates
 from vimtrainer_content.lang import lua
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
@@ -221,7 +221,9 @@ def test_node_frequency_and_quality_gate_read_lua(window):
 
 def test_drafts_cover_every_target_skill(drafts):
     constants = lua.generate(_window(CONSTANTS))
-    assert {d.skill for d in [*drafts, *constants]} == set(lua.TARGET_SKILLS)
+    # The register drills are shared templates with their own tests (test_registers.py).
+    shared = set(registers.SKILLS)
+    assert {d.skill for d in [*drafts, *constants]} - shared == set(lua.TARGET_SKILLS) - shared
 
 
 def test_prime_masks_long_strings_and_comments():
@@ -340,6 +342,8 @@ def test_every_lua_template_makes_drafts_on_the_fixtures():
                         made[name] += len(list(lua.LUA_NODE_TEMPLATES[name](win, node, use.skill, lua.LANG)))
             for use in lua.LANG.line_templates:
                 for name in use.templates:
+                    if name in registers.TEMPLATES:
+                        continue  # shared, not Lua's own
                     made[name] += len(list(lua.LUA_LINE_TEMPLATES[name](win, use.skill, lua.LANG)))
     assert not [name for name, n in made.items() if n == 0]
 

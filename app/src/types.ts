@@ -22,8 +22,10 @@ export interface Exercise {
   lang: string;
   kind: "edit" | "cursor" | "ex";
   task: string;
-  start: { lines: string[]; cursor: Pos };
-  expect: { lines?: string[]; cursor?: Pos };
+  /** `registers` are loaded before the first key: {name: text}, linewise when the text ends in a newline. */
+  start: { lines: string[]; cursor: Pos; registers?: Record<string, string> };
+  /** `registers` must hold exactly this text at the end, as well as the buffer matching `lines`. */
+  expect: { lines?: string[]; cursor?: Pos; registers?: Record<string, string> };
   par: { keys: string; count: number; verified?: string };
   alternates?: string[];
   /** Plain strings (no trigger) or {trigger, text}. */

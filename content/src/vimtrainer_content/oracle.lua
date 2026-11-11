@@ -4,6 +4,8 @@
 --   one "@@ORACLE <json>" line per job is printed to stdout.
 -- Module:  Oracle = dofile("oracle.lua"); Oracle.run(exercise, keys) -> result table
 -- Cursor is [line 1-based, byte column 0-based] (nvim_win_get_cursor convention).
+-- start.registers ({name: text}) are loaded before the keys; a text ending in "\n" is
+-- linewise. The result's `registers` holds the final text of every name in expect.registers.
 local M = { MARKER = '@@ORACLE ' }
 package.loaded.oracle_self = M
 -- Documented par option set, applied after the filetype plugin so every language
@@ -40,6 +42,24 @@ local function reset(ex)
   vim.bo.filetype = FILETYPE[ex.lang] or ex.lang or ''
   for k, v in pairs(vim.tbl_extend('force', M.OPTIONS, ex.options or {})) do vim.opt_local[k] = v end
   for r in ('"abcdefghijklmnopqrstuvwxyz0123456789-/'):gmatch('.') do vim.fn.setreg(r, {}) end
+  -- Neovim's unnamed register points at another register. A preload of '"' whose text is
+  -- also in a numbered or named preload points there (the lowest name); else it is written
+  -- as it is, which fills register 0, as a yank would.
+  local preload = ex.start.registers or {}
+  local function set(r, text)
+    local linewise = text:sub(-1) == '\n'
+    vim.fn.setreg(r, vim.split(linewise and text:sub(1, -2) or text, '\n', { plain = true }), linewise and 'l' or 'c')
+  end
+  local names, backing = vim.tbl_keys(preload), nil
+  table.sort(names)
+  if preload['"'] then set('"', preload['"']) end
+  for _, r in ipairs(names) do
+    if r ~= '"' then
+      set(r, preload[r])
+      if preload[r] == preload['"'] and not backing then backing = r end
+    end
+  end
+  if backing then vim.fn.setreg('"', vim.tbl_extend('force', vim.fn.getreginfo(backing), { points_to = backing })) end
   vim.fn.setcharsearch({ char = '', forward = 1, ['until'] = 0 })
   vim.cmd('silent! delmarks A-Z0-9 | clearjumps | nohlsearch')
   local ul = vim.bo.undolevels
@@ -65,6 +85,10 @@ function M.run(ex, keys)
   vim.api.nvim_feedkeys(tc('<C-\\><C-n>'), 'nx', false)
   res.lines = final_lines or vim.api.nvim_buf_get_lines(0, 0, -1, false)
   res.cursor = final_cursor or vim.api.nvim_win_get_cursor(0)
+  if ex.expect and ex.expect.registers then
+    res.registers = {}
+    for r in pairs(ex.expect.registers) do res.registers[r] = vim.fn.getreg(r) end
+  end
   return res
 end
 

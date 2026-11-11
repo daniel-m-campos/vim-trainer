@@ -16,7 +16,7 @@ import type { AttemptRecord, ModelState, SkillGraph, SkillState } from "./modelA
 import { loadIndex, loadExercise, skillsWithContent, contentBase } from "./content.ts";
 import { baseGraph, drillGraph, graphNodes } from "./graph.ts";
 import { mountEditor, type EditorHandle } from "./editor.ts";
-import {
+import { registerNames,
   tokenize, displayKeys, replayKeys, checkPass, isGiveUp, armsGiveUp, GIVE_UP_MS, band, BAND_LABEL, chooseHint, diffLines, linesEqual, exerciseHints,
   placementPass, unrecoverable,
   type Band, type DiffLine, type Mode, type Snapshot, type Token,
@@ -560,7 +560,10 @@ function mountExercise(ex: Exercise, skill: string, role: Role, retry: boolean):
   setEscCue(false);
   if (broke === "yes" && document.getElementById("broke")) broke = "seen"; // the note was shown on the last exercise
   // kind=ex only passes through a ':' command, which the task text does not say.
-  $("#task").innerHTML = taskHtml(ex.task) + (ex.kind === "ex" ? ` <span class="req">using an Ex <kbd>:</kbd> command</span>` : "");
+  // expect.registers is graded too, so the task names the registers that must be right.
+  const regs = registerNames(ex).map((r) => (r === '"' ? "the unnamed register" : `register <kbd>${r}</kbd>`));
+  $("#task").innerHTML = taskHtml(ex.task) + (ex.kind === "ex" ? ` <span class="req">using an Ex <kbd>:</kbd> command</span>` : "")
+    + (regs.length ? ` <span class="req">graded: the buffer and ${regs.join(" and ")}</span>` : "");
   const want: Route = role === "placement" ? "placement" : "practice";
   if (hashRoute() !== want) history.replaceState(null, "", `#${want}`); // a load that finished after a route change
   show("practice");
@@ -578,7 +581,10 @@ function mountExercise(ex: Exercise, skill: string, role: Role, retry: boolean):
     if (checkPass(ex, snap, tokens)) finish(me, true, snap);
     else if (ex.kind === "ex" && snap.mode === "normal" && ex.expect.lines && linesEqual(snap.lines, ex.expect.lines))
       showMidNote("the buffer is right, but this drill counts only a : command. u undoes back to the start.");
-    else if (!me.nudged && snap.mode === "normal" && ex.expect.lines && !linesEqual(snap.lines, ex.expect.lines)) {
+    else if (regs.length && snap.mode === "normal" && ex.expect.lines && linesEqual(snap.lines, ex.expect.lines)) {
+      // The buffer is right and a register is not. A drill that leaves the buffer alone is always in this state, so it gets no note.
+      if (!linesEqual(ex.start.lines, ex.expect.lines)) showMidNote(`the buffer is right, but ${regs.join(" and ").replace(/<\/?kbd>/g, "")} does not hold what the task asks for.`);
+    } else if (!me.nudged && snap.mode === "normal" && ex.expect.lines && !linesEqual(snap.lines, ex.expect.lines)) {
       // Back in normal mode with a buffer that can no longer reach the target: say so once.
       const why = unrecoverable(ex.start.lines, snap.lines, ex.expect.lines);
       if (why) {

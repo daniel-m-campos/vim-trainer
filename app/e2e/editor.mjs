@@ -77,6 +77,29 @@ function readState() {
   return { lines: snap.lines, cursor, mode: cmdline ? "cmdline" : pending ? "pending" : snap.mode };
 }
 
+// Register drills (expect.registers): [name, keys, should pass]. The buffer never changes and
+// the last key is a yank, so the pass has to come from the register alone.
+const REGISTER_LINES = ["alpha = 1", "beta = 2", "gamma = 3"];
+const REGISTER_CHECKS = [
+  ['"ayyj"Ayy collects two lines in register a: the final yank is graded', '"ayyj"Ayy', true],
+  ['"ayyj"ayy overwrites register a: no pass', '"ayyj"ayy', false],
+  ["yyjyy never touches register a: no pass", "yyjyy", false],
+];
+
+// Mount a register-only drill, type `keys` and report whether the page graded it as passed; called per engine below.
+async function registerDrillPasses(page, keys) {
+  const ex = {
+    id: "e2e/registers", skill: "r.named", lang: "python", kind: "edit", task: "collect two lines in register a",
+    start: { lines: REGISTER_LINES, cursor: [1, 0] },
+    expect: { lines: REGISTER_LINES, registers: { a: "alpha = 1\nbeta = 2\n" } }, par: { keys, count: 0 },
+  };
+  await page.evaluate((ex) => window.emu.mount(ex), ex);
+  await page.waitForFunction(() => !!document.activeElement?.closest(".cm-editor"), null, { timeout: 3000 });
+  await typeKeys(page, keys);
+  await page.waitForTimeout(50);
+  return page.evaluate(() => window.emu.status().passed);
+}
+
 // Fields of `got` that differ from Neovim's `want`, minus the case's skip list; called per case by the loop below.
 function differing(c, want, got) {
   return FIELDS.filter((f) => !c.skip?.includes(f) && JSON.stringify(got[f]) !== JSON.stringify(want[f]));
@@ -125,6 +148,11 @@ for (const [engine, type] of Object.entries(engines)) {
     const show = (s) => `${JSON.stringify(s.lines)} cursor ${JSON.stringify(s.cursor)} ${s.mode}`;
     console.log(`${ok ? "PASS" : "FAIL"}  [${engine}] ${c.name}${ok ? "" :
       `\n        differs in ${bad.join(", ")}\n        nvim ${show(NVIM[i])}\n        web  ${show(got)}`}`);
+  }
+  for (const [name, keys, want] of REGISTER_CHECKS) {
+    const got = await registerDrillPasses(page, keys);
+    if (got !== want) failures++;
+    console.log(`${got === want ? "PASS" : "FAIL"}  [${engine}] ${name}${got === want ? "" : `\n        passed: ${got}, wanted ${want}`}`);
   }
   for (const tok of tokenize(SMOKE_KEYS)) {
     const err = await typeKeys(page, tok).then(() => null, (e) => String(e));

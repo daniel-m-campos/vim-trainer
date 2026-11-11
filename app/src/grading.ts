@@ -88,11 +88,24 @@ export interface Snapshot {
   lines: string[];
   cursor: Pos; // [line 1-based, col 0-based]
   mode: Mode;
+  /** Text of the registers the exercise checks (expect.registers); absent when it checks none. */
+  registers?: Record<string, string>;
+}
+
+/** True when every register in expect.registers holds its text (or the exercise checks none); used by checkPass and the mid-exercise note. */
+export function registersMatch(ex: Exercise, snap: Snapshot): boolean {
+  return Object.entries(ex.expect.registers ?? {}).every(([name, text]) => snap.registers?.[name] === text);
+}
+
+/** The task's visible register requirement, e.g. `a` or `the unnamed register`; "" when the exercise checks none. Called by main.ts. */
+export function registerNames(ex: Exercise): string[] {
+  return Object.keys(ex.expect.registers ?? {}).sort();
 }
 
 /** Pass conditions by kind. Called after each completed command. */
 export function checkPass(ex: Exercise, snap: Snapshot, tokens: Token[]): boolean {
   if (snap.mode !== "normal") return false;
+  if (!registersMatch(ex, snap)) return false;
   switch (ex.kind) {
     case "edit":
       return !!ex.expect.lines && linesEqual(snap.lines, ex.expect.lines);

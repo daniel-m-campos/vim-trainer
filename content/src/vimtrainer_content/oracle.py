@@ -82,6 +82,7 @@ class Outcome:
     recording: bool
     errmsg: str
     done: bool = True  # False: the keys swallowed oracle.lua's end marker (ended mid-command)
+    registers: dict[str, str] = field(default_factory=dict)  # final text of each name in expect.registers
 
 
 @dataclass(frozen=True, slots=True)
@@ -140,6 +141,9 @@ def grade(exercise: Exercise, outcome: Outcome) -> tuple[bool, str]:
 
     Every kind also requires that the keys end in Normal mode with no macro recording,
     so a solution missing its final ``<Esc>`` or ``<CR>`` fails (the par counts it).
+    An edit or ex exercise with ``expect.registers`` (``{name: text}``, linewise text ends
+    in a newline) also requires those registers to hold exactly that text at the end.
+    ``start.registers`` has the same shape and is loaded before the keys are replayed.
 
     Returns
     -------
@@ -159,6 +163,9 @@ def grade(exercise: Exercise, outcome: Outcome) -> tuple[bool, str]:
         return False, "buffer differs from expect.lines"
     if kind == Kind.EX and not outcome.used_ex:
         return False, "no ':' command was executed"
+    for name, text in exercise["expect"].get("registers", {}).items():
+        if outcome.registers.get(name) != text:
+            return False, f"register {name} does not hold the expected text"
     return True, "ok"
 
 
@@ -322,7 +329,7 @@ def _outcome(raw: dict[str, Any]) -> Outcome:
     return Outcome(
         keys=raw["keys"], lines=lines, cursor=list(raw["cursor"]), mode=raw["mode"],
         used_ex=bool(raw["used_ex"]), recording=bool(raw["recording"]), errmsg=raw.get("errmsg") or "",
-        done=bool(raw.get("done", True)),
+        done=bool(raw.get("done", True)), registers=dict(raw.get("registers") or {}),
     )
 
 

@@ -8,7 +8,7 @@ import tomllib
 
 import pytest
 
-from vimtrainer_content import gates, oracle, snippets, sources, templates
+from vimtrainer_content import gates, oracle, registers, snippets, sources, templates
 from vimtrainer_content.lang import rust
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
@@ -116,7 +116,7 @@ def test_every_mapped_template_is_registered_only_while_generating():
     assert (lang.name, lang.short, lang.grammar, lang.comment_leader) == ("rust", "rs", "rust", "//")
     assert {"(", "=", ".", ";", "->", "::"} <= set(lang.find_targets)
     assert {skill for uses in lang.nodes.values() for skill in (u.skill for u in uses)} | {"m.rel", "m.find"} \
-        >= set(rust.TARGET_SKILLS)
+        >= set(rust.TARGET_SKILLS) - set(registers.SKILLS)  # shared line templates
 
 
 def test_weights_match_skill_graph():
@@ -249,7 +249,7 @@ def test_lifetime_lines_never_make_a_draft_gate_6_rejects(monkeypatch):
 
 def test_drafts_cover_the_rust_skills(drafts):
     made = {d.skill for d in drafts}
-    assert set(rust.TARGET_SKILLS) - {"x.normal", "x.subst", "o.case"} <= made
+    assert set(rust.TARGET_SKILLS) - {"x.normal", "x.subst", "o.case", "r.insert"} <= made  # r.insert: no call in this fixture
     assert {"x.normal", "o.case"} <= {d.skill for d in rust.generate(_window(CONSTANTS))}
 
 

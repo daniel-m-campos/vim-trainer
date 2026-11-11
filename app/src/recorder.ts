@@ -6,7 +6,8 @@
 //   mode          read from vim state, never from the vim-mode-change payload;
 //   command done  signals + CM6 updates + command-line blur schedule one microtask
 //                 check that fires only when no insert/replace mode, no pending
-//                 command, no open command line, and buffer or cursor changed;
+//                 command, no open command line, and buffer or cursor changed
+//                 (or a register the exercise checks: `"ayy` moves nothing);
 //   undo          CM6 transactions with userEvent "undo" (covers u, :undo, 3u);
 //   clock         performance.now(), paused while the tab is hidden and while the
 //                 trainer covers the exercise (stats, settings): setAway().
@@ -119,8 +120,14 @@ export interface Recorder {
   destroy(): void;
 }
 
-/** `wrapper` must contain view.dom. Attach right after the exercise renders: the clock starts now. */
-export function attachRecorder(view: EditorView, wrapper: HTMLElement): Recorder {
+/** Current text of the named registers ('"' is the unnamed one), linewise text ending in a newline as in Vim's getreg(); called by snapshot(). */
+function readRegisters(names: string[]): Record<string, string> {
+  const rc = Vim.getRegisterController();
+  return Object.fromEntries(names.map((n) => [n, (n === '"' ? rc.unnamedRegister : rc.getRegister(n)).toString()]));
+}
+
+/** `registers` are the names the exercise checks (expect.registers); snapshots then carry their text. `wrapper` must contain view.dom. Attach right after the exercise renders: the clock starts now. */
+export function attachRecorder(view: EditorView, wrapper: HTMLElement, registers: string[] = []): Recorder {
   const cm = getCM(view) as unknown as CMAdapter | null;
   if (!cm) throw new Error("codemirror-vim is not active on this view");
 
@@ -133,6 +140,10 @@ export function attachRecorder(view: EditorView, wrapper: HTMLElement): Recorder
   let mode: Mode = modeFromState(cm);
   let lastDoc: Text = view.state.doc;
   let lastHead = view.state.selection.main.head;
+  // What the watched registers held at the last completed command. A yank changes neither
+  // the buffer nor the cursor, so a register drill would otherwise never be graded on it.
+  const registersKey = () => (registers.length ? JSON.stringify(readRegisters(registers)) : "");
+  let lastRegisters = registersKey();
   let undo = 0;
   let scheduled = false;
 
@@ -143,7 +154,9 @@ export function attachRecorder(view: EditorView, wrapper: HTMLElement): Recorder
 
   function snapshot(): Snapshot {
     const c = cm!.getCursor("head");
-    return { lines: view.state.doc.toString().split("\n"), cursor: [c.line + 1, c.ch], mode };
+    const snap: Snapshot = { lines: view.state.doc.toString().split("\n"), cursor: [c.line + 1, c.ch], mode };
+    if (registers.length) snap.registers = readRegisters(registers); // the exercise checks these (expect.registers)
+    return snap;
   }
 
   function check(): void {
@@ -156,9 +169,11 @@ export function attachRecorder(view: EditorView, wrapper: HTMLElement): Recorder
     if (cmdlineOpen()) return;
     const doc = view.state.doc;
     const head = view.state.selection.main.head;
-    if (doc.eq(lastDoc) && head === lastHead) return;
+    const held = registersKey();
+    if (doc.eq(lastDoc) && head === lastHead && held === lastRegisters) return;
     lastDoc = doc;
     lastHead = head;
+    lastRegisters = held;
     const snap = snapshot();
     for (const fn of doneFns) fn(snap);
   }
