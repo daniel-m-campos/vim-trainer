@@ -5,7 +5,7 @@ Node type names come from tree-sitter-python's node-types.json (grammar 0.25).
 
 import keyword
 
-from vimtrainer_content import registers
+from vimtrainer_content import registers, splits
 from vimtrainer_content.lang import Language, Use
 
 _PAREN = (
@@ -79,7 +79,7 @@ LANG = Language(
         ),
         "return_statement": (Use("x.copymove", ("move_line",)),),
     },
-    line_templates=(Use("m.rel", ("goto_line_rel",)), Use("m.find", ("find_char",)), *registers.USES),
+    line_templates=(Use("m.rel", ("goto_line_rel",)), Use("m.find", ("find_char",)), *registers.USES, *splits.USES),
     find_targets=("(", ")", "=", ":", ",", ".", "["),
     comment_leader="#",
     keywords=frozenset(keyword.kwlist) | frozenset({"self", "cls", "print", "len", "range", "str", "int", "list"}),

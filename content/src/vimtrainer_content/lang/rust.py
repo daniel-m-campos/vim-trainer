@@ -37,7 +37,7 @@ from typing import Final
 import tree_sitter
 import tree_sitter_rust
 
-from vimtrainer_content import gates, registers, snippets, templates
+from vimtrainer_content import gates, registers, snippets, splits, templates
 from vimtrainer_content.lang import Language, Use, braces
 from vimtrainer_content.snippets import Window, pick
 from vimtrainer_content.templates import Draft
@@ -256,7 +256,7 @@ LANG = Language(
         "expression_statement": _ASSIGN,
         "let_declaration": _ASSIGN,
     },
-    line_templates=(Use("m.rel", ("rust_goto_line_rel",)), Use("m.find", ("rust_find_char",)), *registers.USES),
+    line_templates=(Use("m.rel", ("rust_goto_line_rel",)), Use("m.find", ("rust_find_char",)), *registers.USES, *splits.USES),
     find_targets=("(", ")", "{", "}", "[", "]", ";", ",", "=", ".", "->", "=>", "::", ":"),
     comment_leader="//",
     keywords=_KEYWORDS,

@@ -30,7 +30,7 @@ from typing import Final
 import tree_sitter
 import tree_sitter_cpp
 
-from vimtrainer_content import registers, snippets, templates
+from vimtrainer_content import registers, snippets, splits, templates
 from vimtrainer_content.lang import Language, Use, braces
 from vimtrainer_content.snippets import Window, pick
 from vimtrainer_content.templates import Draft
@@ -191,7 +191,7 @@ LANG = Language(
         "expression_statement": (*_LINE, Use("o.change", ("cpp_change_rhs",))),
         "declaration": (*_LINE, Use("o.change", ("cpp_change_rhs",))),
     },
-    line_templates=(Use("m.rel", ("cpp_goto_line_rel",)), Use("m.find", ("cpp_find_char",)), *registers.USES),
+    line_templates=(Use("m.rel", ("cpp_goto_line_rel",)), Use("m.find", ("cpp_find_char",)), *registers.USES, *splits.USES),
     find_targets=("(", ")", "{", "}", ";", ",", "=", "<", ">", ".", "->", "::"),
     comment_leader="//",
     keywords=_KEYWORDS,

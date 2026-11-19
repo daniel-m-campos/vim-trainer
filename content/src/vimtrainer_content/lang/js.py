@@ -36,7 +36,7 @@ import tree_sitter
 import tree_sitter_javascript
 import tree_sitter_typescript
 
-from vimtrainer_content import registers, snippets, templates
+from vimtrainer_content import registers, snippets, splits, templates
 from vimtrainer_content.lang import Language, Use, braces
 from vimtrainer_content.snippets import Window, pick
 from vimtrainer_content.templates import Draft
@@ -204,7 +204,7 @@ _NODES: Final = {
     "lexical_declaration": _ASSIGN,
     "variable_declaration": _ASSIGN,
 }
-_LINE_TEMPLATES: Final = (Use("m.rel", ("js_goto_line_rel",)), Use("m.find", ("js_find_char",)), *registers.USES)
+_LINE_TEMPLATES: Final = (Use("m.rel", ("js_goto_line_rel",)), Use("m.find", ("js_find_char",)), *registers.USES, *splits.USES)
 _FIND_TARGETS: Final = ("(", ")", "{", "}", "[", "]", ";", ",", "=", ".", "=>", ":")
 
 LANG_JS = Language(
