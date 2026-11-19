@@ -9,7 +9,7 @@ code, and every par (the shortest known keystroke solution) is verified in Neovi
 
 It runs entirely in your browser. There is no account and no server; your progress stays
 in the browser's localStorage, with export and import in settings. Content today: Python,
-C++, JavaScript, TypeScript, Go, Rust and Lua, about 4,900 exercises.
+C++, JavaScript, TypeScript, Go, Rust, Lua and Bash, about 6,900 exercises.
 
 ## How it works
 

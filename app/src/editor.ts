@@ -16,6 +16,7 @@ import { javascript } from "@codemirror/lang-javascript";
 import { go } from "@codemirror/lang-go";
 import { rust } from "@codemirror/lang-rust";
 import { lua } from "@codemirror/legacy-modes/mode/lua";
+import { shell } from "@codemirror/legacy-modes/mode/shell";
 import { tags as t } from "@lezer/highlight";
 import { vim, Vim, getCM } from "@replit/codemirror-vim";
 import { attachRecorder, recorderExtension, type Recorder } from "./recorder.ts";
@@ -133,6 +134,8 @@ function langExt(lang: string): Extension {
       return rust();
     case "lua":
       return StreamLanguage.define(lua); // a legacy (stream) mode: CodeMirror has no Lezer grammar for Lua
+    case "bash":
+      return StreamLanguage.define(shell); // a legacy mode too; it reports its name as "shell" (see langOf)
     default:
       return [];
   }

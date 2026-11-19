@@ -106,7 +106,8 @@ function indentWidth(text: string): number {
 
 /** The editor's language name ("python", "cpp", "javascript", "typescript", "go", "rust", "lua") as its CodeMirror language reports it (lua's legacy stream mode is named "lua" too). */
 function langOf(cm: CM): string {
-  return cm.cm6.state.facet(language)?.name ?? "";
+  const name = cm.cm6.state.facet(language)?.name ?? "";
+  return name === "shell" ? "bash" : name; // the legacy shell mode names itself "shell"
 }
 
 /** True when > and < leave a line starting with # alone: C++, where 'cindent' and the # in 'cinkeys' make Vim's preprocs_left() true. */
@@ -992,6 +993,125 @@ function luaIndent(lines: string[], n: number): number {
   return ind;
 }
 
+/** Family 2: a line Neovim's sh indent reads as continued on the next one: it ends in \ && || or | (then maybe { or a # comment). */
+function shContinues(line: string): boolean {
+  return !/^\s*#/.test(line) && /(?:(?:^|[^\\])\\|&&|\|\||\|)\s*(?:\{\s*)?(?:#.*)?$/.test(line);
+}
+
+/** Family 2: sh.vim's s:is_case_label: `line` is a case pattern such as `a|b)`; `prev` (when there is one) must be the `case` line or end in ;; or ;&. */
+function shCaseLabel(line: string, prev: string | null): boolean {
+  if (!/^\s*\(?.*\)/.test(line)) return false;
+  if (prev !== null && !(/^\s*case\b/.test(prev) || shCaseEnded(prev))) return false;
+  const rest = line.replace(/^\s*\(?/, "");
+  let nesting = 0;
+  for (let i = 0; i < rest.length; i++) {
+    const c = rest[i];
+    if (c === "\\") i++;
+    else if (c === "(") nesting++;
+    else if (c === ")" && nesting-- === 0) return true;
+  }
+  return false;
+}
+
+/** Family 2: sh.vim's s:is_case_ended: the line is ;; or ;& or ends in one. */
+function shCaseEnded(line: string): boolean {
+  return /^\s*;[;&]/.test(line) || /;[;&]\s*(?:#.*)?$/.test(line);
+}
+
+/** Family 2: the line of the { that the } at (line n, before column `col`) closes, or -1: searchpair('{', '', '}', 'bnW') with no syntax to skip, so braces in strings and ${...} count. */
+function shOpenBrace(lines: string[], n: number, col: number): number {
+  let depth = 0;
+  for (let l = n; l >= 0; l--) {
+    const text = l === n ? lines[l].slice(0, col) : lines[l];
+    for (let i = text.length - 1; i >= 0; i--) {
+      if (text[i] === "}") depth++;
+      else if (text[i] === "{" && depth-- === 0) return l;
+    }
+  }
+  return -1;
+}
+
+/**
+ * Family 2: Neovim's sh indentexpr (runtime/indent/sh.vim, GetShIndent; the bash filetype
+ * loads it with b:is_bash). The oracle runs without syntax highlighting, so its "not in a
+ * comment or string" tests always pass and its here-document test never does. The previous
+ * non-blank line decides first: one level in after a line ending in { or (, a line starting
+ * with if / then / do / else / elif / case / while / until / for / select that does not end
+ * in fi / esac / done, a case label, a function header or an array opened with =( ; one
+ * level in for the first continuation line; one level out after a line starting with }.
+ * Then the line itself: fi goes under its if, then / do / else / elif / done / } go one
+ * level out, esac and case labels follow the case rules, and a lone } goes under its {.
+ * `typed` says the line's last character was just typed (the cursor is after it); on a new
+ * line the cursor is before the text. The result is never negative.
+ */
+function shIndent(lines: string[], n: number, typed: boolean): number {
+  const cur = lines[n];
+  const lnum = prevNonBlank(lines, n - 1);
+  if (lnum < 0) return 0;
+  const line = lines[lnum];
+  const pnum = prevNonBlank(lines, lnum - 1);
+  const pline = pnum < 0 ? "" : lines[pnum];
+  const endExpr = (s: string) => /\b(?:fi|esac|done|end)\b\s*(?:#.*)?$/.test(s);
+  const startBlock = (s: string) => /^[^#]*[{(]\s*(?:#.*)?$/.test(s);
+  const endBlock = (s: string) => /^\s*\}/.test(s);
+  const functionDef = /^\s*\w+\s*\(\)\s*\{/.test(line) || /^\s*\{/.test(line) || /^\s*function\s*\S+\s*(?:\(\))?\s*\{/.test(line);
+  const array = /^\s*(?:(?:declare|typeset|local)\s+(?:-[Aalrtu]+\s+)?)?\w+=\(/.test(line);
+  let ind = indentWidth(line);
+
+  if (startBlock(line)) ind += SW;
+  else if (/^\s*(?:if|then|do|else|elif|case|while|until|for|select|foreach)\b(?:$|\s)/.test(line)) {
+    if (!endExpr(line)) ind += SW;
+  } else if (shCaseLabel(line, pnum < 0 ? null : pline)) {
+    if (!shCaseEnded(line)) ind += SW;
+  } else if (functionDef) {
+    if (!/\}\s*(?:#.*)?$/.test(line)) ind += SW;
+  } else if (array && !/\)\s*$/.test(line)) ind += SW;
+  else if (/^\s*\)$/.test(cur)) ind -= SW;
+  else if (shContinues(line)) {
+    if (pnum < 0 || !shContinues(pline)) ind += SW;
+  } else if (endBlock(line) && !startBlock(line)) ind -= SW;
+  else if (pnum >= 0 && shContinues(pline) && !endBlock(cur) && !endExpr(cur)) {
+    let first = pnum; // the line the continued command started on (s:find_continued_lnum)
+    while (first > 0 && shContinues(lines[first - 1])) first--;
+    const ind2 = indentWidth(lines[first]);
+    // sh.vim walks up from the current line while lines are not empty: it reaches pnum only when nothing between is blank.
+    const sameBlock = cur.trim() !== "" && lnum === n - 1 && pnum === lnum - 1;
+    ind = sameBlock && (shContinues(line) || /\{\s*(?:#.*)?$/.test(pline)) ? ind + ind2 : ind2;
+  }
+
+  if (/^\s*fi;?\s*(?:#.*)?$/.test(cur)) {
+    ind = indentWidth(cur);
+    // searchpair('^\s*\<if\>', '', '\<fi\>', 'bnW'): the if this fi closes, skipping inner if ... fi pairs.
+    let depth = 0;
+    for (let l = n - 1; l >= 0; l--) {
+      depth += (lines[l].match(/\bfi\b/g) ?? []).length;
+      if (/^\s*if\b/.test(lines[l]) && depth-- === 0) {
+        ind = indentWidth(lines[l]);
+        break;
+      }
+    }
+  } else if (/^\s*(?:then|do|else|elif|done|end)\b/.test(cur) || endBlock(cur)) ind -= SW;
+  else if (/^\s*esac\b/.test(cur)) {
+    const above = lines[n - 1] ?? "";
+    if (/^\s*case\b/.test(above)) ind -= SW;
+    else ind -= (shCaseLabel(line, line) && shCaseEnded(line) ? 0 : SW) + SW;
+  } else if (shCaseLabel(cur, line)) {
+    if (/^\s*case\b/.test(line)) ind = indentWidth(line) + SW;
+    else ind -= shCaseLabel(line, line) && shCaseEnded(line) ? 0 : SW;
+  } else if (/^\w+$/.test(cur) && lines.slice(0, n).some((s) => s.endsWith("<<" + cur) || s.endsWith("<<-" + cur))) ind = 0; // a here-document's end word
+  else if (/^\s*#/.test(cur) && !(lines[n - 1] ?? "").trim()) {
+    // A comment after a blank line keeps its indent, or takes the previous line's inside a { } block.
+    const inBlock = shOpenBrace(lines, n, 0) >= 0 && lines.slice(n + 1).some((s) => s.includes("}"));
+    return inBlock ? indentWidth(line) : indentWidth(cur);
+  }
+
+  if (/^\s*\}\s*$/.test(cur)) {
+    const open = shOpenBrace(lines, n, typed ? cur.length : 0);
+    if (open >= 0) return indentWidth(lines[open]);
+  }
+  return Math.max(ind, 0);
+}
+
 /** The line before the `where` of the where clause whose predicates end at line p (each ending in `,`), or -1. */
 function whereHeader(lines: string[], p: number, trimmed: (l: number) => string): number {
   for (let l = p; l >= 0; l = prevNonBlank(lines, l - 1)) {
@@ -1054,7 +1174,7 @@ function rustIndent(lines: string[], n: number): number {
 }
 
 /** Neovim's indent for line n of `lines` in `lang`, or a negative number (keep the autoindent); `cur` is the indent autoindent would give. */
-function langIndent(lang: string, lines: string[], n: number, cur: number): number {
+function langIndent(lang: string, lines: string[], n: number, cur: number, typed = false): number {
   switch (lang) {
     case "python": return pythonIndent(lines, n, cur);
     case "cpp": return cppIndent(lines, n);
@@ -1063,6 +1183,7 @@ function langIndent(lang: string, lines: string[], n: number, cur: number): numb
     case "go": return goIndent(lines, n);
     case "rust": return rustIndent(lines, n);
     case "lua": return luaIndent(lines, n);
+    case "bash": return shIndent(lines, n, typed);
     default: return -1;
   }
 }
@@ -1074,6 +1195,8 @@ const C_COMMENTS = ["cpp", "javascript", "typescript", "rust"];
 function commentLeader(lang: string, above: string): string {
   // lua: 'comments' is :---,:-- and without 'cindent' only a comment that starts the line continues.
   if (lang === "lua") return /^\s*---?\s*/.exec(above)?.[0].replace(/^\s*/, (s) => " ".repeat(indentWidth(s))) ?? "";
+  // sh: 'comments' is b:# (a blank must follow the #) and the ftplugin adds r and o to formatoptions.
+  if (lang === "bash") return /^\s*#(?=\s|$)\s*/.exec(above)?.[0].replace(/^\s*/, (s) => " ".repeat(indentWidth(s))) ?? "";
   if (!C_COMMENTS.includes(lang)) return "";
   const masked = maskCode([above], lang)[0];
   if (masked.comment < 0) return /^\s*\*(?!\/)/.test(above) ? " ".repeat(above.indexOf("*")) + "* " : "";
@@ -1088,7 +1211,7 @@ function newLineIndent(cm: CM, lines: string[], n: number, autoindent: string): 
   const lang = langOf(cm);
   const leader = commentLeader(lang, lines[n - 1] ?? "");
   // A // or -- line is indented by the indentexpr; cindent (C++, rust's fallback) keeps it under the comment above.
-  if (leader && (lang === "cpp" || lang === "rust" || !/^\s*(?:\/\/|--)/.test(leader))) return leader;
+  if (leader && (lang === "cpp" || lang === "rust" || !/^\s*(?:\/\/|--|#)/.test(leader))) return leader;
   if (leader) lines[n] = leader.trimStart() + lines[n];
   const cols = langIndent(lang, lines, n, indentWidth(autoindent));
   if (leader) return cols < 0 ? leader : " ".repeat(cols) + leader.trimStart();
@@ -1166,17 +1289,21 @@ function insertModeNewline(cm: CM): void {
  * python and typescript have no 0#.
  */
 const FIRST_KEYS: Record<string, string> = {
-  python: "{})]", cpp: "{})]#", javascript: "{})]#", typescript: "{})]", go: "{})]#", rust: "{}[]()", lua: "{})]#",
+  python: "{})]", cpp: "{})]#", javascript: "{})]#", typescript: "{})]", go: "{})]#", rust: "{}[]()", lua: "{})]#", bash: "{})]",
 };
 /** Word entries: `e` (else) and lua's 0=end, 0=until re-indent when the word's last letter is typed after blanks only. */
-const WORD_KEYS: Record<string, string[]> = { go: ["else"], lua: ["else", "end", "until"] };
+// sh.vim adds 0=then ... 0=;& and, so that `find` or `file` is put back after its `fi` moved it, 0=fin 0=fil 0=fip 0=fir 0=fix.
+const WORD_KEYS: Record<string, string[]> = {
+  go: ["else"], lua: ["else", "end", "until"],
+  bash: ["then", "do", "else", "elif", "fi", "esac", "done", "end", ";;", ";&", "fin", "fil", "fip", "fir", "fix"],
+};
 /** Keys that may re-indent the line they are typed on, always recorded as a key; python's =elif / =except are left out. */
 const ELECTRIC_KEYS = ["{", "}", ")", "]", "#", ":"];
 /**
  * Rust's ( [ and the last letters of the WORD_KEYS words: common in every language, so they
  * are recorded as a key only when they re-indent (r4ElectricMaybe) and as text otherwise.
  */
-const MAYBE_ELECTRIC_KEYS = ["(", "[", "e", "d", "l"];
+const MAYBE_ELECTRIC_KEYS = ["(", "[", "e", "d", "l", "n", "o", "f", "i", "c", ";", "&", "p", "r", "x"];
 /** The line a blank was last typed on in this insert (trackKey sets it, resolveInsertEntry clears it). */
 let blankTypedOn: { cm: CM; line: number } | null = null;
 
@@ -1188,6 +1315,7 @@ let blankTypedOn: { cm: CM; line: number } | null = null;
 function reindents(lang: string, ch: string, before: string, first: boolean): boolean {
   if (first && (FIRST_KEYS[lang] ?? "").includes(ch)) return true;
   if (WORD_KEYS[lang]?.includes(before)) return true;
+  if (lang === "bash" && ch === ")") return true; // sh.vim adds a plain `)`: any closing parenthesis
   if (ch !== ":") return false;
   if (lang === "python" || lang === "go") return true; // <:>: any colon
   // ":" after a case / label / access specifier; for "::" Vim tests the line with the second : as a blank (in_cinkeys).
@@ -1218,7 +1346,7 @@ function typeElectric(cm: CM, ch: string): void {
   const cur = cm.getCursor();
   const text = cm.getLine(cur.line);
   const lines = cm.cm6.state.doc.toString().split("\n");
-  const cols = langIndent(lang, lines, cur.line, indentWidth(text));
+  const cols = langIndent(lang, lines, cur.line, indentWidth(text), true);
   const lead = /^\s*/.exec(text)![0];
   if (cols < 0 || lead === " ".repeat(cols)) return;
   cm.replaceRange(" ".repeat(cols), { line: cur.line, ch: 0 }, { line: cur.line, ch: lead.length });

@@ -311,6 +311,9 @@ _QUOTED: Final = (
 _STRING_LITERAL: Final = re.compile(r"'(?:\\.|[^'\\])*'?|\"(?:\\.|[^\"\\])*\"?|`(?:\\.|[^`\\])*`?")
 _SLASH_COMMENTS: Final = frozenset({"cpp", "javascript", "typescript", "go", "rust"})  # line comment is `//`
 _DASH_COMMENTS: Final = frozenset({"lua"})  # line comment is `--`; `#` is Lua's length operator
+# Bash: `#` starts a comment only at the start of a word. `$#`, `${#name}` and `${name#x}` are code.
+_WORD_HASH_COMMENTS: Final = frozenset({"bash"})
+_WORD_HASH: Final = re.compile(r"(?:^|(?<=[\s;]))#")
 # A Rust lifetime or loop label (`'a`, `'static`): an apostrophe and an identifier with no
 # closing apostrophe, so not a char literal (`'a'`) and not the start of a string.
 _LIFETIME: Final = re.compile(r"'[A-Za-z_]\w*(?![\w'])")
@@ -340,10 +343,13 @@ def _repeat_problem(lines: Sequence[str], row: int, needle: str, task: str) -> s
 
 
 def _code_chars(line: str, lang: str) -> str:
-    """``line`` without its string literals and its trailing comment (and, in Rust, its lifetimes)."""
+    """``line`` without its string literals and its trailing comment (and, in Rust, its lifetimes).
+    Bash strings go whole, with the ``${...}`` and ``$(...)`` inside them."""
     if lang == "rust":
         line = _LIFETIME.sub("", line)
     code = _STRING_LITERAL.sub("", line)
+    if lang in _WORD_HASH_COMMENTS:
+        return _WORD_HASH.split(code, maxsplit=1)[0]
     leader = "//" if lang in _SLASH_COMMENTS else "--" if lang in _DASH_COMMENTS else "#"
     return code.split(leader, 1)[0]
 

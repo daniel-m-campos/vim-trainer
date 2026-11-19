@@ -28,7 +28,7 @@ DEFAULT_ENABLED_MAX_TIER: Final = 10
 
 LANGS: Final = (
     "lua", "python", "javascript", "typescript", "tsx", "jsx", "java", "csharp",
-    "c", "cpp", "go", "rust", "html", "json", "yaml", "markdown",
+    "c", "cpp", "go", "rust", "html", "json", "yaml", "markdown", "bash",
 )
 WEIGHT_COLUMNS: Final = {
     "Lua": ("lua",),
@@ -41,6 +41,7 @@ WEIGHT_COLUMNS: Final = {
     "HTML/JSX": ("html",),
     "JSON/YAML": ("json", "yaml"),
     "Markdown": ("markdown",),
+    "Bash": ("bash",),
 }
 WEIGHT_ROW_OVERRIDES: Final = {"comment edits": ("nv.comment",)}
 FLAG_WORDS: Final = ("full", "partial", "none", "verify")

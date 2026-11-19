@@ -380,6 +380,66 @@ lines) and `exercism-lua` (125 files, about 4,700 lines), all MIT and pinned in
 
 Every Go, Rust and Lua skill reaches the build cap of 40 except Rust o.case (34).
 
+## Bash
+
+Bash is the eighth content language: `src/vimtrainer_content/lang/bash.py`, written after
+`lua.py` and sharing the helpers in `lang/braces.py`. The source is `exercism-bash` (100
+files, MIT, pinned in `sources.toml`): each practice exercise's `.meta/example.sh`. The
+parser is `tree-sitter-bash` (0.25). The quality gate keeps 151 windows.
+
+- **Windows.** A file that tree-sitter-bash cannot parse is skipped whole (20 of the 100),
+  and a window with a heredoc is dropped, because its body is text that no drill may
+  re-indent. A function body longer than a window is cut into windows of its statements.
+  Comment rows are trimmed from the edges of a window.
+- **Re-indent.** `bash.reindent` turns each leading tab into four spaces and maps a
+  two-space file's indent `i` to `i + 2 * (i // 2)`. A file counts as two-space when at
+  least a quarter of its indented lines sit at 2 modulo 4. The rows inside a multi-line
+  string keep their text.
+- **Masking.** A double-quoted string is partly code: its words are masked, but `$name`,
+  `${...}` and `$(...)` inside it are code and can be drilled or renamed. `#` starts a
+  comment only at the start of a word, so gate 6 does not cut a Bash line at `$#`,
+  `${#name}` or `${name#x}`.
+- **Node -> skill.** `string` gives `ci"` / `di"` and `raw_string` gives `ci'` / `di'`
+  (t.quote). `expansion` (`${...}`) gives `ci{` (t.brace). `command_substitution`
+  (`$(...)`), `arithmetic_expansion` (`$((...))`) and `array` give `ci(` / `di(` (t.paren).
+  `subscript` gives `ci[` (t.bracket). An expansion or a subscript is changed and never
+  emptied, because `${}` and `name[]` are errors. `variable_name` gives the `ciw` rename
+  (t.word) and the `:%s` rename (x.subst), which also renames a function. A
+  `variable_assignment` gives `C` on its value (o.change). Functions, `if`, `for`, `while`
+  and `case` statements and trailing comments give o.delete. `{ }` function bodies give
+  `>i{`, and `then` / `else` / `do` bodies give a counted `>>` (o.indent). `%` (m.match)
+  and `])` / `]}` (n.unmatched) are drilled on brackets only.
+- **Replacement texts.** A replacement fits what it replaces: prose for a message, a
+  parameter for a quoted expansion, `[key]=value` pairs for a keyed array, a key word for
+  a bare subscript. No replacement holds a `)`, because the `sh` indent script re-indents
+  the line when one is typed.
+- **`split_pipeline`.** An x.subst drill of kind `ex`: `:s/ | / |\r        /g` breaks a
+  pipeline of three or more commands after each pipe, with the continuation lines one
+  level deeper than the first. It is made only where every ` | ` on the line is a pipe of
+  that one pipeline: none in a string, no `||`, no second pipeline, no trailing comment.
+- **Whole lines.** No drill deletes, cuts or moves the only statement of a block: Bash
+  rejects an empty `then`, `do` or function body. The shared register drills obey the same
+  rule, and `swap_words` only swaps two operands inside arithmetic.
+- **Left out.** No t.angle, o.case or x.normal: redirections are not pairs, and the corpus
+  has no constants or line groups that make a natural drill. `%` on `if` / `fi` (matchit
+  stops at `else`) is not drilled.
+
+The oracle uses Neovim's `bash` filetype, which loads the `sh` ftplugin and indent script
+(`indentexpr=GetShIndent()`). Its `indentkeys` re-indent on `)` and on `then`, `do`, `fi`,
+`done` and `esac` at the start of a line.
+
+Every Bash skill reaches the build cap of 40 except three. t.bracket has 15: subscripts
+are short, and gate 5 wants a text object to save enough keys. o.put has 10: its drill
+swaps two operands, and few arithmetic lines in the corpus have two long names. r.insert
+has none: its drill pastes a register into a call's parentheses, and a shell command has
+none. `split_pipeline` makes 5 drills, because long one-line pipelines are rare here.
+
+m.match builds 40 and serves 35. Five `%` pars pass in Neovim and fail in the browser
+replay, so they are left out of the index: two on a `${name[@]}` inside a string and three
+on a function's closing `}`. The browser's `%` asks the syntax highlighter whether a
+bracket sits in a string, and the shell highlighter does not always agree with the way
+Neovim pairs brackets.
+
 ## Register drills
 
 `src/vimtrainer_content/registers.py` holds the drills for registers. They are line

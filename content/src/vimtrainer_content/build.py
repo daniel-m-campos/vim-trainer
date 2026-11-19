@@ -45,7 +45,7 @@ from dataclasses import dataclass, field
 from typing import Any, Final
 
 from vimtrainer_content import gates, oracle, par_search, snippets, sources, templates
-from vimtrainer_content.lang import Language, cpp, go, js, lua, rust
+from vimtrainer_content.lang import Language, bash, cpp, go, js, lua, rust
 from vimtrainer_content.lang.python import LANG as PYTHON
 
 REPO_ROOT: Final = sources.CONTENT_DIR.parent
@@ -79,6 +79,7 @@ LANGS: Final = {
     "go": LangBuild(go.LANG, go.TARGET_SKILLS, go.windows, go.node_frequency, go.generate),
     "rust": LangBuild(rust.LANG, rust.TARGET_SKILLS, rust.windows, rust.node_frequency, rust.generate),
     "lua": LangBuild(lua.LANG, lua.TARGET_SKILLS, lua.windows, lua.node_frequency, lua.generate),
+    "bash": LangBuild(bash.LANG, bash.TARGET_SKILLS, bash.windows, bash.node_frequency, bash.generate),
 }
 DEFAULT_CAP: Final = 40
 JOBS_PER_PROCESS: Final = 400
@@ -474,9 +475,9 @@ def _attribution(exercises: Iterable[dict[str, Any]], used: list[tuple[sources.S
 
 _LANG_NAMES: Final = {
     "python": "Python", "cpp": "C++", "javascript": "JavaScript", "typescript": "TypeScript", "go": "Go",
-    "rust": "Rust", "lua": "Lua",
+    "rust": "Rust", "lua": "Lua", "bash": "Bash",
 }
-_REINDENTED: Final = frozenset({"javascript", "typescript", "go", "lua"})  # windows re-indented to four spaces
+_REINDENTED: Final = frozenset({"javascript", "typescript", "go", "lua", "bash"})  # windows re-indented to four spaces
 _MEMBER_WINDOWS: Final = frozenset({"javascript", "typescript", "go", "rust", "lua"})  # header + closing kept
 
 
