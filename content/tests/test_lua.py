@@ -7,7 +7,7 @@ import shutil
 
 import pytest
 
-from vimtrainer_content import gates, oracle, registers, snippets, sources, templates
+from vimtrainer_content import gates, oracle, registers, snippets, sources, splits, templates
 from vimtrainer_content.lang import lua
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
@@ -342,7 +342,7 @@ def test_every_lua_template_makes_drafts_on_the_fixtures():
                         made[name] += len(list(lua.LUA_NODE_TEMPLATES[name](win, node, use.skill, lua.LANG)))
             for use in lua.LANG.line_templates:
                 for name in use.templates:
-                    if name in registers.TEMPLATES:
+                    if name in registers.TEMPLATES or name in splits.TEMPLATES:
                         continue  # shared, not Lua's own
                     made[name] += len(list(lua.LUA_LINE_TEMPLATES[name](win, use.skill, lua.LANG)))
     assert not [name for name, n in made.items() if n == 0]

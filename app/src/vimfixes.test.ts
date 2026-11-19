@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  charAtDisplayCol, cursorCol, displayCol, joinLinesText, paragraphMotion, paragraphObject, quoteObject, shiftLine, spaceExAddress,
+  breakLinesInReplacement, charAtDisplayCol, cursorCol, displayCol, joinLinesText, paragraphMotion, paragraphObject, quoteObject, shiftLine, spaceExAddress,
 } from "./vimfixes.ts";
 
 test("J joins like do_join(): no space after trailing white space, before ')' or onto an empty line", () => {
@@ -99,4 +99,14 @@ test(":j{count} gets a space so the count is not read as part of the name", () =
   assert.equal(spaceExAddress(":2,3join5"), ":2,3join 5");
   assert.equal(spaceExAddress(":j"), ":j");
   assert.equal(spaceExAddress(":jumps"), ":jumps");
+});
+
+test(":s turns \\r in the replacement into a line break, and only there", () => {
+  assert.equal(breakLinesInReplacement("/, /,\\r    /g"), "/, /,\n    /g");
+  assert.equal(breakLinesInReplacement("/ -d / \\\\\\r  -d /g"), "/ -d / \\\\\n  -d /g"); // `\\` stays, `\r` breaks
+  assert.equal(breakLinesInReplacement("/a/\\\\r/"), "/a/\\\\r/"); // an escaped backslash, then a plain r
+  assert.equal(breakLinesInReplacement("/\\r/x/"), "/\\r/x/"); // the pattern is left alone
+  assert.equal(breakLinesInReplacement("#a/b#\\r#g"), "#a/b#\n#g"); // any separator
+  assert.equal(breakLinesInReplacement("/a\\/b/\\r/"), "/a\\/b/\n/"); // an escaped separator does not end the pattern
+  assert.equal(breakLinesInReplacement("/a/b"), "/a/b");
 });

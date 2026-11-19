@@ -78,6 +78,7 @@ interface CM {
   setSelections(ranges: Range[], primary?: number): void;
   getCursor(which?: string): P;
   setCursor(p: P): void;
+  getValue(): string; // the whole buffer
 }
 interface MotionArgs {
   selectedCharacter?: string;
@@ -1029,7 +1030,9 @@ function orderExRanges(exCommands: Record<string, ExFn>): void {
   }
 }
 
-// Fix 3: `:s//x/` with no last search gives E35 and changes nothing (codemirror-vim threw a TypeError); wraps exCommands.substitute in installVimFixes.
+// Fix 3: `:s//x/` with no last search gives E35 and changes nothing (codemirror-vim threw a TypeError),
+// `\r` in the replacement breaks the line (breakLinesInReplacement), and the cursor ends on the first
+// non-blank of the last substituted line; wraps exCommands.substitute in installVimFixes.
 function substituteNeedsPattern(orig: ExFn): ExFn {
   return function (this: unknown, cm, params) {
     const arg = params.argString ?? "";
@@ -1037,9 +1040,42 @@ function substituteNeedsPattern(orig: ExFn): ExFn {
     if (noPattern && !(Vim.getVimGlobalState_() as { query?: RegExp | null }).query) {
       throw new Error("E35: No previous regular expression"); // shown by codemirror-vim, caught by catchExErrors
     }
+    if (params.argString) params.argString = breakLinesInReplacement(params.argString);
+    const before = cm.getValue();
     orig.call(this, cm, params);
+    if (cm.getValue() !== before) {
+      // Vim ends on the first non-blank of the last substituted line (do_sub: beginline). codemirror-vim
+      // stops at the start of the last match, which is above that line when the replacement broke it.
+      const breaks = (params.argString ?? "").split("\n").length - 1;
+      const line = Math.min(cm.getCursor().line + breaks, cm.lastLine());
+      cm.setCursor({ line, ch: firstNonBlank(cm.getLine(line)) });
+    }
     neutralFoundMessage(cm);
   };
+}
+
+/**
+ * `\r` in the replacement of `:s/pat/rep/flags` is a line break in Vim (:help sub-replace-special);
+ * codemirror-vim inserts a carriage return character and leaves the line whole. Returns the
+ * argument with each such `\r` turned into a real newline, which codemirror-vim passes through.
+ * An escaped backslash before an `r` (`\\r`) is left alone, and so are the pattern and the flags.
+ * Called by substituteNeedsPattern.
+ */
+export function breakLinesInReplacement(arg: string): string {
+  const sep = arg[0];
+  let part = 0; // 0 the pattern, 1 the replacement, 2 the flags
+  let out = sep;
+  for (let i = 1; i < arg.length; i++) {
+    const c = arg[i];
+    if (c === "\\" && i + 1 < arg.length) {
+      const next = arg[++i]; // a backslash always takes the next character with it
+      out += part === 1 && next === "r" ? "\n" : c + next;
+    } else {
+      if (c === sep && part < 2) part++;
+      out += c;
+    }
+  }
+  return out;
 }
 
 /** A successful `:s` leaves "Found N matches" in codemirror-vim's red error style; recolour it muted (QA #21). Called by substituteNeedsPattern. */

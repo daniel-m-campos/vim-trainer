@@ -31,7 +31,7 @@ in the current language, so the model only rotates through drillable skills (a T
 Emulator: `src/vimfixes.ts` patches the places where codemirror-vim differs from `nvim --clean`
 (numbered fixes in its header: exclusive and linewise ranges, a failing motion aborting its
 operator, `>`/`<` on empty lines, cursor placement after `y`/`g~`/`p`, `J`, counts, `:m` / `:t` /
-`:copy`, case-sensitive search, block objects). It reaches codemirror-vim's private motion,
+`:copy`, case-sensitive search, block objects, `\r` and the cursor after `:s`). It reaches codemirror-vim's private motion,
 operator and action tables through `grabTable()` and wraps entries. `src/vimfixes-macros-indent.ts`
 (installed by `installVimFixes()`) handles macros and `:normal` (a failing command aborts them,
 with a recursion guard), Python/C++/JavaScript/TypeScript/Go/Rust/Lua auto-indent, Insert-mode `<C-w>`, `:j` and ex errors. Pure
@@ -195,6 +195,22 @@ An exercise may preload registers (`start.registers`) and may grade them
   the buffer is right and a register is not.
 - `e2e/editor.mjs` types a collect drill in the browser and checks that the final yank
   passes it, and that `"ayy` in place of `"Ayy` does not.
+
+## Reading note: line breaks in `:s`
+
+The split drill types `:s/, /,\r    /g`. In Vim a `\r` in the replacement breaks the line.
+codemirror-vim inserted a carriage return character and left the line whole. The fix is in
+`substituteNeedsPattern` in `src/vimfixes.ts`, the wrapper around the `:s` command:
+
+- `breakLinesInReplacement(arg)` walks the argument (`/pattern/replacement/flags`) and turns
+  each `\r` in the replacement into a real newline. It reads a backslash together with the
+  character after it, so `\\r` (an escaped backslash, then an `r`) is left alone, and so is
+  a `\r` in the pattern. It is a pure function, tested in `src/vimfixes.test.ts`.
+- After the command the wrapper puts the cursor on the first non-blank of the last
+  substituted line, as Vim does. codemirror-vim left it at the start of the last match,
+  which is one line too high once the replacement has broken the line.
+- `e2e/cases/editor.json` has three cases that type such a substitution in the browser and
+  compare lines and cursor with Neovim.
 
 ## Reading note: errors and version
 

@@ -443,3 +443,50 @@ Choices that keep the drills honest:
   emulator does not repeat `<C-r>` in a change, and it has no visual `P`.
 
 Every register skill reaches the build cap of 40 in all seven languages.
+
+## Split drill
+
+`src/vimtrainer_content/splits.py` holds one line template, `split_line`, for `x.subst`. It
+is the mirror of `join_lines`: the start buffer has a call or a collection on one line, and
+the task is to put each item on its own line with one substitution.
+
+```
+:s/, /,\r           /g
+```
+
+In the replacement of `:s`, `\r` is a line break and `\n` inserts a null byte
+(`:help sub-replace-special`). The exercise is kind `ex`, like every `x.subst` exercise, so
+only an Ex command passes.
+
+It reads the text of a line and needs no grammar, so every language runs it
+(`*splits.USES` in each language's `line_templates`). The build takes drafts round-robin
+across the templates of a skill, so the 40 `x.subst` exercises of a language are now a mix
+of renames and splits.
+
+### Which lines
+
+`_group(line)` accepts a line with exactly one bracket group that the substitution can split:
+
+- 3 to 6 items directly inside the group, each comma followed by one space.
+- No other `, ` anywhere on the line: not in a string, a nested call, a second group or a
+  comment. `:s/, /../g` would break the line there too.
+- The group is at least 28 characters long, and at most 3 characters follow its closing
+  bracket (`);`, `) {`, `):`). `pair = (a, b, c)` and `let (a, b, c) = long_call();` are
+  left alone: nobody wraps those.
+- Every item holds a letter or a digit. A row of blank strings is data, not a call to wrap.
+- Brackets and quotes pair up on the line.
+
+### Two wrap styles
+
+| style | when | continuation lines | task says |
+|---|---|---|---|
+| under | the first item starts at column 16 or less | lined up under the first item | "lined up under `first` (N spaces)" |
+| deeper | otherwise | the statement's indent plus 4 | "indented one level deeper (N spaces)" |
+
+The task always gives the number of spaces, since they are typed into the command line.
+Lining up under a bracket at column 25 would mean typing 25 spaces, so those lines use the
+second style.
+
+The anti-shortcut gate (gate 5) applies as usual, with the indent counted as text every
+solution has to type. It rejects short lines, where retyping costs less than three times
+the substitution.

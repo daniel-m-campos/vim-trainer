@@ -40,7 +40,7 @@ from typing import Final
 import tree_sitter
 import tree_sitter_go
 
-from vimtrainer_content import registers, snippets, templates
+from vimtrainer_content import registers, snippets, splits, templates
 from vimtrainer_content.lang import Language, Use, braces
 from vimtrainer_content.snippets import Window, pick
 from vimtrainer_content.templates import Draft
@@ -207,7 +207,7 @@ _NODES: Final = {
     "var_spec": _ASSIGN,
     "const_spec": _ASSIGN,
 }
-_LINE_TEMPLATES: Final = (Use("m.rel", ("go_goto_line_rel",)), Use("m.find", ("go_find_char",)), *registers.USES)
+_LINE_TEMPLATES: Final = (Use("m.rel", ("go_goto_line_rel",)), Use("m.find", ("go_find_char",)), *registers.USES, *splits.USES)
 _FIND_TARGETS: Final = ("(", ")", "{", "}", "[", "]", ",", "=", ".", ":=", ":")
 
 LANG = Language(
