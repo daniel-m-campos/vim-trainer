@@ -95,3 +95,15 @@ include = [
   "exercises/practice/*/.meta/example.lua",
   "exercises/concept/*/.meta/exemplar.lua",
 ]
+
+[[source]]
+name = "exercism-bash"
+lang = "bash"
+repo = "github.com/exercism/bash"
+url = "https://github.com/exercism/bash"
+commit = "86938160670a5e071b38dc7b8ac3091288b4b2bf"
+license = "MIT"
+license_file = "LICENSE"
+include = [
+  "exercises/practice/*/.meta/example.sh",
+]

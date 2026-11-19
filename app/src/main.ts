@@ -32,7 +32,7 @@ import type { ContentIndex, EditorProfile, EscapePref, Exercise, Settings } from
 
 const LANGS: [string, string][] = [
   ["python", "Python"], ["cpp", "C++"], ["typescript", "TypeScript"], ["javascript", "JavaScript"],
-  ["go", "Go"], ["rust", "Rust"], ["lua", "Lua"],
+  ["go", "Go"], ["rust", "Rust"], ["lua", "Lua"], ["bash", "Bash"],
 ];
 const PROFILES: [EditorProfile, string, string][] = [
   ["neovim", "Neovim / Vim", "everything"],

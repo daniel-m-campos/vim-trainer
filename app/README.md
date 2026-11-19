@@ -34,7 +34,7 @@ operator, `>`/`<` on empty lines, cursor placement after `y`/`g~`/`p`, `J`, coun
 `:copy`, case-sensitive search, block objects, `\r` and the cursor after `:s`). It reaches codemirror-vim's private motion,
 operator and action tables through `grabTable()` and wraps entries. `src/vimfixes-macros-indent.ts`
 (installed by `installVimFixes()`) handles macros and `:normal` (a failing command aborts them,
-with a recursion guard), Python/C++/JavaScript/TypeScript/Go/Rust/Lua auto-indent, Insert-mode `<C-w>`, `:j` and ex errors. Pure
+with a recursion guard), Python/C++/JavaScript/TypeScript/Go/Rust/Lua/Bash auto-indent, Insert-mode `<C-w>`, `:j` and ex errors. Pure
 helpers are unit-tested in `src/vimfixes.test.ts`. `e2e/editor.mjs` types the key sequences in
 `e2e/cases/*.json` and compares the result with Neovim's. The cases are inputs only: a buffer, a
 start cursor and keys. Before the browser starts, the harness runs `uv run vimtrainer-content
@@ -176,6 +176,36 @@ current entry (so `Esc` and Back agree), otherwise `redirect("practice")`.
 - Go's `formatoptions` (`cqj`) have no `r` or `o`, so a new line after `//` gets no comment
   leader. Lua continues `--` only when it starts the line; rust, like C++, also continues a
   trailing `//` comment, because Neovim does that only when `cindent` is set.
+
+## Reading note: Bash indent
+
+- The editor uses CodeMirror's legacy `shell` mode for Bash. That mode reports its name as
+  `shell`, so `langOf` in `src/vimfixes-macros-indent.ts` maps it to `bash`, the name the
+  exercises use.
+- Neovim indents the `bash` filetype with `indent/sh.vim` (`GetShIndent`). `shIndent` is a
+  port of it. The previous non-blank line decides first: one level in after `{`, `(`, a line
+  starting with `if`, `then`, `do`, `else`, `for`, `while` or `case`, a case label, or the
+  first line of a command continued with `\`, `|`, `&&` or `||`. Then the line itself: `fi`
+  goes under its `if`, `then` / `do` / `else` / `done` go one level out, and a lone `}` goes
+  under its `{`.
+- The oracle runs without syntax highlighting, so `sh.vim` cannot tell a string or a comment
+  from code. A `{` at the end of a string still indents the next line, and the port does the
+  same.
+- Some results look odd and are Neovim's: after a `}` on its own line the next line goes one
+  level out again, so the line after a nested function lands in column 0. The port follows
+  Neovim, and `e2e/cases/bash-indent.json` has that case.
+- `sh.vim` re-indents a line when a keyword is completed at its start: `then`, `do`, `else`,
+  `elif`, `fi`, `esac`, `done`, `;;`. `WORD_KEYS.bash` lists them. It also lists `fin`,
+  `fil`, `fip`, `fir` and `fix`: typing `find` first reads as `fi` and moves the line out, and
+  the next letter moves it back. Their last letters are Insert-mode keys
+  (`MAYBE_ELECTRIC_KEYS`), recorded as a key only when they re-indent.
+- Any `)` re-indents its line, not only one typed first on the line.
+- A new line after a comment line starts with `# `. The `#` must be followed by a blank, so
+  a `#!` line is not continued.
+- Known gap: `%` in Bash. codemirror-vim skips a bracket that the highlighter marks as part
+  of a string, and the legacy shell mode marks some `${name[@]}` brackets and some function
+  bodies differently from the way Neovim pairs them. Five `%` drills fail the browser
+  replay for that reason and are not served.
 
 ## Reading note: register drills
 
